@@ -1,0 +1,2898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SquashTime — Anytime, Anywhere</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;500;600;700;800;900&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: #060c06; color: #e0ece0; font-family: 'Quicksand', sans-serif; }
+    ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #0a100a; } ::-webkit-scrollbar-thumb { background: #1e3020; border-radius: 3px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+    input { transition: border-color 0.15s; }
+    input:focus { border-color: #3de05a !important; outline: none; }
+    a { color: inherit; text-decoration: none; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+// SquashTime — Coach Data & Components
+
+const FITNESS_COLOR = '#e04040';
+
+const COACHES = [
+{
+  id: 1, name: 'Mohamed Reda', level: 'Senior', price: 125,
+  title: 'Head Senior Coach',
+  bio: 'Formerly ranked in the Top 50 PSA World Tour with 15+ years of competitive and coaching experience. Specializes in transforming junior players into tournament champions.',
+  specialties: ['Tournament Strategy', 'Mental Toughness', 'Advanced Footwork'],
+  rating: 4.9, sessions: 312,
+  sessionTypes: ['tournament', 'personal']
+},
+{
+  id: 2, name: 'Shehab Essam', level: 'Senior', price: 125,
+  title: 'Senior Performance Coach',
+  bio: 'Elite performance specialist with a track record of developing nationally ranked juniors. Known for high-intensity, results-driven coaching.',
+  specialties: ['Physical Conditioning', 'Shot Accuracy', 'Tactical Play'],
+  rating: 4.8, sessions: 248,
+  sessionTypes: ['tournament', 'personal']
+},
+{
+  id: 3, name: 'Menna Nasser', level: 'Senior', price: 125,
+  title: 'Senior Technical Coach',
+  bio: 'Former national team player with unmatched expertise in swing mechanics and court geometry. Excels at video analysis and technical correction.',
+  specialties: ['Swing Mechanics', 'Court Positioning', 'Video Analysis'],
+  rating: 4.9, sessions: 195,
+  sessionTypes: ['tournament', 'personal']
+},
+{
+  id: 8, name: 'Samir El Degwi', level: 'Fitness', price: 125,
+  title: 'Head Fitness & Conditioning Coach',
+  bio: 'Elite strength and conditioning specialist with extensive experience developing high-performance squash athletes. Samir designs personalized programs that maximize on-court explosiveness, endurance, and injury resilience.',
+  specialties: ['Strength & Conditioning', 'Athletic Performance', 'Injury Prevention'],
+  rating: 4.9, sessions: 0,
+  sessionTypes: ['personal'],
+  fitnessOnly: true
+},
+{
+  id: 4, name: 'Mohamed Rostom', level: 'Junior', founder: true, price: 90,
+  title: 'Junior Coach & Founder',
+  bio: 'Founder of SquashTime. On a mission to bring world-class squash coaching to junior players across the United States — anytime, anywhere.',
+  specialties: ['Junior Development', 'Fundamentals', 'Tournament Prep'],
+  rating: 4.8, sessions: 156,
+  sessionTypes: ['tournament', 'personal']
+},
+{
+  id: 5, name: 'Youssef Bastawy', level: 'Junior', price: 90,
+  title: 'Junior Development Coach',
+  bio: 'Energetic and encouraging coach who builds strong technical foundations and a genuine love for squash in players of all ages.',
+  specialties: ['Beginner Foundation', 'Rally Building', 'Match Play'],
+  rating: 4.7, sessions: 98,
+  sessionTypes: ['tournament', 'personal']
+},
+{
+  id: 6, name: 'Mohamed Walid', level: 'Junior', price: 90,
+  title: 'Junior Performance Coach',
+  bio: 'Dynamic coach focused on athletic development and structured skill-building. Helps juniors reach their next competitive level.',
+  specialties: ['Fitness & Agility', 'Solo Drills', 'Game Structure'],
+  rating: 4.7, sessions: 87,
+  sessionTypes: ['tournament', 'personal']
+},
+{
+  id: 7, name: 'Alaa Gomaa', level: 'Junior', price: 90,
+  title: 'Junior Skills Coach',
+  bio: 'Specialist in skills-based coaching for competitive juniors. Creates a positive, growth-focused environment in every session.',
+  specialties: ['Technical Skills', 'Volley & Drop', 'Competition Mindset'],
+  rating: 4.6, sessions: 72,
+  sessionTypes: ['tournament', 'personal']
+}];
+
+
+const UPCOMING_TOURNAMENTS = [
+{ id: 1, name: 'US Junior Open 2026', location: 'Chicago, IL', dates: 'May 2–4, 2026' },
+{ id: 2, name: 'National Junior Championships', location: 'Boston, MA', dates: 'May 9–11, 2026' },
+{ id: 3, name: 'Mid-Atlantic Junior Classic', location: 'Philadelphia, PA', dates: 'May 16–18, 2026' },
+{ id: 4, name: 'Northeast Junior Invitational', location: 'New York, NY', dates: 'May 23–25, 2026' },
+{ id: 5, name: 'Great Lakes Junior Open', location: 'Cleveland, OH', dates: 'May 30 – Jun 1, 2026' },
+{ id: 6, name: 'Southeast Junior Championships', location: 'Atlanta, GA', dates: 'Jun 6–8, 2026' },
+{ id: 7, name: 'Junior PSA Challenger Series', location: 'Washington, DC', dates: 'Jun 13–15, 2026' }];
+
+
+// ── Dynamic Availability System ──────────────────────────────────────────────
+
+function getCoachBlockedKey(coachId) {return `squashtime_coach_blocked_${coachId}`;}
+
+function getCoachBlockedSlots(coachId) {
+  try {return JSON.parse(localStorage.getItem(getCoachBlockedKey(coachId)) || '{}');}
+  catch {return {};}
+}
+
+function toggleCoachBlockedSlot(coachId, dateStr, time) {
+  const blocked = getCoachBlockedSlots(coachId);
+  const slots = blocked[dateStr] || [];
+  if (slots.includes(time)) {
+    blocked[dateStr] = slots.filter((s) => s !== time);
+    if (!blocked[dateStr].length) delete blocked[dateStr];
+  } else {
+    blocked[dateStr] = [...slots, time];
+  }
+  localStorage.setItem(getCoachBlockedKey(coachId), JSON.stringify(blocked));
+}
+
+function getCoachBookedSlotsFromSessions(coachId) {
+  try {
+    const coach = COACHES.find((c) => c.id === coachId);
+    if (!coach) return {};
+    const all = JSON.parse(localStorage.getItem('squashtime_sessions') || '{}');
+    const booked = {};
+    Object.values(all).forEach((userSessions) => {
+      (userSessions || []).forEach((session) => {
+        if (session.coachName === coach.name && session.status === 'active') {
+          const dateStr = session.date ? new Date(session.date).toDateString() : null;
+          if (dateStr && session.time) {
+            booked[dateStr] = [...(booked[dateStr] || []), session.time];
+          }
+        }
+      });
+    });
+    return booked;
+  } catch {return {};}
+}
+
+function getBaseAvailability(coachId) {
+  const availability = {};
+  const today = new Date();
+  for (let i = 1; i <= 42; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() + i);
+    const hash = (date.getDate() * 13 + coachId * 7 + date.getMonth() * 3) % 10;
+    if (hash > 2) {
+      const allSlots = ['8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM', '6:00 PM', '7:00 PM', '8:00 PM'];
+      const slots = allSlots.filter((_, idx) => (date.getDate() + idx * 3 + coachId * 2) % 4 !== 0);
+      if (slots.length > 0) availability[date.toDateString()] = slots;
+    }
+  }
+  return availability;
+}
+
+// Real-time availability: base minus blocked minus already-booked
+function getCoachAvailability(coachId) {
+  const base = getBaseAvailability(coachId);
+  const blocked = getCoachBlockedSlots(coachId);
+  const booked = getCoachBookedSlotsFromSessions(coachId);
+  const result = {};
+  for (const [dateStr, slots] of Object.entries(base)) {
+    const filtered = slots.filter((slot) =>
+    !(blocked[dateStr] || []).includes(slot) &&
+    !(booked[dateStr] || []).includes(slot)
+    );
+    if (filtered.length > 0) result[dateStr] = filtered;
+  }
+  return result;
+}
+
+// Kept for backward-compat — booking.jsx calls getCoachAvailability directly now
+const COACH_AVAILABILITY = {};
+COACHES.forEach((c) => {COACH_AVAILABILITY[c.id] = getCoachAvailability(c.id);});
+
+function getAvailableCoaches(dateStr, timeSlot) {
+  return COACHES.filter((coach) => {
+    const slots = getCoachAvailability(coach.id)[dateStr];
+    if (!slots) return false;
+    if (!timeSlot) return slots.length > 0;
+    return slots.includes(timeSlot);
+  });
+}
+
+function getInitials(name) {
+  return name.split(' ').slice(0, 2).map((w) => w[0]).join('');
+}
+
+function coachAccentColor(coach) {
+  if (coach.level === 'Fitness') return FITNESS_COLOR;
+  if (coach.level === 'Senior') return '#3de05a';
+  return '#3ab0e0';
+}
+
+// ── Coach Avatar ──────────────────────────────────────────────────────────────
+
+function CoachAvatar({ coach, size = 'md' }) {
+  const pxMap = { xs: 32, sm: 42, md: 58, lg: 80, xl: 104 };
+  const px = pxMap[size] || 58;
+  const accent = coachAccentColor(coach);
+  const bgMap = {
+    Senior: 'linear-gradient(135deg,#0e2a18,#162e1e)',
+    Fitness: 'linear-gradient(135deg,#2a0e0e,#2e1616)',
+    Junior: 'linear-gradient(135deg,#0e1a2e,#162230)'
+  };
+  return (
+    <div style={{
+      width: px, height: px, borderRadius: '50%', flexShrink: 0,
+      background: bgMap[coach.level] || bgMap.Junior,
+      border: `2px solid ${accent}33`,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontFamily: "'League Spartan', sans-serif", fontWeight: 800,
+      fontSize: px * 0.32, color: accent, letterSpacing: '0.04em'
+    }}>
+      {getInitials(coach.name)}
+    </div>);
+
+}
+
+function StarRating({ rating }) {
+  return (
+    <span style={{ color: '#f0b429', fontSize: 12, letterSpacing: 1 }}>
+      {'★'.repeat(Math.floor(rating))}{'☆'.repeat(5 - Math.floor(rating))}
+      <span style={{ color: '#6a8a6a', marginLeft: 4, fontFamily: "'Quicksand',sans-serif" }}>{rating}</span>
+    </span>);
+
+}
+
+// ── Coach Card ────────────────────────────────────────────────────────────────
+
+function CoachCard({ coach, onClick, selected = false, compact = false }) {
+  const [hov, setHov] = React.useState(false);
+  const accent = coachAccentColor(coach);
+  const isFitness = coach.level === 'Fitness';
+
+  const bgSelected = isFitness ? '#1e0a0a' : coach.level === 'Senior' ? '#0a1e10' : '#0a1020';
+
+  return (
+    <div
+      onClick={() => onClick && onClick(coach)}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        background: selected ? bgSelected : hov ? '#111811' : '#0d150d',
+        border: `1px solid ${selected ? accent : hov ? '#243024' : '#182018'}`,
+        borderRadius: 14, padding: compact ? '14px 16px' : '22px',
+        cursor: onClick ? 'pointer' : 'default',
+        transition: 'all 0.18s ease', position: 'relative',
+        boxShadow: selected ? `0 0 0 1px ${accent}30, 0 4px 24px #00000040` : hov ? '0 4px 20px #00000030' : 'none'
+      }}>
+      
+      {/* Level badge */}
+      <div style={{
+        position: 'absolute', top: 12, right: 12,
+        background: isFitness ? '#2a0e0e' : coach.level === 'Senior' ? '#0d2218' : '#0d1828',
+        color: accent, fontSize: 10, fontWeight: 700,
+        letterSpacing: '0.12em', padding: '3px 8px', borderRadius: 5,
+        fontFamily: "'League Spartan', sans-serif", textTransform: 'uppercase'
+      }}>
+        {coach.level}{coach.founder ? ' · Founder' : ''}
+      </div>
+
+      <div style={{ display: 'flex', gap: 14, alignItems: compact ? 'center' : 'flex-start' }}>
+        <CoachAvatar coach={coach} size={compact ? 'sm' : 'md'} />
+        <div style={{ flex: 1, minWidth: 0, paddingRight: 60 }}>
+          <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: compact ? 15 : 19, color: '#e8f0e8', marginBottom: 1 }}>
+            {coach.name}
+          </div>
+          <div style={{ fontSize: 12, color: '#5a7060', fontFamily: "'Quicksand',sans-serif", marginBottom: compact ? 0 : 8 }}>
+            {coach.title}
+          </div>
+
+          {!compact &&
+          <>
+              <div style={{ fontSize: 13, color: '#7a9080', fontFamily: "'Quicksand',sans-serif", lineHeight: 1.6, marginBottom: 12 }}>
+                {coach.bio}
+              </div>
+              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: isFitness ? 10 : 14 }}>
+                {coach.specialties.map((s) =>
+              <span key={s} style={{
+                background: isFitness ? '#1a0a0a' : '#091209',
+                border: `1px solid ${isFitness ? '#3a1212' : '#182018'}`,
+                color: isFitness ? '#a05050' : '#5a7860',
+                fontSize: 11, padding: '3px 9px', borderRadius: 5,
+                fontFamily: "'Quicksand',sans-serif", fontWeight: 600
+              }}>{s}</span>
+              )}
+                {isFitness &&
+              <span style={{
+                background: '#2a0808', border: `1px solid ${FITNESS_COLOR}`,
+                color: FITNESS_COLOR, fontSize: 11, padding: '3px 9px', borderRadius: 5,
+                fontFamily: "'Quicksand',sans-serif", fontWeight: 700
+              }}>Personal Only</span>
+              }
+              </div>
+              {isFitness &&
+            <div style={{ border: '1px solid #2a1010', borderRadius: 8, padding: '8px 12px', marginBottom: 14, background: "rgb(24, 14, 14)" }}>
+                  <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 12, color: '#8a5050', lineHeight: 1.6 }}>
+                    Premium members only · First-come, first-served · No tournament coaching
+                  </div>
+                </div>
+            }
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 22, color: accent }}>
+                  ${coach.price}<span style={{ fontSize: 12, color: '#3a5040', fontWeight: 500 }}>/hr</span>
+                </div>
+              </div>
+            </>
+          }
+
+          {compact &&
+          <div style={{ fontSize: 14, color: accent, fontFamily: "'League Spartan',sans-serif", fontWeight: 700 }}>
+              ${coach.price}/hr
+            </div>
+          }
+        </div>
+      </div>
+    </div>);
+
+}
+
+// ── Coach Schedule Manager (for Coach Portal) ────────────────────────────────
+
+function CoachScheduleManager({ coach }) {
+  const MONTHS_LIST = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const DAYS_LIST = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  const today = new Date();
+  const [viewMonth, setViewMonth] = React.useState(today.getMonth());
+  const [viewYear, setViewYear] = React.useState(today.getFullYear());
+  const [selectedDate, setSelectedDate] = React.useState(null);
+  const [tick, setTick] = React.useState(0);
+
+  const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const cells = [];
+  for (let i = 0; i < firstDay; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  function prevMonth() {if (viewMonth === 0) {setViewMonth(11);setViewYear((y) => y - 1);} else setViewMonth((m) => m - 1);}
+  function nextMonth() {if (viewMonth === 11) {setViewMonth(0);setViewYear((y) => y + 1);} else setViewMonth((m) => m + 1);}
+
+  function hasBaseSlots(d) {
+    if (!d) return false;
+    const dt = new Date(viewYear, viewMonth, d);
+    if (dt <= today) return false;
+    return (getBaseAvailability(coach.id)[dt.toDateString()] || []).length > 0;
+  }
+
+  const selStr = selectedDate ? selectedDate.toDateString() : null;
+  const baseSlots = selStr ? getBaseAvailability(coach.id)[selStr] || [] : [];
+  const blocked = selStr ? getCoachBlockedSlots(coach.id)[selStr] || [] : [];
+  const booked = selStr ? getCoachBookedSlotsFromSessions(coach.id)[selStr] || [] : [];
+
+  function handleToggle(time) {
+    if (booked.includes(time)) return;
+    toggleCoachBlockedSlot(coach.id, selStr, time);
+    setTick((t) => t + 1);
+  }
+
+  // Slot counts for stats
+  const allBlocked = getCoachBlockedSlots(coach.id);
+  const totalBlockedCount = Object.values(allBlocked).reduce((s, a) => s + a.length, 0);
+  const allBooked = getCoachBookedSlotsFromSessions(coach.id);
+  const totalBookedCount = Object.values(allBooked).reduce((s, a) => s + a.length, 0);
+
+  return (
+    <div>
+      {/* Stats row */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
+        {[
+        { label: 'Upcoming Bookings', value: totalBookedCount, color: '#f0b429' },
+        { label: 'Slots Blocked', value: totalBlockedCount, color: '#e04040' }].
+        map((s) =>
+        <div key={s.label} style={{ background: '#0a140a', border: '1px solid #182018', borderRadius: 12, padding: '14px 22px', flex: 1 }}>
+            <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 26, color: s.color }}>{s.value}</div>
+            <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 12, color: '#4a6050', marginTop: 2 }}>{s.label}</div>
+          </div>
+        )}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 20, alignItems: 'start' }}>
+        {/* Calendar */}
+        <div style={{ background: '#091209', border: '1px solid #182018', borderRadius: 14, padding: 20, userSelect: 'none', minWidth: 280 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <button onClick={prevMonth} style={{ background: 'none', border: 'none', color: '#5a8060', fontSize: 22, cursor: 'pointer', padding: '0 8px', lineHeight: 1 }}>‹</button>
+            <span style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, color: '#c8e0c8', fontSize: 15 }}>{MONTHS_LIST[viewMonth]} {viewYear}</span>
+            <button onClick={nextMonth} style={{ background: 'none', border: 'none', color: '#5a8060', fontSize: 22, cursor: 'pointer', padding: '0 8px', lineHeight: 1 }}>›</button>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 2, marginBottom: 6 }}>
+            {DAYS_LIST.map((d) => <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 700, color: '#3a5040', fontFamily: "'League Spartan',sans-serif", letterSpacing: '0.06em', paddingBottom: 4 }}>{d}</div>)}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 2 }}>
+            {cells.map((d, i) => {
+              const has = hasBaseSlots(d);
+              const dt = d ? new Date(viewYear, viewMonth, d) : null;
+              const isSel = dt && selectedDate && dt.toDateString() === selectedDate.toDateString();
+              const isPast = dt && dt <= today;
+              return (
+                <div key={i} onClick={() => {if (has && dt) setSelectedDate(dt);}} style={{
+                  aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  borderRadius: 8, fontSize: 13, fontFamily: "'Quicksand',sans-serif", fontWeight: 600,
+                  cursor: has ? 'pointer' : 'default',
+                  background: isSel ? '#3de05a' : has ? '#0d1f0d' : 'transparent',
+                  color: isSel ? '#050d05' : has ? '#a0c8a0' : d && !isPast ? '#3a4e3a' : d ? '#222' : 'transparent',
+                  position: 'relative'
+                }}>
+                  {d}
+                  {has && !isSel && <div style={{ position: 'absolute', bottom: 3, left: '50%', transform: 'translateX(-50%)', width: 4, height: 4, borderRadius: '50%', background: '#3de05a60' }} />}
+                </div>);
+
+            })}
+          </div>
+          {/* Legend */}
+          <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 6, paddingTop: 12, borderTop: '1px solid #182018' }}>
+            {[['#3de05a', 'Available'], ['#e04040', 'Blocked by you'], ['#f0b429', 'Booked by player']].map(([c, l]) =>
+            <div key={l} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <div style={{ width: 10, height: 10, borderRadius: 2, background: c }} />
+                <span style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 11, color: '#5a7060' }}>{l}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Slot panel */}
+        {!selectedDate ?
+        <div style={{ background: '#091209', border: '1px solid #182018', borderRadius: 14, padding: '40px 24px', textAlign: 'center' }}>
+            <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 18, color: '#4a6050', marginBottom: 10 }}>Select a Date</div>
+            <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#3a5040', lineHeight: 1.7 }}>
+              Pick a highlighted date to manage your availability.<br />
+              Click any slot to block or unblock it.
+            </div>
+          </div> :
+
+        <div style={{ background: '#091209', border: '1px solid #182018', borderRadius: 14, padding: '22px' }}>
+            <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 18, color: '#d0e8d0', marginBottom: 4 }}>
+              {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            </div>
+            <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 12, color: '#4a6050', marginBottom: 18 }}>
+              Click a slot to toggle availability. Booked slots cannot be modified.
+            </div>
+            {baseSlots.length === 0 ?
+          <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 14, color: '#3a5040', padding: '16px 0' }}>No slots for this day.</div> :
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
+                {baseSlots.map((slot) => {
+              const isBooked = booked.includes(slot);
+              const isBlocked = blocked.includes(slot);
+              let bg, border, color, label;
+              if (isBooked) {bg = '#1a1200';border = '#f0b42940';color = '#f0b429';label = 'Booked';} else
+              if (isBlocked) {bg = '#1a0808';border = '#e0404060';color = '#e04040';label = 'Blocked';} else
+              {bg = '#0a1e10';border = '#3de05a40';color = '#3de05a';label = 'Available';}
+              return (
+                <div key={slot} onClick={() => handleToggle(slot)} style={{
+                  background: bg, border: `1px solid ${border}`, borderRadius: 10, padding: '12px 8px',
+                  cursor: isBooked ? 'not-allowed' : 'pointer',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                  opacity: isBooked ? 0.7 : 1, transition: 'all 0.14s'
+                }}>
+                      <span style={{ fontFamily: "'Quicksand',sans-serif", fontWeight: 700, fontSize: 13, color }}>{slot}</span>
+                      <span style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 9, color, letterSpacing: '0.1em', textTransform: 'uppercase', opacity: 0.8 }}>{label}</span>
+                    </div>);
+
+            })}
+              </div>
+          }
+          </div>
+        }
+      </div>
+    </div>);
+
+}
+
+Object.assign(window, {
+  COACHES, COACH_AVAILABILITY, UPCOMING_TOURNAMENTS, FITNESS_COLOR,
+  getAvailableCoaches, getCoachAvailability, getBaseAvailability,
+  getCoachBlockedSlots, toggleCoachBlockedSlot, getCoachBookedSlotsFromSessions,
+  getInitials, coachAccentColor,
+  CoachAvatar, CoachCard, StarRating, CoachScheduleManager
+});// SquashTime — Auth System (localStorage-persisted, simulated)
+
+// ── Auth Store ───────────────────────────────────────────────────────
+const AUTH_KEY = 'squashtime_user';
+const USERS_KEY = 'squashtime_users';
+
+function getUsers() {
+  try { return JSON.parse(localStorage.getItem(USERS_KEY) || '{}'); } catch { return {}; }
+}
+function saveUsers(users) { localStorage.setItem(USERS_KEY, JSON.stringify(users)); }
+function getCurrentUser() {
+  try { return JSON.parse(localStorage.getItem(AUTH_KEY) || 'null'); } catch { return null; }
+}
+function setCurrentUser(user) {
+  if (user) localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+  else localStorage.removeItem(AUTH_KEY);
+}
+function updateCurrentUser(updates) {
+  const user = getCurrentUser();
+  if (!user) return;
+  const updated = { ...user, ...updates };
+  setCurrentUser(updated);
+  const users = getUsers();
+  if (users[user.email]) { users[user.email] = updated; saveUsers(users); }
+  return updated;
+}
+
+// ── Player Auth Actions ──────────────────────────────────────────────
+function authSignUp(name, email, password, profile = {}) {
+  const users = getUsers();
+  if (users[email.toLowerCase()]) return { error: 'An account with this email already exists.' };
+  const user = {
+    id: Date.now().toString(),
+    name, email: email.toLowerCase(), password,
+    phone: profile.phone || '',
+    age: profile.age || '',
+    level: profile.level || '',
+    role: 'player',
+    subscription: null,
+    sessionsUsedThisMonth: 0,
+    monthKey: new Date().toISOString().slice(0, 7),
+    createdAt: new Date().toISOString(),
+  };
+  users[email.toLowerCase()] = user;
+  saveUsers(users);
+  setCurrentUser(user);
+  return { user };
+}
+
+function authSignIn(email, password) {
+  const users = getUsers();
+  const user = users[email.toLowerCase()];
+  if (!user) return { error: 'No account found with this email.' };
+  if (user.password !== password) return { error: 'Incorrect password.' };
+  setCurrentUser(user);
+  return { user };
+}
+
+function authSignOut() { setCurrentUser(null); }
+
+function authSetSubscription(tier) {
+  return updateCurrentUser({ subscription: tier, sessionsUsedThisMonth: 0, monthKey: new Date().toISOString().slice(0, 7) });
+}
+
+function authCheckMonthReset(user) {
+  const monthKey = new Date().toISOString().slice(0, 7);
+  if (user.monthKey !== monthKey) {
+    return updateCurrentUser({ sessionsUsedThisMonth: 0, monthKey });
+  }
+  return user;
+}
+
+function authIncrementSessions() {
+  const user = getCurrentUser();
+  if (!user) return;
+  return updateCurrentUser({ sessionsUsedThisMonth: (user.sessionsUsedThisMonth || 0) + 1 });
+}
+
+// ── Coach Auth ───────────────────────────────────────────────────────
+// Access codes map to coach IDs — only shared with coaches directly
+const COACH_ACCESS_CODES = {
+  'COACH-REDA-001':    1,
+  'COACH-SHEHAB-002':  2,
+  'COACH-MENNA-003':   3,
+  'COACH-ROSTOM-004':  4,
+  'COACH-YOUSSEF-005': 5,
+  'COACH-WALID-006':   6,
+  'COACH-ALAA-007':    7,
+  'COACH-SAMIR-008':   8,
+};
+
+function authCoachSignIn(accessCode) {
+  const coachId = COACH_ACCESS_CODES[accessCode.trim().toUpperCase()];
+  if (!coachId) return { error: 'Invalid access code. Contact SquashTime administration.' };
+  const coach = COACHES.find(c => c.id === coachId);
+  if (!coach) return { error: 'Coach profile not found.' };
+  const user = {
+    id: `coach_${coachId}`,
+    name: coach.name,
+    email: `${coach.name.split(' ')[0].toLowerCase()}@squashtime.com`,
+    role: 'coach',
+    coachId,
+    coachLevel: coach.level,
+    subscription: 'coach',
+    createdAt: new Date().toISOString(),
+  };
+  setCurrentUser(user);
+  return { user };
+}
+
+// ── Shared Styles ────────────────────────────────────────────────────
+const authInputStyle = {
+  width: '100%', background: '#091209', border: '1px solid #1e2e1e',
+  borderRadius: 10, padding: '13px 16px', color: '#c0d8c0',
+  fontFamily: "'Quicksand',sans-serif", fontSize: 15, outline: 'none',
+  boxSizing: 'border-box', transition: 'border-color 0.15s',
+};
+const authBtnStyle = {
+  width: '100%', background: '#3de05a', border: 'none', borderRadius: 11,
+  padding: '15px', fontFamily: "'League Spartan',sans-serif", fontWeight: 800,
+  fontSize: 16, color: '#050d05', cursor: 'pointer', letterSpacing: '0.04em',
+  transition: 'all 0.15s', marginTop: 4,
+};
+
+function AuthLabel({ children }) {
+  return (
+    <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 11, color: '#4a6850', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 7 }}>
+      {children}
+    </div>
+  );
+}
+function AuthError({ msg }) {
+  if (!msg) return null;
+  return (
+    <div style={{ background: '#1a0a0a', border: '1px solid #5a1010', borderRadius: 8, padding: '10px 14px', fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#e05a5a', marginBottom: 4 }}>
+      {msg}
+    </div>
+  );
+}
+
+// ── Sign Up Form ─────────────────────────────────────────────────────
+function SignUpForm({ onSuccess, onSwitch }) {
+  const [step, setStep] = React.useState(1);
+  const [name, setName]   = React.useState('');
+  const [email, setEmail] = React.useState('');
+  const [pw, setPw]       = React.useState('');
+  const [pw2, setPw2]     = React.useState('');
+  const [phone, setPhone] = React.useState('');
+  const [age, setAge]     = React.useState('');
+  const [level, setLevel] = React.useState('');
+  const [err, setErr]     = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const levels = ['Beginner','Intermediate','Advanced','Junior Competitive','National Level'];
+
+  function handleStep1(e) {
+    e.preventDefault(); setErr('');
+    if (!name.trim()) return setErr('Please enter your name.');
+    if (!email.includes('@')) return setErr('Please enter a valid email.');
+    if (pw.length < 6) return setErr('Password must be at least 6 characters.');
+    if (pw !== pw2) return setErr('Passwords do not match.');
+    setStep(2);
+  }
+  function handleSubmit(e) {
+    e.preventDefault(); setErr('');
+    if (!age) return setErr('Please enter your age.');
+    if (!level) return setErr('Please select your skill level.');
+    setLoading(true);
+    setTimeout(() => {
+      const result = authSignUp(name.trim(), email.trim(), pw, { phone, age, level });
+      setLoading(false);
+      if (result.error) { setErr(result.error); setStep(1); }
+      else onSuccess(result.user);
+    }, 700);
+  }
+
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 20 }}>
+        {['Account', 'Player Profile'].map((lbl, i) => (
+          <div key={lbl} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+            <div style={{ width: '100%', height: 3, borderRadius: 2, background: i < step ? '#3de05a' : '#1e2e1e' }} />
+            <span style={{ fontFamily: "'League Spartan',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', color: i < step ? '#3de05a' : '#3a4e3a', textTransform: 'uppercase' }}>{lbl}</span>
+          </div>
+        ))}
+      </div>
+
+      <AuthError msg={err} />
+
+      {step === 1 && (
+        <form onSubmit={handleStep1} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div><AuthLabel>Full Name</AuthLabel><input value={name} onChange={e => setName(e.target.value)} placeholder="Your full name" style={authInputStyle} /></div>
+          <div><AuthLabel>Email Address</AuthLabel><input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" style={authInputStyle} /></div>
+          <div><AuthLabel>Password</AuthLabel><input type="password" value={pw} onChange={e => setPw(e.target.value)} placeholder="Min. 6 characters" style={authInputStyle} /></div>
+          <div><AuthLabel>Confirm Password</AuthLabel><input type="password" value={pw2} onChange={e => setPw2(e.target.value)} placeholder="Repeat password" style={authInputStyle} /></div>
+          <button type="submit" style={authBtnStyle}>Next: Player Profile →</button>
+          <div style={{ textAlign: 'center', fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#4a6050' }}>
+            Already have an account?{' '}
+            <button type="button" onClick={onSwitch} style={{ background: 'none', border: 'none', color: '#3de05a', cursor: 'pointer', fontWeight: 700, fontFamily: "'Quicksand',sans-serif", fontSize: 13 }}>Sign in</button>
+          </div>
+        </form>
+      )}
+
+      {step === 2 && (
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#5a7860', marginBottom: 4 }}>
+            This info pre-fills your booking forms so you never have to type it again.
+          </div>
+          <div><AuthLabel>Phone (optional)</AuthLabel><input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+1 (555) 000-0000" style={authInputStyle} /></div>
+          <div><AuthLabel>Player Age</AuthLabel><input type="number" value={age} onChange={e => setAge(e.target.value)} placeholder="e.g. 14" style={authInputStyle} /></div>
+          <div>
+            <AuthLabel>Skill Level</AuthLabel>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {levels.map(l => (
+                <button key={l} type="button" onClick={() => setLevel(l)} style={{
+                  background: level === l ? '#3de05a' : '#091209',
+                  border: `1px solid ${level === l ? '#3de05a' : '#1e2e1e'}`,
+                  borderRadius: 7, padding: '7px 12px', cursor: 'pointer',
+                  fontFamily: "'Quicksand',sans-serif", fontWeight: 700, fontSize: 12,
+                  color: level === l ? '#050d05' : '#6a8a6a', transition: 'all 0.12s',
+                }}>{l}</button>
+              ))}
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button type="button" onClick={() => setStep(1)} style={{ ...authBtnStyle, background: '#0d150d', color: '#5a7860', border: '1px solid #1e2e1e', flex: '0 0 auto', width: 'auto', padding: '15px 20px' }}>← Back</button>
+            <button type="submit" disabled={loading} style={{ ...authBtnStyle, flex: 1, background: loading ? '#1e3020' : '#3de05a', color: loading ? '#3a5040' : '#050d05' }}>
+              {loading ? 'Creating Account…' : 'Create Account →'}
+            </button>
+          </div>
+        </form>
+      )}
+    </div>
+  );
+}
+
+// ── Sign In Form ─────────────────────────────────────────────────────
+function SignInForm({ onSuccess, onSwitch }) {
+  const [email, setEmail] = React.useState('');
+  const [pw, setPw]       = React.useState('');
+  const [err, setErr]     = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+
+  function handleSubmit(e) {
+    e.preventDefault(); setErr(''); setLoading(true);
+    setTimeout(() => {
+      const result = authSignIn(email.trim(), pw);
+      setLoading(false);
+      if (result.error) setErr(result.error);
+      else onSuccess(result.user);
+    }, 600);
+  }
+
+  return (
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <AuthError msg={err} />
+      <div><AuthLabel>Email Address</AuthLabel><input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" style={authInputStyle} /></div>
+      <div><AuthLabel>Password</AuthLabel><input type="password" value={pw} onChange={e => setPw(e.target.value)} placeholder="Your password" style={authInputStyle} /></div>
+      <button type="submit" disabled={loading} style={{ ...authBtnStyle, background: loading ? '#1e3020' : '#3de05a', color: loading ? '#3a5040' : '#050d05' }}>
+        {loading ? 'Signing In…' : 'Sign In →'}
+      </button>
+      <div style={{ textAlign: 'center', fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#4a6050' }}>
+        New to SquashTime?{' '}
+        <button type="button" onClick={onSwitch} style={{ background: 'none', border: 'none', color: '#3de05a', cursor: 'pointer', fontWeight: 700, fontFamily: "'Quicksand',sans-serif", fontSize: 13 }}>Create an account</button>
+      </div>
+    </form>
+  );
+}
+
+// ── Coach Access Form ────────────────────────────────────────────────
+function CoachSignInForm({ onSuccess }) {
+  const [code, setCode]   = React.useState('');
+  const [err, setErr]     = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+
+  function handleSubmit(e) {
+    e.preventDefault(); setErr(''); setLoading(true);
+    setTimeout(() => {
+      const result = authCoachSignIn(code);
+      setLoading(false);
+      if (result.error) setErr(result.error);
+      else onSuccess(result.user);
+    }, 700);
+  }
+
+  return (
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Info banner */}
+      <div style={{ background: '#0a1a0a', border: '1px solid #1e3020', borderRadius: 10, padding: '14px 16px' }}>
+        <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 12, color: '#3de05a', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>Coach Access</div>
+        <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#5a7860', lineHeight: 1.6 }}>
+          This portal is for SquashTime coaches only. Enter your private access code to manage your schedule and availability.
+        </div>
+      </div>
+
+      <AuthError msg={err} />
+
+      <div>
+        <AuthLabel>Coach Access Code</AuthLabel>
+        <input
+          type="password"
+          value={code}
+          onChange={e => setCode(e.target.value)}
+          placeholder="COACH-XXXX-000"
+          style={{ ...authInputStyle, letterSpacing: '0.08em', textTransform: 'uppercase' }}
+          autoComplete="off"
+        />
+        <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 12, color: '#3a5040', marginTop: 6 }}>
+          Access codes are provided directly by SquashTime administration.
+        </div>
+      </div>
+
+      <button type="submit" disabled={loading || !code.trim()} style={{
+        ...authBtnStyle,
+        background: loading || !code.trim() ? '#1e3020' : '#3de05a',
+        color: loading || !code.trim() ? '#3a5040' : '#050d05',
+      }}>
+        {loading ? 'Verifying…' : 'Access Coach Portal →'}
+      </button>
+    </form>
+  );
+}
+
+// ── Auth Modal ───────────────────────────────────────────────────────
+function AuthModal({ mode = 'signup', onSuccess, onClose }) {
+  const [tab, setTab] = React.useState(mode === 'coach' ? 'coach' : mode);
+
+  const tabs = [
+    { id: 'signup', label: 'Sign Up' },
+    { id: 'signin', label: 'Sign In' },
+  ];
+
+  return (
+    <div
+      style={{ position: 'fixed', inset: 0, zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div style={{ background: '#0a140a', border: '1px solid #1e3020', borderRadius: 20, padding: '36px 32px', width: '100%', maxWidth: 420, position: 'relative', boxShadow: '0 24px 80px #000c', maxHeight: '90vh', overflowY: 'auto' }}>
+        <button onClick={onClose} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: '#4a6050', fontSize: 22, cursor: 'pointer', lineHeight: 1 }}>×</button>
+
+        {/* Logo */}
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+          <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 24, color: '#3de05a', letterSpacing: '-0.02em' }}>SquashTime</div>
+          <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#4a6050', marginTop: 4 }}>
+            {tab === 'coach' ? 'Coach portal access' : tab === 'signup' ? 'Create your account to get started' : 'Welcome back'}
+          </div>
+        </div>
+
+        {/* Player tabs */}
+        {tab !== 'coach' && (
+          <div style={{ display: 'flex', background: '#091209', borderRadius: 10, padding: 4, marginBottom: 24 }}>
+            {tabs.map(t => (
+              <button key={t.id} onClick={() => setTab(t.id)} style={{
+                flex: 1, background: tab === t.id ? '#3de05a' : 'transparent', border: 'none',
+                borderRadius: 7, padding: '9px', fontFamily: "'League Spartan',sans-serif",
+                fontWeight: 700, fontSize: 13, color: tab === t.id ? '#050d05' : '#5a7860',
+                cursor: 'pointer', transition: 'all 0.15s', letterSpacing: '0.04em',
+              }}>{t.label}</button>
+            ))}
+          </div>
+        )}
+
+        {/* Coach tab back button */}
+        {tab === 'coach' && (
+          <button onClick={() => setTab('signin')} style={{ background: 'none', border: 'none', color: '#5a8060', cursor: 'pointer', fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 20, padding: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+            ← Back to player login
+          </button>
+        )}
+
+        {/* Forms */}
+        {tab === 'signup' && <SignUpForm onSuccess={onSuccess} onSwitch={() => setTab('signin')} />}
+        {tab === 'signin' && <SignInForm onSuccess={onSuccess} onSwitch={() => setTab('signup')} />}
+        {tab === 'coach'  && <CoachSignInForm onSuccess={onSuccess} />}
+
+        {/* Coach portal link */}
+        {tab !== 'coach' && (
+          <div style={{ textAlign: 'center', marginTop: 20, paddingTop: 16, borderTop: '1px solid #182018' }}>
+            <button onClick={() => setTab('coach')} style={{ background: 'none', border: 'none', fontFamily: "'Quicksand',sans-serif", fontSize: 12, color: '#3a5040', cursor: 'pointer', fontWeight: 600 }}>
+              Are you a coach? <span style={{ color: '#5a7860', textDecoration: 'underline' }}>Coach portal →</span>
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, {
+  getCurrentUser, setCurrentUser, authSignUp, authSignIn, authSignOut,
+  authSetSubscription, authCheckMonthReset, authIncrementSessions,
+  authCoachSignIn, updateCurrentUser, AuthModal,
+});
+// SquashTime — Booking Engine (Dual Flow)
+
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+// ── Mini Calendar ─────────────────────────────────────────────────────────────
+
+function MiniCalendar({ onSelectDate, selectedDate, availabilityMap }) {
+  const today = new Date();
+  const [viewYear, setViewYear] = React.useState(today.getFullYear());
+  const [viewMonth, setViewMonth] = React.useState(today.getMonth());
+
+  const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const cells = [];
+  for (let i = 0; i < firstDay; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  function isAvailable(d) {
+    if (!d) return false;
+    const dt = new Date(viewYear, viewMonth, d);
+    if (dt <= today) return false;
+    const key = dt.toDateString();
+    if (availabilityMap) return !!(availabilityMap[key] && availabilityMap[key].length);
+    return COACHES.some(c => {
+      const slots = getCoachAvailability(c.id)[key];
+      return slots && slots.length > 0;
+    });
+  }
+
+  function isSelected(d) {
+    if (!d || !selectedDate) return false;
+    return new Date(viewYear, viewMonth, d).toDateString() === selectedDate.toDateString();
+  }
+  function isToday(d) {
+    if (!d) return false;
+    return new Date(viewYear, viewMonth, d).toDateString() === today.toDateString();
+  }
+  function prevMonth() { if (viewMonth===0){setViewMonth(11);setViewYear(y=>y-1);}else setViewMonth(m=>m-1); }
+  function nextMonth() { if (viewMonth===11){setViewMonth(0);setViewYear(y=>y+1);}else setViewMonth(m=>m+1); }
+
+  return (
+    <div style={{ background:'#091209',border:'1px solid #182018',borderRadius:14,padding:20,userSelect:'none' }}>
+      <div style={{ display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16 }}>
+        <button onClick={prevMonth} style={calNavBtn}>‹</button>
+        <span style={{ fontFamily:"'League Spartan',sans-serif",fontWeight:700,color:'#c8e0c8',fontSize:15 }}>{MONTHS[viewMonth]} {viewYear}</span>
+        <button onClick={nextMonth} style={calNavBtn}>›</button>
+      </div>
+      <div style={{ display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:2,marginBottom:6 }}>
+        {DAYS.map(d => <div key={d} style={{ textAlign:'center',fontSize:10,fontWeight:700,color:'#3a5040',fontFamily:"'League Spartan',sans-serif",letterSpacing:'0.06em',paddingBottom:4 }}>{d}</div>)}
+      </div>
+      <div style={{ display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:2 }}>
+        {cells.map((d, i) => {
+          const avail = isAvailable(d);
+          const sel   = isSelected(d);
+          const tod   = isToday(d);
+          return (
+            <div key={i} onClick={() => { if (avail) onSelectDate(new Date(viewYear, viewMonth, d)); }} style={{
+              aspectRatio:'1', display:'flex', alignItems:'center', justifyContent:'center',
+              borderRadius:8, fontSize:13, fontFamily:"'Quicksand',sans-serif", fontWeight:600,
+              cursor: avail ? 'pointer' : 'default',
+              background: sel ? '#3de05a' : (avail ? '#0d1f0d' : 'transparent'),
+              color: sel ? '#050d05' : (avail ? '#a0c8a0' : (d ? '#2a3a2a' : 'transparent')),
+              border: tod && !sel ? '1px solid #3de05a40' : '1px solid transparent',
+              transition:'all 0.12s', position:'relative',
+            }}>
+              {d}
+              {avail && !sel && <div style={{ position:'absolute',bottom:3,left:'50%',transform:'translateX(-50%)',width:4,height:4,borderRadius:'50%',background:'#3de05a60' }} />}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+const calNavBtn = { background:'none',border:'none',color:'#5a8060',fontSize:22,cursor:'pointer',padding:'0 8px',lineHeight:1,fontFamily:"'League Spartan',sans-serif" };
+
+// ── Time Slot Picker ──────────────────────────────────────────────────────────
+
+function TimeSlotPicker({ slots, selected, onSelect }) {
+  if (!slots || slots.length === 0) {
+    return <div style={{ color:'#4a6050',fontFamily:"'Quicksand',sans-serif",fontSize:14,padding:'16px 0' }}>No available slots for this date.</div>;
+  }
+  return (
+    <div style={{ display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8 }}>
+      {slots.map(slot => (
+        <button key={slot} onClick={() => onSelect(slot)} style={{
+          background: selected===slot ? '#3de05a' : '#0d1a0d',
+          border: `1px solid ${selected===slot ? '#3de05a' : '#1e2e1e'}`,
+          borderRadius:9, padding:'10px 8px',
+          fontFamily:"'Quicksand',sans-serif", fontWeight:700, fontSize:13,
+          color: selected===slot ? '#050d05' : '#8aaa8a',
+          cursor:'pointer', transition:'all 0.14s',
+        }}>{slot}</button>
+      ))}
+    </div>
+  );
+}
+
+// ── Session Type Picker ───────────────────────────────────────────────────────
+
+function SessionTypePicker({ value, onChange, availableTypes = ['tournament', 'personal'] }) {
+  const allTypes = [
+    { id:'tournament', label:'Tournament Coaching', desc:'Live coaching support during a tournament weekend', icon:'🏆' },
+    { id:'personal',   label:'Personal Training',   desc:'One-on-one online skill session — no tournament required', icon:'🎯' },
+  ];
+  const types = allTypes.filter(t => availableTypes.includes(t.id));
+  return (
+    <div style={{ display:'flex',flexDirection:'column',gap:12 }}>
+      {types.map(t => (
+        <div key={t.id} onClick={() => onChange(t.id)} style={{
+          background: value===t.id ? '#0a1e10' : '#0d150d',
+          border: `1px solid ${value===t.id ? '#3de05a' : '#182018'}`,
+          borderRadius:12, padding:'16px 20px', cursor:'pointer',
+          display:'flex', gap:14, alignItems:'flex-start', transition:'all 0.15s',
+          boxShadow: value===t.id ? '0 0 0 1px #3de05a20' : 'none',
+        }}>
+          <div style={{ fontSize:22,marginTop:2 }}>{t.icon}</div>
+          <div>
+            <div style={{ fontFamily:"'League Spartan',sans-serif",fontWeight:700,fontSize:16,color:value===t.id?'#3de05a':'#c0d8c0',marginBottom:3 }}>{t.label}</div>
+            <div style={{ fontFamily:"'Quicksand',sans-serif",fontSize:13,color:'#5a7860',lineHeight:1.5 }}>{t.desc}</div>
+          </div>
+          <div style={{ marginLeft:'auto',width:18,height:18,borderRadius:'50%',border:`2px solid ${value===t.id?'#3de05a':'#2a3e2a'}`,background:value===t.id?'#3de05a':'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:2 }}>
+            {value===t.id && <div style={{ width:8,height:8,borderRadius:'50%',background:'#050d05' }} />}
+          </div>
+        </div>
+      ))}
+      {!availableTypes.includes('tournament') && (
+        <div style={{ background:'#180808',border:'1px solid #2a1010',borderRadius:10,padding:'12px 16px' }}>
+          <div style={{ fontFamily:"'Quicksand',sans-serif",fontSize:13,color:'#8a5050' }}>
+            This coach offers personal coaching only — tournament sessions are not available.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Tournament Picker ─────────────────────────────────────────────────────────
+
+function TournamentPicker({ value, onChange }) {
+  const [mode, setMode] = React.useState('preset');
+  const [custom, setCustom] = React.useState('');
+  return (
+    <div style={{ display:'flex',flexDirection:'column',gap:12 }}>
+      <div style={{ display:'flex',gap:8,marginBottom:4 }}>
+        {['preset','custom'].map(m => (
+          <button key={m} onClick={() => setMode(m)} style={{
+            background: mode===m?'#3de05a':'#0d150d', border:`1px solid ${mode===m?'#3de05a':'#182018'}`,
+            borderRadius:8, padding:'7px 16px', cursor:'pointer',
+            fontFamily:"'League Spartan',sans-serif", fontWeight:700, fontSize:12,
+            color: mode===m?'#050d05':'#6a8a6a', letterSpacing:'0.06em', textTransform:'uppercase', transition:'all 0.12s',
+          }}>{m==='preset'?'Select Tournament':'Enter Manually'}</button>
+        ))}
+      </div>
+      {mode==='preset' ? (
+        <div style={{ display:'flex',flexDirection:'column',gap:6,maxHeight:240,overflowY:'auto' }}>
+          {UPCOMING_TOURNAMENTS.map(t => (
+            <div key={t.id} onClick={() => onChange(t.name)} style={{
+              background: value===t.name?'#0a1e10':'#0d150d',
+              border: `1px solid ${value===t.name?'#3de05a':'#182018'}`,
+              borderRadius:9, padding:'12px 14px', cursor:'pointer',
+              display:'flex', justifyContent:'space-between', alignItems:'center', transition:'all 0.12s',
+            }}>
+              <div>
+                <div style={{ fontFamily:"'League Spartan',sans-serif",fontWeight:700,fontSize:14,color:value===t.name?'#3de05a':'#b0c8b0' }}>{t.name}</div>
+                <div style={{ fontFamily:"'Quicksand',sans-serif",fontSize:12,color:'#4a6050' }}>{t.location} · {t.dates}</div>
+              </div>
+              {value===t.name && <div style={{ color:'#3de05a',fontSize:18 }}>✓</div>}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={{ display:'flex',flexDirection:'column',gap:8 }}>
+          <input placeholder="Tournament name..." value={custom} onChange={e=>{setCustom(e.target.value);onChange(e.target.value);}} style={inputStyle} />
+          <input placeholder="Location (City, State)..." style={inputStyle} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Progress Bar ──────────────────────────────────────────────────────────────
+
+function ProgressBar({ step, total, labels }) {
+  return (
+    <div style={{ marginBottom:28 }}>
+      <div style={{ display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8 }}>
+        {labels.map((l, i) => (
+          <div key={i} style={{ display:'flex',flexDirection:'column',alignItems:'center',flex:1 }}>
+            <div style={{
+              width:28,height:28,borderRadius:'50%',
+              background: i<step?'#3de05a':(i===step?'#3de05a22':'#111a11'),
+              border: `2px solid ${i<=step?'#3de05a':'#1e2e1e'}`,
+              display:'flex',alignItems:'center',justifyContent:'center',
+              fontFamily:"'League Spartan',sans-serif",fontWeight:800,fontSize:12,
+              color: i<step?'#050d05':(i===step?'#3de05a':'#2e4030'),
+              marginBottom:4, transition:'all 0.2s', zIndex:1, position:'relative',
+            }}>
+              {i<step?'✓':i+1}
+            </div>
+            <div style={{ fontSize:10,color:i<=step?'#5a8060':'#2a3a2a',fontFamily:"'League Spartan',sans-serif",fontWeight:600,letterSpacing:'0.05em',textAlign:'center',textTransform:'uppercase' }}>
+              {l}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{ height:2,background:'#111a11',borderRadius:2,position:'relative',marginTop:4 }}>
+        <div style={{ height:'100%',background:'#3de05a',borderRadius:2,width:`${(step/(total-1))*100}%`,transition:'width 0.3s ease' }} />
+      </div>
+    </div>
+  );
+}
+
+// ── Report Add-On Card ────────────────────────────────────────────────────────
+
+function ReportAddOnCard({ value, onChange }) {
+  return (
+    <div onClick={() => onChange(!value)} style={{
+      background: value ? '#0a1e10' : '#0d150d',
+      border: `2px solid ${value ? '#3de05a' : '#182018'}`,
+      borderRadius: 12, padding: '16px 20px', cursor: 'pointer',
+      display: 'flex', gap: 14, alignItems: 'flex-start',
+      transition: 'all 0.15s',
+    }}>
+      {/* Checkbox */}
+      <div style={{
+        width: 20, height: 20, borderRadius: 5, border: `2px solid ${value ? '#3de05a' : '#2a3e2a'}`,
+        background: value ? '#3de05a' : 'transparent', flexShrink: 0, marginTop: 2,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s',
+      }}>
+        {value && <span style={{ color: '#050d05', fontSize: 12, fontWeight: 900, lineHeight: 1 }}>✓</span>}
+      </div>
+      <div style={{ flex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4, flexWrap: 'wrap' }}>
+          <span style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 15, color: value ? '#3de05a' : '#c0d8c0' }}>
+            Written Performance Report
+          </span>
+          <span style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 14, color: '#3de05a' }}>+$30</span>
+          <span style={{ background: '#0a1e10', border: '1px solid #1e3020', borderRadius: 4, padding: '2px 8px', fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 9, color: '#5a8060', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Optional</span>
+        </div>
+        <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#5a7860', lineHeight: 1.6 }}>
+          After your session, your coach will send a detailed written report covering your strengths, areas to improve, and a personalized action plan. Delivered to your email within <strong style={{ color: '#7a9a7a' }}>3–5 business days</strong> of session completion via <span style={{ color: '#7a9a7a' }}>info@squashtime.com</span>.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Booking Engine ────────────────────────────────────────────────────────────
+
+function BookingEngine({ onComplete, initialFlow, preselectedCoach, currentUser }) {
+  const [flow, setFlow]   = React.useState(preselectedCoach ? 'coach-first' : (initialFlow || null));
+  const [step, setStep]   = React.useState(preselectedCoach ? 1 : 0);
+  const [selectedDate,  setSelectedDate]  = React.useState(null);
+  const [selectedTime,  setSelectedTime]  = React.useState(null);
+  const [selectedCoach, setSelectedCoach] = React.useState(preselectedCoach || null);
+  const [sessionType,   setSessionType]   = React.useState(null);
+  const [tournament,    setTournament]    = React.useState('');
+  const [addReport,     setAddReport]     = React.useState(false);
+
+  const isFree = currentUser?.subscription === 'free';
+
+  const defaultInfo = currentUser
+    ? { name: currentUser.name, email: currentUser.email, phone: currentUser.phone||'', age: currentUser.age||'', level: currentUser.level||'', forSelf: true }
+    : { name:'', email:'', phone:'', level:'', age:'', forSelf:true };
+  const [playerInfo, setPlayerInfo] = React.useState(defaultInfo);
+  const [bookingFor, setBookingFor] = React.useState('self');
+
+  function reset() { setFlow(null);setStep(0);setSelectedDate(null);setSelectedTime(null);setSelectedCoach(null);setSessionType(null);setTournament('');setAddReport(false);setBookingFor('self');setPlayerInfo(defaultInfo); }
+
+  const dateStr = selectedDate ? selectedDate.toDateString() : null;
+
+  // Get live availability (reads localStorage each time)
+  const coachAvail = selectedCoach ? getCoachAvailability(selectedCoach.id) : null;
+  const availableSlots = selectedCoach
+    ? (dateStr ? (coachAvail[dateStr] || []) : [])
+    : (dateStr ? [...new Set(COACHES.flatMap(c => getCoachAvailability(c.id)[dateStr] || []))] : []);
+
+  // Date-first: coaches available for selected slot, with fitness restrictions
+  const availableCoachesForSlot = (dateStr && selectedTime) ? getAvailableCoaches(dateStr, selectedTime).filter(c => {
+    if (c.level === 'Fitness') {
+      if (sessionType === 'tournament') return false;
+      if (isFree) return false;
+    }
+    return true;
+  }) : [];
+
+  // Flow chooser
+  if (!flow) {
+    return (
+      <div style={engineWrap}>
+        <div style={{ textAlign:'center',marginBottom:32 }}>
+          <div style={{ fontFamily:"'League Spartan',sans-serif",fontWeight:900,fontSize:28,color:'#e8f0e8',marginBottom:8 }}>Book a Session</div>
+          <div style={{ fontFamily:"'Quicksand',sans-serif",color:'#5a7060',fontSize:15 }}>Choose how you'd like to get started</div>
+        </div>
+        <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:20 }}>
+          {[
+            { id:'date-first',  icon:'📅', title:'Pick a Date First',    desc:'Choose your preferred date & time, then see which coaches are available.' },
+            { id:'coach-first', icon:'👤', title:'Browse Coaches First', desc:'Explore our coaches, view profiles and rates, then pick a time that works.' },
+          ].map(opt => (
+            <div key={opt.id} onClick={() => {setFlow(opt.id);setStep(0);}} style={{
+              background:'#0d150d',border:'1px solid #182018',borderRadius:16,
+              padding:'28px 22px',cursor:'pointer',textAlign:'center',transition:'all 0.18s',
+            }}
+            onMouseEnter={e=>{e.currentTarget.style.border='1px solid #3de05a';e.currentTarget.style.background='#0a1a0a';}}
+            onMouseLeave={e=>{e.currentTarget.style.border='1px solid #182018';e.currentTarget.style.background='#0d150d';}}
+            >
+              <div style={{ fontSize:36,marginBottom:12 }}>{opt.icon}</div>
+              <div style={{ fontFamily:"'League Spartan',sans-serif",fontWeight:800,fontSize:18,color:'#d0e8d0',marginBottom:8 }}>{opt.title}</div>
+              <div style={{ fontFamily:"'Quicksand',sans-serif",fontSize:13,color:'#4a6050',lineHeight:1.6 }}>{opt.desc}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ textAlign:'center' }}>
+          <span style={{ fontFamily:"'Quicksand',sans-serif",fontSize:13,color:'#3a5040' }}>
+            All sessions are conducted live via Zoom · Instant confirmation
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  // ── DATE-FIRST FLOW ──────────────────────────────────────────────────────────
+  if (flow === 'date-first') {
+    const steps = ['Date','Time','Session','Coach','Details'];
+
+    if (step===0) return (
+      <div style={engineWrap}>
+        <BackBtn onClick={reset} />
+        <ProgressBar step={0} total={5} labels={steps} />
+        <SectionTitle>Select a Date</SectionTitle>
+        <MiniCalendar onSelectDate={d=>{setSelectedDate(d);setSelectedTime(null);setStep(1);}} selectedDate={selectedDate} />
+      </div>
+    );
+
+    if (step===1) return (
+      <div style={engineWrap}>
+        <BackBtn onClick={()=>setStep(0)} />
+        <ProgressBar step={1} total={5} labels={steps} />
+        <SectionTitle>Choose a Time <span style={{ color:'#3de05a' }}>{selectedDate&&selectedDate.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</span></SectionTitle>
+        <TimeSlotPicker slots={availableSlots} selected={selectedTime} onSelect={t=>{setSelectedTime(t);setStep(2);}} />
+      </div>
+    );
+
+    if (step===2) return (
+      <div style={engineWrap}>
+        <BackBtn onClick={()=>setStep(1)} />
+        <ProgressBar step={2} total={5} labels={steps} />
+        <SectionTitle>Session Type</SectionTitle>
+        <SessionTypePicker value={sessionType} onChange={setSessionType} />
+        {sessionType==='tournament' && (
+          <div style={{ marginTop:20 }}>
+            <Label>Select Tournament</Label>
+            <TournamentPicker value={tournament} onChange={setTournament} />
+          </div>
+        )}
+        <NextBtn disabled={!sessionType||(sessionType==='tournament'&&!tournament)} onClick={()=>setStep(3)} label="See Available Coaches →" />
+      </div>
+    );
+
+    if (step===3) return (
+      <div style={engineWrap}>
+        <BackBtn onClick={()=>setStep(2)} />
+        <ProgressBar step={3} total={5} labels={steps} />
+        <SectionTitle>{availableCoachesForSlot.length} Coach{availableCoachesForSlot.length!==1?'es':''} Available</SectionTitle>
+        {availableCoachesForSlot.length===0 && (
+          <div style={{ color:'#5a7060',fontFamily:"'Quicksand',sans-serif",padding:'20px 0' }}>No coaches available for this slot. Please go back and choose another time.</div>
+        )}
+        <div style={{ display:'flex',flexDirection:'column',gap:12 }}>
+          {availableCoachesForSlot.map(c => (
+            <CoachCard key={c.id} coach={c} selected={selectedCoach?.id===c.id} onClick={coach=>setSelectedCoach(coach)} />
+          ))}
+        </div>
+        <NextBtn disabled={!selectedCoach} onClick={()=>setStep(4)} label="Continue with this Coach →" />
+      </div>
+    );
+
+    if (step===4) return (
+      <div style={engineWrap}>
+        <BackBtn onClick={()=>setStep(3)} />
+        <ProgressBar step={4} total={5} labels={steps} />
+        <SectionTitle>Player Details</SectionTitle>
+        <BookingForToggle bookingFor={bookingFor} onChange={v=>{setBookingFor(v);setPlayerInfo(v==='self'?defaultInfo:{name:'',email:'',phone:'',age:'',level:'',forSelf:false});}} hasAccount={!!currentUser} />
+        <PlayerForm info={playerInfo} onChange={setPlayerInfo} readOnly={bookingFor==='self'&&!!currentUser} />
+        <Label>Optional Add-On</Label>
+        <ReportAddOnCard value={addReport} onChange={setAddReport} />
+        <BookingSummaryCard coach={selectedCoach} date={selectedDate} time={selectedTime} sessionType={sessionType} tournament={tournament} addReport={addReport} />
+        <NextBtn disabled={!playerInfo.name||!playerInfo.email} onClick={()=>onComplete({coach:selectedCoach,date:selectedDate,time:selectedTime,sessionType,tournament,playerInfo,addReport})} label="Proceed to Payment →" />
+      </div>
+    );
+  }
+
+  // ── COACH-FIRST FLOW ─────────────────────────────────────────────────────────
+  if (flow === 'coach-first') {
+    const steps = ['Coach','Date','Time','Session','Details'];
+
+    if (step===0) return (
+      <div style={engineWrap}>
+        <BackBtn onClick={reset} />
+        <ProgressBar step={0} total={5} labels={steps} />
+        <SectionTitle>Choose Your Coach</SectionTitle>
+        <div style={{ display:'flex',flexDirection:'column',gap:12 }}>
+          {COACHES.map(c => {
+            const isFitnessLocked = c.level==='Fitness' && isFree;
+            return (
+              <div key={c.id}>
+                <div style={{ position:'relative' }}>
+                  <CoachCard coach={c} selected={selectedCoach?.id===c.id} onClick={isFitnessLocked ? undefined : coach=>{setSelectedCoach(coach);setSelectedDate(null);setSelectedTime(null);setStep(1);}} />
+                  {isFitnessLocked && (
+                    <div style={{ position:'absolute',inset:0,borderRadius:14,background:'rgba(6,12,6,0.75)',display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(2px)' }}>
+                      <div style={{ background:'#0a140a',border:'1px solid #e04040',borderRadius:12,padding:'16px 22px',textAlign:'center',maxWidth:300 }}>
+                        <div style={{ fontFamily:"'League Spartan',sans-serif",fontWeight:800,fontSize:15,color:'#e04040',marginBottom:6 }}>Premium Required</div>
+                        <div style={{ fontFamily:"'Quicksand',sans-serif",fontSize:13,color:'#8a5050',lineHeight:1.5 }}>Fitness coaching is available to Premium members only.</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+
+    if (step===1) return (
+      <div style={engineWrap}>
+        <BackBtn onClick={()=>{setStep(0);setSelectedCoach(null);}} />
+        <ProgressBar step={1} total={5} labels={steps} />
+        <div style={{ display:'flex',gap:12,alignItems:'center',marginBottom:20,background:'#091209',border:'1px solid #182018',borderRadius:12,padding:'12px 16px' }}>
+          <CoachAvatar coach={selectedCoach} size="sm" />
+          <div>
+            <div style={{ fontFamily:"'League Spartan',sans-serif",fontWeight:700,fontSize:16,color:'#d0e8d0' }}>{selectedCoach.name}</div>
+            <div style={{ fontFamily:"'Quicksand',sans-serif",fontSize:12,color:'#4a6050' }}>{selectedCoach.title} · ${selectedCoach.price}/hr</div>
+          </div>
+        </div>
+        <SectionTitle>Pick a Date</SectionTitle>
+        <MiniCalendar availabilityMap={getCoachAvailability(selectedCoach.id)} onSelectDate={d=>{setSelectedDate(d);setSelectedTime(null);setStep(2);}} selectedDate={selectedDate} />
+      </div>
+    );
+
+    if (step===2) return (
+      <div style={engineWrap}>
+        <BackBtn onClick={()=>setStep(1)} />
+        <ProgressBar step={2} total={5} labels={steps} />
+        <SectionTitle>Choose a Time <span style={{ color:'#3de05a' }}>{selectedDate&&selectedDate.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</span></SectionTitle>
+        <TimeSlotPicker
+          slots={getCoachAvailability(selectedCoach.id)[dateStr] || []}
+          selected={selectedTime}
+          onSelect={t=>{setSelectedTime(t);setStep(3);}}
+        />
+      </div>
+    );
+
+    if (step===3) {
+      const coachSessionTypes = selectedCoach?.sessionTypes || ['tournament','personal'];
+      return (
+        <div style={engineWrap}>
+          <BackBtn onClick={()=>setStep(2)} />
+          <ProgressBar step={3} total={5} labels={steps} />
+          <SectionTitle>Session Type</SectionTitle>
+          <SessionTypePicker value={sessionType} onChange={setSessionType} availableTypes={coachSessionTypes} />
+          {sessionType==='tournament' && (
+            <div style={{ marginTop:20 }}>
+              <Label>Select Tournament</Label>
+              <TournamentPicker value={tournament} onChange={setTournament} />
+            </div>
+          )}
+          <NextBtn disabled={!sessionType||(sessionType==='tournament'&&!tournament)} onClick={()=>setStep(4)} label="Continue →" />
+        </div>
+      );
+    }
+
+    if (step===4) return (
+      <div style={engineWrap}>
+        <BackBtn onClick={()=>setStep(3)} />
+        <ProgressBar step={4} total={5} labels={steps} />
+        <SectionTitle>Player Details</SectionTitle>
+        <BookingForToggle bookingFor={bookingFor} onChange={v=>{setBookingFor(v);setPlayerInfo(v==='self'?defaultInfo:{name:'',email:'',phone:'',age:'',level:'',forSelf:false});}} hasAccount={!!currentUser} />
+        <PlayerForm info={playerInfo} onChange={setPlayerInfo} readOnly={bookingFor==='self'&&!!currentUser} />
+        <Label>Optional Add-On</Label>
+        <ReportAddOnCard value={addReport} onChange={setAddReport} />
+        <BookingSummaryCard coach={selectedCoach} date={selectedDate} time={selectedTime} sessionType={sessionType} tournament={tournament} addReport={addReport} />
+        <NextBtn disabled={!playerInfo.name||!playerInfo.email} onClick={()=>onComplete({coach:selectedCoach,date:selectedDate,time:selectedTime,sessionType,tournament,playerInfo,addReport})} label="Proceed to Payment →" />
+      </div>
+    );
+  }
+
+  return null;
+}
+
+// ── Shared Sub-Components ─────────────────────────────────────────────────────
+
+const engineWrap = { display:'flex',flexDirection:'column',gap:16,maxWidth:560,margin:'0 auto' };
+
+function BackBtn({ onClick }) {
+  return (
+    <button onClick={onClick} style={{ background:'none',border:'none',color:'#5a8060',cursor:'pointer',fontFamily:"'League Spartan',sans-serif",fontWeight:700,fontSize:13,letterSpacing:'0.06em',padding:'0 0 4px',display:'flex',alignItems:'center',gap:6,textTransform:'uppercase' }}>← Back</button>
+  );
+}
+function SectionTitle({ children }) {
+  return <div style={{ fontFamily:"'League Spartan',sans-serif",fontWeight:800,fontSize:20,color:'#d8eed8',marginBottom:4 }}>{children}</div>;
+}
+function Label({ children }) {
+  return <div style={{ fontFamily:"'League Spartan',sans-serif",fontWeight:700,fontSize:12,color:'#5a7860',letterSpacing:'0.08em',textTransform:'uppercase',marginBottom:10 }}>{children}</div>;
+}
+function NextBtn({ onClick, disabled, label }) {
+  return (
+    <button onClick={onClick} disabled={disabled} style={{ width:'100%',background:disabled?'#111a11':'#3de05a',border:'none',borderRadius:12,padding:'15px 24px',fontFamily:"'League Spartan',sans-serif",fontWeight:800,fontSize:16,color:disabled?'#2a3e2a':'#050d05',cursor:disabled?'not-allowed':'pointer',transition:'all 0.15s',letterSpacing:'0.04em',marginTop:8 }}>{label}</button>
+  );
+}
+
+function BookingForToggle({ bookingFor, onChange, hasAccount }) {
+  if (!hasAccount) return null;
+  return (
+    <div style={{ background:'#091209',border:'1px solid #1e2e1e',borderRadius:12,padding:'14px 16px',marginBottom:4 }}>
+      <div style={{ fontFamily:"'League Spartan',sans-serif",fontWeight:700,fontSize:11,color:'#4a6850',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:10 }}>Who is this session for?</div>
+      <div style={{ display:'flex',gap:8 }}>
+        {[['self','Me (my account)'],['other','Another player']].map(([v,l]) => (
+          <button key={v} onClick={()=>onChange(v)} style={{ flex:1,background:bookingFor===v?'#3de05a':'#0d150d',border:`1px solid ${bookingFor===v?'#3de05a':'#1e2e1e'}`,borderRadius:8,padding:'10px 12px',cursor:'pointer',fontFamily:"'Quicksand',sans-serif",fontWeight:700,fontSize:13,color:bookingFor===v?'#050d05':'#6a8a6a',transition:'all 0.14s' }}>{l}</button>
+        ))}
+      </div>
+      {bookingFor==='self'  && <div style={{ fontFamily:"'Quicksand',sans-serif",fontSize:12,color:'#3a5a3a',marginTop:8 }}>Your account details will be used — nothing to fill in.</div>}
+      {bookingFor==='other' && <div style={{ fontFamily:"'Quicksand',sans-serif",fontSize:12,color:'#3a5a3a',marginTop:8 }}>Enter the other player's details below.</div>}
+    </div>
+  );
+}
+
+function PlayerForm({ info, onChange, readOnly = false }) {
+  if (readOnly) {
+    return (
+      <div style={{ background:'#091209',border:'1px solid #1e2e1e',borderRadius:12,padding:'16px 18px',display:'flex',flexDirection:'column',gap:10 }}>
+        <div style={{ fontFamily:"'League Spartan',sans-serif",fontWeight:700,fontSize:11,color:'#4a6850',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:4 }}>Session Player</div>
+        {[['Name',info.name],['Email',info.email],['Phone',info.phone||'—'],['Age',info.age||'—'],['Level',info.level||'—']].map(([k,v]) => (
+          <div key={k} style={{ display:'flex',justifyContent:'space-between' }}>
+            <span style={{ fontFamily:"'Quicksand',sans-serif",fontSize:13,color:'#4a6050' }}>{k}</span>
+            <span style={{ fontFamily:"'Quicksand',sans-serif",fontSize:13,color:'#a0c8a0',fontWeight:600 }}>{v}</span>
+          </div>
+        ))}
+        <div style={{ fontFamily:"'Quicksand',sans-serif",fontSize:11,color:'#3a5040',marginTop:4 }}>Update these details in My Account.</div>
+      </div>
+    );
+  }
+  const fields = [
+    { key:'name',  label:'Full Name',         placeholder:"Player's full name", type:'text' },
+    { key:'email', label:'Email Address',      placeholder:'their@email.com',    type:'email' },
+    { key:'phone', label:'Phone (optional)',   placeholder:'+1 (555) 000-0000',  type:'tel' },
+    { key:'age',   label:"Player's Age",       placeholder:'e.g. 14',            type:'number' },
+  ];
+  const levels = ['Beginner','Intermediate','Advanced','Junior Competitive','National Level'];
+  return (
+    <div style={{ display:'flex',flexDirection:'column',gap:12 }}>
+      {fields.map(f => (
+        <div key={f.key}>
+          <Label>{f.label}</Label>
+          <input type={f.type} placeholder={f.placeholder} value={info[f.key]} onChange={e=>onChange({...info,[f.key]:e.target.value})} style={inputStyle} />
+        </div>
+      ))}
+      <div>
+        <Label>Skill Level</Label>
+        <div style={{ display:'flex',gap:6,flexWrap:'wrap' }}>
+          {levels.map(l => (
+            <button key={l} onClick={()=>onChange({...info,level:l})} style={{ background:info.level===l?'#3de05a':'#0d150d',border:`1px solid ${info.level===l?'#3de05a':'#1e2e1e'}`,borderRadius:8,padding:'7px 13px',cursor:'pointer',fontFamily:"'Quicksand',sans-serif",fontWeight:700,fontSize:12,color:info.level===l?'#050d05':'#6a8a6a',transition:'all 0.12s' }}>{l}</button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const inputStyle = { width:'100%',background:'#091209',border:'1px solid #1e2e1e',borderRadius:9,padding:'12px 14px',color:'#c0d8c0',fontFamily:"'Quicksand',sans-serif",fontSize:14,outline:'none',boxSizing:'border-box',transition:'border 0.12s' };
+
+function BookingSummaryCard({ coach, date, time, sessionType, tournament, addReport }) {
+  if (!coach||!date||!time) return null;
+  const reportFee = addReport ? 30 : 0;
+  const total = coach.price + reportFee;
+  return (
+    <div style={{ background:'#091209',border:'1px solid #1e3020',borderRadius:12,padding:'16px 20px' }}>
+      <div style={{ fontFamily:"'League Spartan',sans-serif",fontWeight:700,fontSize:12,color:'#4a6850',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:12 }}>Booking Summary</div>
+      <div style={{ display:'flex',flexDirection:'column',gap:8 }}>
+        {[
+          ['Coach',      coach.name],
+          ['Date',       date.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'})],
+          ['Time',       time],
+          ['Session',    sessionType==='tournament'?'Tournament Coaching':'Personal Training'],
+          ...(tournament ? [['Tournament', tournament]] : []),
+          ['Rate',       `$${coach.price}/hr`],
+          ...(addReport  ? [['Report',     '+$30 (written report)']] : []),
+          ['Format',     'Live via Zoom'],
+        ].map(([k,v]) => (
+          <div key={k} style={{ display:'flex',justifyContent:'space-between',gap:12 }}>
+            <span style={{ fontFamily:"'Quicksand',sans-serif",fontSize:13,color:'#4a6050' }}>{k}</span>
+            <span style={{ fontFamily:"'Quicksand',sans-serif",fontSize:13,color:'#a0c8a0',fontWeight:600,textAlign:'right' }}>{v}</span>
+          </div>
+        ))}
+      </div>
+      <div style={{ borderTop:'1px solid #1e3020',marginTop:14,paddingTop:12,display:'flex',justifyContent:'space-between',alignItems:'center' }}>
+        <span style={{ fontFamily:"'League Spartan',sans-serif",fontWeight:700,fontSize:14,color:'#5a8060' }}>Total Due</span>
+        <span style={{ fontFamily:"'League Spartan',sans-serif",fontWeight:900,fontSize:22,color:'#3de05a' }}>${total}.00</span>
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { BookingEngine, BookingSummaryCard, ReportAddOnCard });
+// SquashTime — Payment & Confirmation
+
+function PaymentPage({ booking, onBack, onSuccess }) {
+  const [method, setMethod] = React.useState('card');
+  const [card, setCard] = React.useState({ number: '', name: '', expiry: '', cvv: '' });
+  const [processing, setProcessing] = React.useState(false);
+  const [errors, setErrors] = React.useState({});
+
+  const reportFee  = booking.addReport ? 30 : 0;
+  const totalPrice = booking.coach.price + reportFee;
+
+  const methods = [
+    { id: 'card', label: 'Credit / Debit Card', icon: '💳' },
+    { id: 'paypal', label: 'PayPal', icon: '🅿' },
+    { id: 'venmo', label: 'Venmo', icon: '✦' },
+  ];
+
+  function formatCardNumber(v) {
+    return v.replace(/\D/g,'').slice(0,16).replace(/(.{4})/g,'$1 ').trim();
+  }
+  function formatExpiry(v) {
+    const digits = v.replace(/\D/g,'').slice(0,4);
+    return digits.length > 2 ? digits.slice(0,2) + '/' + digits.slice(2) : digits;
+  }
+
+  function validate() {
+    if (method !== 'card') return true;
+    const e = {};
+    if (card.number.replace(/\s/g,'').length < 16) e.number = 'Enter a valid 16-digit card number';
+    if (!card.name.trim()) e.name = 'Cardholder name required';
+    if (card.expiry.length < 5) e.expiry = 'Enter valid expiry MM/YY';
+    if (card.cvv.length < 3) e.cvv = 'Enter valid CVV';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  }
+
+  function handlePay() {
+    if (!validate()) return;
+    setProcessing(true);
+    // generate zoom link here so we can pass it to onSuccess
+    const zoomLink = `https://zoom.us/j/${Math.floor(Math.random()*900000000+100000000)}?pwd=${Math.random().toString(36).slice(2,12)}`;
+    setTimeout(() => { setProcessing(false); onSuccess(zoomLink); }, 2800);
+  }
+
+  // Detect card brand from number
+  function cardBrand(num) {
+    const n = num.replace(/\s/g,'');
+    if (n.startsWith('4')) return 'Visa';
+    if (/^5[1-5]/.test(n)) return 'Mastercard';
+    if (/^3[47]/.test(n)) return 'Amex';
+    if (n.startsWith('6')) return 'Discover';
+    return null;
+  }
+  const brand = cardBrand(card.number);
+
+  if (processing) return (
+    <div style={{ maxWidth: 480, margin: '0 auto', textAlign: 'center', padding: '60px 24px' }}>
+      <div style={{ marginBottom: 24 }}>
+        <div style={spinnerStyle} />
+      </div>
+      <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 24, color: '#d0e8d0', marginBottom: 8 }}>Processing Payment…</div>
+      <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 14, color: '#4a6050', lineHeight: 1.7 }}>
+        Charging ${totalPrice}.00<br/>
+        Scheduling your Zoom session<br/>
+        Sending confirmation emails
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#5a8060', cursor: 'pointer', fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: '0.06em', padding: 0, display: 'flex', alignItems: 'center', gap: 6, textTransform: 'uppercase' }}>← Back</button>
+
+      {/* Order Summary */}
+      <div style={{ background: '#091209', border: '1px solid #1e3020', borderRadius: 14, padding: '18px 20px' }}>
+        <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 11, color: '#4a6850', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>Order Summary</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+          <CoachAvatar coach={booking.coach} size="sm" />
+          <div>
+            <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 16, color: '#d0e8d0' }}>{booking.coach.name}</div>
+            <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 12, color: '#4a6050' }}>
+              {booking.sessionType === 'tournament' ? 'Tournament Coaching' : 'Personal Training'} ·{' '}
+              {booking.date && booking.date.toLocaleDateString('en-US',{month:'short',day:'numeric'})} · {booking.time}
+            </div>
+            {booking.tournament && <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 11, color: '#3a5040', marginTop: 2 }}>📍 {booking.tournament}</div>}
+          </div>
+        </div>
+        <div style={{ borderTop: '1px solid #1a2e1a', paddingTop: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: reportFee > 0 ? 8 : 0 }}>
+            <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 12, color: '#4a6050' }}>1-hour session</div>
+            <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 16, color: '#a0c8a0' }}>${booking.coach.price}.00</div>
+          </div>
+          {reportFee > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 12, color: '#4a6050' }}>Written performance report</div>
+              <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 16, color: '#3de05a' }}>+$30.00</div>
+            </div>
+          )}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #1a2e1a', paddingTop: 10 }}>
+            <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 13, color: '#5a8060' }}>Total</div>
+            <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 26, color: '#3de05a' }}>${totalPrice}.00</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Payment Method Tabs */}
+      <div>
+        <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 11, color: '#4a6850', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>Payment Method</div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {methods.map(m => (
+            <button key={m.id} onClick={() => setMethod(m.id)} style={{
+              flex: 1, background: method === m.id ? '#0a1e10' : '#0d150d',
+              border: `1px solid ${method === m.id ? '#3de05a' : '#182018'}`,
+              borderRadius: 10, padding: '12px 8px', cursor: 'pointer',
+              fontFamily: "'Quicksand',sans-serif", fontWeight: 700, fontSize: 12,
+              color: method === m.id ? '#3de05a' : '#5a7060',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+              transition: 'all 0.15s',
+            }}>
+              <span style={{ fontSize: 20 }}>{m.icon}</span>
+              <span>{m.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Card Form */}
+      {method === 'card' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Visual Card */}
+          <div style={{
+            background: 'linear-gradient(135deg, #0a2010 0%, #142820 50%, #0d1e14 100%)',
+            border: '1px solid #1e3a22', borderRadius: 16, padding: '22px 24px',
+            position: 'relative', overflow: 'hidden', minHeight: 120,
+          }}>
+            <div style={{ position: 'absolute', top: -20, right: -20, width: 120, height: 120, borderRadius: '50%', background: '#3de05a08' }} />
+            <div style={{ position: 'absolute', bottom: -30, right: 20, width: 90, height: 90, borderRadius: '50%', background: '#3de05a05' }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+              <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 16, color: '#3de05a', letterSpacing: '0.08em' }}>SQUASHTIME</div>
+              {brand && <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 13, color: '#5a8060', letterSpacing: '0.1em' }}>{brand.toUpperCase()}</div>}
+            </div>
+            <div style={{ fontFamily: 'monospace', fontSize: 16, color: '#c0d8c0', letterSpacing: '0.15em', marginBottom: 12 }}>
+              {card.number || '•••• •••• •••• ••••'}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ fontSize: 9, color: '#3a5040', fontFamily: "'League Spartan',sans-serif", letterSpacing: '0.1em', marginBottom: 2 }}>CARDHOLDER</div>
+                <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#8ab0a0' }}>{card.name || 'Your Name'}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 9, color: '#3a5040', fontFamily: "'League Spartan',sans-serif", letterSpacing: '0.1em', marginBottom: 2 }}>EXPIRES</div>
+                <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#8ab0a0' }}>{card.expiry || 'MM/YY'}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card Fields */}
+          <div>
+            <PayLabel>Card Number</PayLabel>
+            <input placeholder="1234 5678 9012 3456" value={card.number}
+              onChange={e => setCard({ ...card, number: formatCardNumber(e.target.value) })}
+              style={{ ...payInputStyle, borderColor: errors.number ? '#e05a3d' : '#1e2e1e' }} />
+            {errors.number && <ErrMsg>{errors.number}</ErrMsg>}
+          </div>
+          <div>
+            <PayLabel>Cardholder Name</PayLabel>
+            <input placeholder="Name as on card" value={card.name}
+              onChange={e => setCard({ ...card, name: e.target.value })}
+              style={{ ...payInputStyle, borderColor: errors.name ? '#e05a3d' : '#1e2e1e' }} />
+            {errors.name && <ErrMsg>{errors.name}</ErrMsg>}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <PayLabel>Expiry</PayLabel>
+              <input placeholder="MM/YY" value={card.expiry}
+                onChange={e => setCard({ ...card, expiry: formatExpiry(e.target.value) })}
+                style={{ ...payInputStyle, borderColor: errors.expiry ? '#e05a3d' : '#1e2e1e' }} />
+              {errors.expiry && <ErrMsg>{errors.expiry}</ErrMsg>}
+            </div>
+            <div>
+              <PayLabel>CVV</PayLabel>
+              <input placeholder="•••" value={card.cvv} maxLength={4}
+                onChange={e => setCard({ ...card, cvv: e.target.value.replace(/\D/g,'').slice(0,4) })}
+                style={{ ...payInputStyle, borderColor: errors.cvv ? '#e05a3d' : '#1e2e1e' }} />
+              {errors.cvv && <ErrMsg>{errors.cvv}</ErrMsg>}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PayPal / Venmo redirects */}
+      {method === 'paypal' && (
+        <div style={{ background: '#0d150d', border: '1px solid #182018', borderRadius: 14, padding: '28px 24px', textAlign: 'center' }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>🅿</div>
+          <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 16, color: '#d0e8d0', marginBottom: 6 }}>Continue with PayPal</div>
+          <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#4a6050', lineHeight: 1.6 }}>You'll be redirected to PayPal to complete your ${totalPrice}.00 payment securely.</div>
+        </div>
+      )}
+      {method === 'venmo' && (
+        <div style={{ background: '#0d150d', border: '1px solid #182018', borderRadius: 14, padding: '28px 24px', textAlign: 'center' }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>✦</div>
+          <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 16, color: '#d0e8d0', marginBottom: 6 }}>Continue with Venmo</div>
+          <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#4a6050', lineHeight: 1.6 }}>You'll be redirected to Venmo to complete your ${totalPrice}.00 payment securely.</div>
+        </div>
+      )}
+
+      {/* Security badges */}
+      <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+        {['🔒 SSL Encrypted', '✓ PCI Compliant', '↩ Instant Refunds'].map(b => (
+          <span key={b} style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 11, color: '#3a5040', fontWeight: 600 }}>{b}</span>
+        ))}
+      </div>
+
+      <button onClick={handlePay} style={{
+        width: '100%', background: '#3de05a', border: 'none', borderRadius: 12,
+        padding: '16px 24px', fontFamily: "'League Spartan',sans-serif", fontWeight: 900,
+        fontSize: 18, color: '#050d05', cursor: 'pointer', transition: 'all 0.15s',
+        letterSpacing: '0.04em',
+      }}>
+        Pay ${totalPrice}.00 & Book Session
+      </button>
+    </div>
+  );
+}
+
+function ConfirmationPage({ booking, onNewBooking, zoomLink }) {
+  const confirmLink = zoomLink || `https://zoom.us/j/${Math.floor(Math.random()*900000000+100000000)}?pwd=${Math.random().toString(36).slice(2,12)}`;
+  const confirmNum  = 'ST-' + Date.now().toString(36).toUpperCase().slice(-8);
+  const reportFee   = booking.addReport ? 30 : 0;
+  const totalPrice  = booking.coach.price + reportFee;
+
+  return (
+    <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* Success header */}
+      <div style={{ textAlign: 'center', padding: '20px 0' }}>
+        <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#0a2010', border: '3px solid #3de05a', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32 }}>✓</div>
+        <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 28, color: '#3de05a', marginBottom: 6 }}>Session Booked!</div>
+        <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 14, color: '#5a7860', lineHeight: 1.7 }}>
+          Confirmation #{confirmNum}<br/>
+          Emails sent to <strong style={{ color: '#8ab0a0' }}>{booking.playerInfo.email}</strong> and your coach
+        </div>
+      </div>
+
+      {/* Zoom Card */}
+      <div style={{ background: 'linear-gradient(135deg, #0a2010, #0e1e18)', border: '1px solid #3de05a40', borderRadius: 16, padding: '22px 24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+          <div style={{ width: 38, height: 38, borderRadius: 10, background: '#1a6ef0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>📹</div>
+          <div>
+            <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 16, color: '#d0e8d0' }}>Zoom Session Scheduled</div>
+            <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 12, color: '#4a6050' }}>Auto-generated and sent to both parties</div>
+          </div>
+        </div>
+        <div style={{ background: '#061206', border: '1px solid #1a2a1a', borderRadius: 10, padding: '14px 16px', marginBottom: 14 }}>
+          <div style={{ fontFamily: 'monospace', fontSize: 12, color: '#3de05a', wordBreak: 'break-all', lineHeight: 1.6 }}>{confirmLink}</div>
+        </div>
+        <button onClick={() => navigator.clipboard?.writeText(confirmLink)} style={{
+          background: '#3de05a', border: 'none', borderRadius: 9, padding: '10px 20px',
+          fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 13,
+          color: '#050d05', cursor: 'pointer', letterSpacing: '0.04em',
+        }}>Copy Zoom Link</button>
+      </div>
+
+      {/* Session details */}
+      <div style={{ background: '#091209', border: '1px solid #182018', borderRadius: 14, padding: '18px 20px' }}>
+        <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 11, color: '#4a6850', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 14 }}>Session Details</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingBottom: 14, borderBottom: '1px solid #182018', marginBottom: 14 }}>
+          <CoachAvatar coach={booking.coach} size="sm" />
+          <div>
+            <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 16, color: '#d0e8d0' }}>{booking.coach.name}</div>
+            <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 12, color: '#4a6050' }}>{booking.coach.title}</div>
+          </div>
+        </div>
+        {[
+          ['Date', booking.date && booking.date.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'})],
+          ['Time', booking.time],
+          ['Format', 'Live Zoom Session (1 hour)'],
+          ['Type', booking.sessionType === 'tournament' ? 'Tournament Coaching' : 'Personal Training'],
+          ...(booking.tournament ? [['Tournament', booking.tournament]] : []),
+          ['Player', booking.playerInfo.name],
+          ['Paid', `$${totalPrice}.00${booking.addReport ? ' (incl. report)' : ''}`],
+        ].map(([k, v]) => (
+          <div key={k} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
+            <span style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#4a6050' }}>{k}</span>
+            <span style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#a0c0a0', fontWeight: 600, textAlign: 'right' }}>{v}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Report notice */}
+      {booking.addReport && (
+        <div style={{ background: '#0a1e10', border: '1px solid #3de05a40', borderRadius: 12, padding: '14px 18px', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+          <span style={{ fontSize: 20, flexShrink: 0 }}>📝</span>
+          <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#5a8060', lineHeight: 1.7 }}>
+            <strong style={{ color: '#3de05a' }}>Written Performance Report included.</strong> Your coach will send a detailed report to <strong style={{ color: '#8ab0a0' }}>{booking.playerInfo.email}</strong> within <strong style={{ color: '#8ab0a0' }}>3–5 business days</strong> of session completion via <span style={{ color: '#8ab0a0' }}>info@squashtime.com</span>.
+          </div>
+        </div>
+      )}
+
+      {/* Email notice */}
+      <div style={{ background: '#091209', border: '1px solid #182018', borderRadius: 12, padding: '14px 18px', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+        <span style={{ fontSize: 20, flexShrink: 0 }}>📧</span>
+        <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#5a7860', lineHeight: 1.7 }}>
+          A confirmation email with the Zoom link, session details, and receipt has been sent to <strong style={{ color: '#8ab0a0' }}>{booking.playerInfo.email}</strong>. Your coach has also been notified.
+        </div>
+      </div>
+
+      <button onClick={onNewBooking} style={{
+        width: '100%', background: '#0d150d', border: '1px solid #3de05a',
+        borderRadius: 12, padding: '14px 24px',
+        fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 16,
+        color: '#3de05a', cursor: 'pointer', transition: 'all 0.15s', letterSpacing: '0.04em',
+      }}>Book Another Session</button>
+    </div>
+  );
+}
+
+// ── Helpers ────────────────────────────────────────────────────────
+
+function PayLabel({ children }) {
+  return <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 11, color: '#4a6850', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 7 }}>{children}</div>;
+}
+function ErrMsg({ children }) {
+  return <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 12, color: '#e05a3d', marginTop: 5 }}>{children}</div>;
+}
+const payInputStyle = {
+  width: '100%', background: '#091209', border: '1px solid #1e2e1e',
+  borderRadius: 9, padding: '12px 14px', color: '#c0d8c0',
+  fontFamily: "'Quicksand',sans-serif", fontSize: 14, outline: 'none',
+  boxSizing: 'border-box',
+};
+const spinnerStyle = {
+  width: 52, height: 52, borderRadius: '50%',
+  border: '4px solid #182018', borderTop: '4px solid #3de05a',
+  animation: 'spin 0.8s linear infinite', margin: '0 auto',
+};
+
+Object.assign(window, { PaymentPage, ConfirmationPage });
+// SquashTime — Subscription Tiers + Account Dashboard
+
+const PLANS = {
+  free: {
+    id: 'free', name: 'Basic', price: 0, color: '#4a9a5a', border: '#1e3a28',
+    caveats: 'Unlimited sessions. Senior coach guaranteed 5x/month.',
+    features: ['Unlimited sessions per month','5 guaranteed Senior coach sessions/month','Remaining sessions: mix of Junior & Senior coaches (randomly assigned)','Standard Zoom link delivery','No access to Fitness coaching'],
+    limits: { seniorPerMonth: 5 },
+  },
+  premium: {
+    id: 'premium', name: 'Premium', price: 9.99, color: '#3de05a', border: '#3de05a',
+    badge: 'Most Popular',
+    caveats: 'Full control — pick your coach every time.',
+    features: ['Unlimited sessions per month','Choose your preferred coach every session','Access to Fitness coaching (first-come, first-served)','Priority Zoom scheduling','Tournament + Personal session types'],
+    limits: null,
+  },
+};
+
+
+function PremiumPaymentForm() {
+  const [card, setCard] = React.useState({ number: '', name: '', expiry: '', cvv: '' });
+  const fmt = v => v.replace(/\D/g,'').slice(0,16).replace(/(.{4})/g,'$1 ').trim();
+  const fmtExp = v => { const d=v.replace(/\D/g,'').slice(0,4); return d.length>2?d.slice(0,2)+'/'+d.slice(2):d; };
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <input placeholder="Card number" value={card.number} onChange={e => setCard({...card,number:fmt(e.target.value)})} style={authInputStyle} />
+      <input placeholder="Cardholder name" value={card.name} onChange={e => setCard({...card,name:e.target.value})} style={authInputStyle} />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <input placeholder="MM/YY" value={card.expiry} onChange={e => setCard({...card,expiry:fmtExp(e.target.value)})} style={authInputStyle} />
+        <input placeholder="CVV" value={card.cvv} maxLength={4} onChange={e => setCard({...card,cvv:e.target.value.replace(/\D/g,'').slice(0,4)})} style={authInputStyle} />
+      </div>
+      <div style={{ display: 'flex', gap: 10 }}>
+        {['PayPal','Venmo'].map(m => (
+          <button key={m} type="button" style={{ flex:1, background:'#091209', border:'1px solid #1e2e1e', borderRadius:8, padding:'10px', fontFamily:"'Quicksand',sans-serif", fontWeight:700, fontSize:12, color:'#5a7860', cursor:'pointer' }}>{m}</button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SubscriptionPage({ user, onChoose }) {
+  const [selected, setSelected] = React.useState('premium');
+  const [processing, setProcessing] = React.useState(false);
+
+  function handleChoose() {
+    setProcessing(true);
+    setTimeout(() => {
+      const updated = authSetSubscription(selected);
+      setProcessing(false);
+      onChoose(updated, selected);
+    }, 1200);
+  }
+
+  if (processing) return (
+    <div style={{ textAlign: 'center', padding: '80px 24px' }}>
+      <div style={{ width: 56, height: 56, borderRadius: '50%', border: '4px solid #1e3020', borderTop: '4px solid #3de05a', animation: 'spin 0.8s linear infinite', margin: '0 auto 24px' }} />
+      <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 22, color: '#d0e8d0', marginBottom: 8 }}>Setting up your plan…</div>
+      <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 14, color: '#4a6050' }}>Just a moment</div>
+    </div>
+  );
+
+  return (
+    <div style={{ maxWidth: 800, margin: '0 auto', padding: '60px 24px 80px' }}>
+      <div style={{ textAlign: 'center', marginBottom: 48 }}>
+        <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 'clamp(28px,5vw,44px)', color: '#e8f4e8', letterSpacing: '-0.02em', marginBottom: 10 }}>
+          Welcome, {user.name.split(' ')[0]}!
+        </div>
+        <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 16, color: '#5a7860' }}>Choose your coaching plan. Upgrade anytime.</div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 20, marginBottom: 28 }}>
+        {Object.values(PLANS).map(plan => {
+          const sel = selected === plan.id;
+          return (
+            <div key={plan.id} onClick={() => setSelected(plan.id)} style={{
+              background: sel ? '#0a1e10' : '#0d150d',
+              border: `2px solid ${sel ? plan.color : '#182018'}`,
+              borderRadius: 18, padding: '28px 24px', cursor: 'pointer', position: 'relative',
+              transition: 'all 0.18s', boxShadow: sel ? `0 8px 32px #00000050` : 'none',
+            }}>
+              {plan.badge && <div style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: '#3de05a', color: '#050d05', fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 11, letterSpacing: '0.1em', padding: '4px 14px', borderRadius: 20, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{plan.badge}</div>}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 }}>
+                <div>
+                  <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 22, color: plan.color, marginBottom: 4 }}>{plan.name}</div>
+                  {plan.price === 0
+                    ? <span style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 30, color: '#c0d8c0' }}>$0.00</span>
+                    : <div style={{ display: 'flex', alignItems: 'baseline', gap: 3 }}><span style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 34, color: '#e8f4e8' }}>${plan.price}</span><span style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#4a6050' }}>/month</span></div>
+                  }
+                </div>
+                <div style={{ width: 22, height: 22, borderRadius: '50%', border: `2px solid ${sel ? plan.color : '#2a3e2a'}`, background: sel ? plan.color : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 4, transition: 'all 0.15s' }}>
+                  {sel && <div style={{ width: 8, height: 8, borderRadius: '50%', background: plan.id === 'premium' ? '#050d05' : '#e8f4e8' }} />}
+                </div>
+              </div>
+              <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 12, color: '#4a6040', fontStyle: 'italic', marginBottom: 14 }}>{plan.caveats}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {plan.features.map((f, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: plan.color, flexShrink: 0, marginTop: 5 }} />
+                    <span style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#8aaa8a', fontWeight: 600, lineHeight: 1.5 }}>{f}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Summary */}
+      <div style={{ background: '#091209', border: '1px solid #1a2a1a', borderRadius: 12, padding: '14px 20px', marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 14, color: '#6a8a6a' }}>{selected === 'premium' ? 'Premium — billed monthly' : 'Free plan — no payment needed'}</span>
+        <span style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 20, color: '#3de05a' }}>{selected === 'premium' ? '$9.99/mo' : '$0'}</span>
+      </div>
+
+      {selected === 'premium' && (
+        <div style={{ background: '#091209', border: '1px solid #1a2a1a', borderRadius: 12, padding: '18px 20px', marginBottom: 16 }}>
+          <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 11, color: '#4a6850', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>Payment Details</div>
+          <PremiumPaymentForm />
+        </div>
+      )}
+
+      <button onClick={handleChoose} style={{ width: '100%', background: '#3de05a', border: 'none', borderRadius: 12, padding: '16px', fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 17, color: '#050d05', cursor: 'pointer', letterSpacing: '0.04em' }}>
+        {selected === 'premium' ? 'Start Premium — $9.99/mo →' : 'Continue with Free Plan →'}
+      </button>
+    </div>
+  );
+}
+
+function AccountDashboard({ user, onSignOut, onUpgrade, setView }) {
+  const plan = PLANS[user.subscription] || PLANS.free;
+  const sessLeft = user.subscription !== 'premium' ? Math.max(0, 5 - (user.sessionsUsedThisMonth || 0)) : null;
+  return (
+    <div style={{ maxWidth: 640, margin: '0 auto', padding: '100px 24px 60px' }}>
+      <div style={{ marginBottom: 32 }}>
+        <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 'clamp(26px,4vw,38px)', color: '#e8f4e8', letterSpacing: '-0.02em', marginBottom: 4 }}>My Account</div>
+        <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 14, color: '#4a6050' }}>{user.email}</div>
+      </div>
+
+      {/* Plan card */}
+      <div style={{ background: user.subscription === 'premium' ? '#0a1e10' : '#0a1410', border: `1px solid ${plan.color}50`, borderRadius: 16, padding: '22px 24px', marginBottom: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
+          <div>
+            <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 10, color: '#3a5a40', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 4 }}>Current Plan</div>
+            <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 24, color: plan.color }}>{plan.name}</div>
+            <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#4a6050' }}>{plan.price === 0 ? '$0.00 / month' : '$9.99/month'}</div>
+          </div>
+          {user.subscription !== 'premium' && (
+            <button onClick={onUpgrade} style={{ background: '#3de05a', border: 'none', borderRadius: 9, padding: '10px 18px', fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 13, color: '#050d05', cursor: 'pointer' }}>Upgrade →</button>
+          )}
+        </div>
+        {user.subscription === 'free' && (
+          <div style={{ background: '#091209', borderRadius: 10, padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#5a7860' }}>Senior coach sessions used this month</span>
+            <span style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 20, color: (user.sessionsUsedThisMonth || 0) >= 5 ? '#e05a3d' : '#3de05a' }}>{user.sessionsUsedThisMonth || 0} / 5</span>
+          </div>
+        )}
+        {user.subscription === 'premium' && (
+          <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#5a7860' }}>Unlimited sessions · Choose your coach · Priority scheduling</div>
+        )}
+      </div>
+
+      {/* Profile */}
+      <div style={{ background: '#0d150d', border: '1px solid #182018', borderRadius: 14, padding: '22px', marginBottom: 20 }}>
+        <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 10, color: '#3a5040', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 14 }}>Profile</div>
+        {[['Name', user.name], ['Email', user.email], ['Member since', new Date(user.createdAt).toLocaleDateString('en-US',{month:'long',year:'numeric'})]].map(([k,v]) => (
+          <div key={k} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+            <span style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#4a6050' }}>{k}</span>
+            <span style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#a0c8a0', fontWeight: 600 }}>{v}</span>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', gap: 12 }}>
+        <button onClick={() => setView('booking')} style={{ flex: 1, background: '#3de05a', border: 'none', borderRadius: 11, padding: '14px', fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 15, color: '#050d05', cursor: 'pointer' }}>Book a Session</button>
+        <button onClick={onSignOut} style={{ background: '#0d150d', border: '1px solid #2a3e2a', borderRadius: 11, padding: '14px 20px', fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 14, color: '#5a7860', cursor: 'pointer' }}>Sign Out</button>
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { PLANS, SubscriptionPage, AccountDashboard });
+// SquashTime — Sessions (Active + History)
+
+const SESSIONS_KEY = 'squashtime_sessions';
+
+function getUserSessions(email) {
+  if (!email) return [];
+  try {
+    const all = JSON.parse(localStorage.getItem(SESSIONS_KEY) || '{}');
+    return all[email.toLowerCase()] || [];
+  } catch { return []; }
+}
+
+function saveUserSession(email, session) {
+  if (!email) return;
+  try {
+    const all = JSON.parse(localStorage.getItem(SESSIONS_KEY) || '{}');
+    const key = email.toLowerCase();
+    all[key] = [session, ...(all[key] || [])];
+    localStorage.setItem(SESSIONS_KEY, JSON.stringify(all));
+  } catch {}
+}
+
+function updateSessionResult(email, sessionId, result) {
+  if (!email) return;
+  try {
+    const all = JSON.parse(localStorage.getItem(SESSIONS_KEY) || '{}');
+    const key = email.toLowerCase();
+    all[key] = (all[key] || []).map(s => s.id === sessionId ? { ...s, result, status: 'history' } : s);
+    localStorage.setItem(SESSIONS_KEY, JSON.stringify(all));
+  } catch {}
+}
+
+function buildSession(booking, zoomLink) {
+  return {
+    id: Date.now().toString(),
+    coachName: booking.coach.name,
+    coachTitle: booking.coach.title,
+    coachLevel: booking.coach.level,
+    coachPrice: booking.coach.price,
+    date: booking.date ? booking.date.toISOString() : null,
+    time: booking.time,
+    sessionType: booking.sessionType,
+    tournament: booking.tournament || null,
+    zoomLink,
+    playerName: booking.playerInfo.name,
+    playerEmail: booking.playerInfo.email,
+    addReport: booking.addReport || false,
+    status: 'active',
+    result: null,
+    bookedAt: new Date().toISOString(),
+  };
+}
+
+function SessionsPage({ user }) {
+  const [tab, setTab] = React.useState('active');
+  const [sessions, setSessions] = React.useState(() => getUserSessions(user?.email));
+  const [addingResult, setAddingResult] = React.useState(null);
+  const [resultText, setResultText] = React.useState('');
+  const [resultOutcome, setResultOutcome] = React.useState('');
+
+  const active = sessions.filter(s => s.status === 'active');
+  const history = sessions.filter(s => s.status === 'history');
+
+  function handleMarkComplete(session) {
+    setAddingResult(session);
+    setResultText('');
+    setResultOutcome('');
+  }
+
+  function handleSaveResult() {
+    if (!addingResult) return;
+    updateSessionResult(user.email, addingResult.id, { outcome: resultOutcome, notes: resultText });
+    setSessions(getUserSessions(user.email));
+    setAddingResult(null);
+  }
+
+  const emptyStyle = { textAlign: 'center', padding: '48px 24px', color: '#3a5040', fontFamily: "'Quicksand',sans-serif", fontSize: 15 };
+
+  return (
+    <div style={{ maxWidth: 820, margin: '0 auto', padding: '100px 24px 60px' }}>
+      {/* Header */}
+      <div style={{ marginBottom: 32 }}>
+        <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 11, color: '#3de05a', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8 }}>My Coaching</div>
+        <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 'clamp(26px,4vw,38px)', color: '#d8eed8', letterSpacing: '-0.02em' }}>Sessions</div>
+      </div>
+
+      {/* Tabs */}
+      <div style={{ display: 'flex', background: '#091209', borderRadius: 12, padding: 4, marginBottom: 28, width: 'fit-content' }}>
+        {[['active', `Active (${active.length})`], ['history', `History (${history.length})`]].map(([t, l]) => (
+          <button key={t} onClick={() => setTab(t)} style={{
+            background: tab === t ? '#3de05a' : 'transparent', border: 'none',
+            borderRadius: 9, padding: '10px 24px', fontFamily: "'League Spartan',sans-serif",
+            fontWeight: 700, fontSize: 13, color: tab === t ? '#050d05' : '#5a7860',
+            cursor: 'pointer', transition: 'all 0.15s', letterSpacing: '0.04em',
+          }}>{l}</button>
+        ))}
+      </div>
+
+      {/* Active Sessions */}
+      {tab === 'active' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {active.length === 0 && (
+            <div style={emptyStyle}>
+              <div style={{ fontSize: 36, marginBottom: 12 }}>📅</div>
+              <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 18, color: '#4a6050', marginBottom: 8 }}>No active sessions</div>
+              <div>Book a session to see it appear here.</div>
+            </div>
+          )}
+          {active.map(s => <SessionCard key={s.id} session={s} onMarkComplete={() => handleMarkComplete(s)} />)}
+        </div>
+      )}
+
+      {/* History */}
+      {tab === 'history' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {history.length === 0 && (
+            <div style={emptyStyle}>
+              <div style={{ fontSize: 36, marginBottom: 12 }}>📖</div>
+              <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 18, color: '#4a6050', marginBottom: 8 }}>No past sessions yet</div>
+              <div>Completed sessions will appear here, including competition results.</div>
+            </div>
+          )}
+          {history.map(s => <SessionCard key={s.id} session={s} isPast={true} />)}
+        </div>
+      )}
+
+      {/* Result Modal */}
+      {addingResult && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}>
+          <div style={{ background: '#0a140a', border: '1px solid #1e3020', borderRadius: 20, padding: '32px', width: '100%', maxWidth: 440, boxShadow: '0 24px 80px #000c' }}>
+            <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 20, color: '#d0e8d0', marginBottom: 6 }}>Mark Session Complete</div>
+            <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#4a6050', marginBottom: 20 }}>
+              Session with {addingResult.coachName} · {addingResult.time}
+            </div>
+
+            {addingResult.sessionType === 'tournament' && (
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 11, color: '#4a6850', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>Tournament Result</div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {['Won','Lost','Drew','N/A'].map(o => (
+                    <button key={o} onClick={() => setResultOutcome(o)} style={{
+                      background: resultOutcome === o ? '#3de05a' : '#091209',
+                      border: `1px solid ${resultOutcome === o ? '#3de05a' : '#1e2e1e'}`,
+                      borderRadius: 8, padding: '8px 16px', cursor: 'pointer',
+                      fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 13,
+                      color: resultOutcome === o ? '#050d05' : '#6a8a6a', transition: 'all 0.12s',
+                    }}>{o}</button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 11, color: '#4a6850', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>Notes (optional)</div>
+              <textarea
+                value={resultText}
+                onChange={e => setResultText(e.target.value)}
+                placeholder="e.g. Worked on backhand, improved drop shot..."
+                rows={3}
+                style={{ width: '100%', background: '#091209', border: '1px solid #1e2e1e', borderRadius: 9, padding: '12px 14px', color: '#c0d8c0', fontFamily: "'Quicksand',sans-serif", fontSize: 14, outline: 'none', resize: 'vertical', boxSizing: 'border-box' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setAddingResult(null)} style={{ flex: '0 0 auto', background: '#0d150d', border: '1px solid #1e2e1e', borderRadius: 9, padding: '12px 18px', fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 13, color: '#5a7860', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={handleSaveResult} style={{ flex: 1, background: '#3de05a', border: 'none', borderRadius: 9, padding: '12px', fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 14, color: '#050d05', cursor: 'pointer' }}>Save & Move to History</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SessionCard({ session, onMarkComplete, isPast = false }) {
+  const [copied, setCopied] = React.useState(false);
+  const isSenior = session.coachLevel === 'Senior';
+  const accentColor = isSenior ? '#3de05a' : '#3ab0e0';
+  const dateStr = session.date ? new Date(session.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : '—';
+
+  function copyZoom() {
+    navigator.clipboard?.writeText(session.zoomLink).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
+  }
+
+  return (
+    <div style={{ background: isPast ? '#0a0f0a' : '#0d160d', border: `1px solid ${isPast ? '#182018' : accentColor + '40'}`, borderRadius: 16, padding: '22px 24px', position: 'relative' }}>
+      {/* Status badge */}
+      <div style={{ position: 'absolute', top: 16, right: 16, background: isPast ? '#0d1a0d' : '#0a2010', color: isPast ? '#4a6050' : '#3de05a', fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '4px 10px', borderRadius: 6 }}>
+        {isPast ? 'Completed' : 'Upcoming'}
+      </div>
+
+      {/* Coach row */}
+      <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16, paddingRight: 80 }}>
+        <div style={{ width: 44, height: 44, borderRadius: '50%', background: isSenior ? '#0e2a18' : '#0e1a2e', border: `2px solid ${accentColor}33`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 14, color: accentColor, flexShrink: 0 }}>
+          {session.coachName.split(' ').slice(0,2).map(w => w[0]).join('')}
+        </div>
+        <div>
+          <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 17, color: '#d0e8d0' }}>{session.coachName}</div>
+          <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 12, color: '#4a6050' }}>{session.coachTitle} · {isSenior ? 'Senior' : 'Junior'} Coach</div>
+        </div>
+      </div>
+
+      {/* Details grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 20px', marginBottom: 16 }}>
+        {[
+          ['Date', dateStr],
+          ['Time', session.time],
+          ['Type', session.sessionType === 'tournament' ? 'Tournament Coaching' : 'Personal Training'],
+          ['Player', session.playerName],
+          ...(session.tournament ? [['Tournament', session.tournament]] : []),
+          ['Rate', `$${session.coachPrice}/hr`],
+        ].map(([k, v]) => (
+          <div key={k}>
+            <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 10, color: '#3a5040', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 2 }}>{k}</div>
+            <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#9ab89a', fontWeight: 600 }}>{v}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Past session result */}
+      {isPast && session.result && (
+        <div style={{ background: '#091209', border: '1px solid #182018', borderRadius: 10, padding: '12px 14px', marginBottom: 14 }}>
+          {session.result.outcome && session.sessionType === 'tournament' && (
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: session.result.notes ? 6 : 0 }}>
+              <span style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 11, color: '#3a5040', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Result</span>
+              <span style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 14, color: session.result.outcome === 'Won' ? '#3de05a' : session.result.outcome === 'Lost' ? '#e05a3d' : '#8aaa8a' }}>{session.result.outcome}</span>
+            </div>
+          )}
+          {session.result.notes && (
+            <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#6a8a6a', lineHeight: 1.6 }}>{session.result.notes}</div>
+          )}
+        </div>
+      )}
+
+      {/* Zoom link */}
+      {!isPast && (
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', background: '#061206', border: '1px solid #1a2a1a', borderRadius: 9, padding: '10px 14px', marginBottom: 14 }}>
+          <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#3de05a', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{session.zoomLink}</span>
+          <button onClick={copyZoom} style={{ background: copied ? '#3de05a' : '#0d2010', border: `1px solid ${copied ? '#3de05a' : '#1e3020'}`, borderRadius: 6, padding: '5px 12px', fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 11, color: copied ? '#050d05' : '#5a8060', cursor: 'pointer', flexShrink: 0, transition: 'all 0.15s' }}>
+            {copied ? 'Copied!' : 'Copy'}
+          </button>
+        </div>
+      )}
+
+      {/* Actions */}
+      {!isPast && (
+        <button onClick={onMarkComplete} style={{ background: 'transparent', border: '1px solid #2a3e2a', borderRadius: 8, padding: '9px 18px', fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 12, color: '#5a8060', cursor: 'pointer', letterSpacing: '0.04em' }}>
+          Mark Complete →
+        </button>
+      )}
+    </div>
+  );
+}
+
+Object.assign(window, { SessionsPage, buildSession, saveUserSession, getUserSessions });
+const { useState, useEffect, useRef } = React;
+
+// ── Logo ─────────────────────────────────────────────────────────────
+function Logo({ size = 'md' }) {
+  const scales = { sm: 0.7, md: 1, lg: 1.4 };
+  const s = scales[size] || 1;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10 * s }}>
+      <svg width={36 * s} height={36 * s} viewBox="0 0 36 36" fill="none">
+        <circle cx="18" cy="18" r="17" fill="#0a1e0a" stroke="#3de05a" strokeWidth="1.5" />
+        <ellipse cx="18" cy="18" rx="9" ry="13" stroke="#3de05a" strokeWidth="1.5" fill="none" />
+        <ellipse cx="18" cy="18" rx="13" ry="9" stroke="#3de05a" strokeWidth="1.5" fill="none" transform="rotate(45 18 18)" opacity="0.4" />
+        <circle cx="18" cy="18" r="2.5" fill="#3de05a" />
+      </svg>
+      <div>
+        <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 26 * s, color: '#3de05a', letterSpacing: '-0.02em', lineHeight: 1 }}>SquashTime</div>
+        <div style={{ fontFamily: "'Quicksand',sans-serif", fontWeight: 500, fontSize: 9 * s, color: '#3de05a', letterSpacing: '0.2em', textTransform: 'uppercase', lineHeight: 1, marginTop: 1, textAlign: "center" }}>anytime, anywhere</div>
+      </div>
+    </div>);
+
+}
+
+// ── Nav ──────────────────────────────────────────────────────────────
+function Nav({ view, setView, user, onSignInClick, onSignOut }) {
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 30);
+    window.addEventListener('scroll', fn);
+    return () => window.removeEventListener('scroll', fn);
+  }, []);
+
+  const isCoach = user?.role === 'coach';
+  const links = isCoach ? [
+  { id: 'coach-portal', label: 'My Schedule' }] :
+  [
+  { id: 'home', label: 'Home' },
+  { id: 'about', label: 'About' },
+  { id: 'team', label: 'Team' },
+  { id: 'booking', label: 'Book a Session' },
+  { id: 'account', label: 'Account' }];
+
+
+
+  return (
+    <nav style={{
+      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200,
+      background: scrolled ? 'rgba(6,12,6,0.97)' : 'transparent',
+      borderBottom: scrolled ? '1px solid #182018' : '1px solid transparent',
+      backdropFilter: scrolled ? 'blur(12px)' : 'none',
+      transition: 'all 0.3s ease', padding: '0 24px'
+    }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto', height: 68, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ cursor: 'pointer' }} onClick={() => setView('home')}><Logo /></div>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          {links.map((l) =>
+          <button key={l.id} onClick={() => setView(l.id)} style={{
+            background: l.id === 'booking' ? '#3de05a' : 'none', border: 'none',
+            borderRadius: 8, padding: l.id === 'booking' ? '9px 18px' : '9px 14px',
+            fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 13,
+            color: l.id === 'booking' ? '#050d05' : view === l.id ? '#3de05a' : '#8aaa8a',
+            cursor: 'pointer', letterSpacing: '0.04em', transition: 'all 0.15s',
+            textTransform: l.id === 'booking' ? 'uppercase' : 'none'
+          }}>{l.label}</button>
+          )}
+
+          {/* Auth button / avatar */}
+          {user ?
+          <div style={{ position: 'relative' }}>
+              <button onClick={() => setMenuOpen((o) => !o)} style={{
+              display: 'flex', alignItems: 'center', gap: 8, background: '#0a1a0a',
+              border: '1px solid #1e3020', borderRadius: 10, padding: '7px 12px',
+              cursor: 'pointer', transition: 'all 0.15s'
+            }}>
+                <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#0d2a10', border: '1.5px solid #3de05a40', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 12, color: '#3de05a' }}>
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+                <span style={{ fontFamily: "'Quicksand',sans-serif", fontWeight: 600, fontSize: 13, color: '#8ab0a0' }}>{user.name.split(' ')[0]}</span>
+                <span style={{ color: '#4a6050', fontSize: 10 }}>▾</span>
+              </button>
+              {menuOpen &&
+            <div style={{ position: 'absolute', right: 0, top: '110%', background: '#0a140a', border: '1px solid #1e3020', borderRadius: 12, padding: '8px', minWidth: 180, boxShadow: '0 12px 40px #000a', zIndex: 300 }}>
+                  {[
+              { label: 'My Account', action: () => {setView('account');setMenuOpen(false);} },
+              { label: 'Sessions', action: () => {setView('sessions');setMenuOpen(false);} },
+              { label: 'Book a Session', action: () => {setView('booking');setMenuOpen(false);} },
+              { label: 'Sign Out', action: () => {onSignOut();setMenuOpen(false);}, danger: true }].
+              map((item) =>
+              <button key={item.label} onClick={item.action} style={{ width: '100%', background: 'none', border: 'none', borderRadius: 8, padding: '10px 12px', fontFamily: "'Quicksand',sans-serif", fontWeight: 600, fontSize: 13, color: item.danger ? '#e05a5a' : '#8aaa8a', cursor: 'pointer', textAlign: 'left', transition: 'all 0.12s' }}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#121e12'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'none'}>
+                {item.label}</button>
+              )}
+                </div>
+            }
+            </div> :
+
+          <button onClick={onSignInClick} style={{ background: 'none', border: '1px solid #2a3e2a', borderRadius: 8, padding: '8px 16px', fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 13, color: '#6a9070', cursor: 'pointer', letterSpacing: '0.04em' }}>Sign In</button>
+          }
+        </div>
+      </div>
+    </nav>);
+
+}
+
+// ── Shared UI ────────────────────────────────────────────────────────
+function SectionHeader({ tag, title }) {
+  return (
+    <div>
+      <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 11, color: '#3de05a', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 10 }}>{tag}</div>
+      <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 'clamp(26px,3.5vw,40px)', color: '#d8eed8', letterSpacing: '-0.02em', lineHeight: 1.1 }}>{title}</div>
+    </div>);
+
+}
+
+// ── Home Page ────────────────────────────────────────────────────────
+function HomePage({ setView, onBookCoach, onSignInClick }) {
+  return (
+    <div>
+      <section style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', padding: '100px 24px 60px' }}>
+        <div style={{ position: 'absolute', top: '20%', left: '50%', transform: 'translateX(-50%)', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle,#3de05a0a 0%,transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(#3de05a06 1px,transparent 1px),linear-gradient(90deg,#3de05a06 1px,transparent 1px)', backgroundSize: '60px 60px', pointerEvents: 'none' }} />
+        <div style={{ position: 'relative', textAlign: 'center', maxWidth: 780, animation: 'fadeUp 0.7s ease both' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#0a1a0a', border: '1px solid #1e3020', borderRadius: 24, padding: '7px 16px', marginBottom: 28 }}>
+            <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#3de05a', animation: 'pulse 2s ease infinite' }} />
+            <span style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 12, color: '#5a8060', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Live Online Coaching · US Junior Squash</span>
+          </div>
+          <h1 style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 'clamp(48px,8vw,88px)', color: '#e8f4e8', lineHeight: 0.95, letterSpacing: '-0.03em', marginBottom: 24 }}>
+            Elite Squash<br /><span style={{ color: '#3de05a' }}>Coaching</span><br />Online.
+          </h1>
+          <p style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 18, color: '#6a8a6a', lineHeight: 1.7, maxWidth: 520, margin: '0 auto 40px' }}>
+            Book live one-on-one sessions with world-class coaches. At tournaments, at home — anytime, anywhere via Zoom.
+          </p>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button onClick={() => setView('booking')} style={{ background: '#3de05a', border: 'none', borderRadius: 12, padding: '16px 32px', fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 16, color: '#050d05', cursor: 'pointer', letterSpacing: '0.04em' }}>Book a Session →</button>
+            <button onClick={() => setView('team')} style={{ background: 'transparent', border: '1px solid #2a3e2a', borderRadius: 12, padding: '16px 32px', fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 16, color: '#8aaa8a', cursor: 'pointer', letterSpacing: '0.04em' }}>Meet the Team</button>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 16, marginTop: 64, flexWrap: 'wrap', justifyContent: 'center', animation: 'fadeUp 0.9s ease 0.2s both' }}>
+          {[['8', 'Elite Coaches'], ['$90', 'Starting/hr'], ['Zoom', 'Live Sessions'], ['Free', 'Plan Available']].map(([num, lbl]) =>
+          <div key={lbl} style={{ background: '#0a140a', border: '1px solid #182018', borderRadius: 12, padding: '14px 22px', textAlign: 'center' }}>
+              <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 22, color: '#3de05a' }}>{num}</div>
+              <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 12, color: '#4a6050', marginTop: 2 }}>{lbl}</div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Session Types */}
+      <section style={{ padding: '80px 24px', background: '#070e07' }}>
+        <div style={{ maxWidth: 1000, margin: '0 auto' }}>
+          <SectionHeader tag="What We Offer" title="Two Ways to Train" />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 20, marginTop: 40 }}>
+            {[
+            { title: 'Tournament Coaching', color: '#3de05a', desc: 'Get live strategic coaching during your tournament weekend. Your coach watches, analyzes, and guides you between matches via Zoom.', bullets: ['Pre-match strategy sessions', 'Between-round tactical adjustments', 'Mental coaching & motivation', 'Tournament-specific game plans'] },
+            { title: 'Personal Training', color: '#1f9e48', desc: 'One-on-one skill sessions designed for your level and goals. No tournament needed — train from anywhere, anytime.', bullets: ['Technique & swing mechanics', 'Solo drill programs', 'Video analysis & feedback', 'Custom training plans'] }].
+            map((card) =>
+            <div key={card.title} style={{ background: '#0d160d', border: '1px solid #182018', borderRadius: 18, padding: '30px 28px' }}>
+                <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 22, color: card.color, marginBottom: 12 }}>{card.title}</div>
+                <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 14, color: '#6a8a72', lineHeight: 1.7, marginBottom: 20 }}>{card.desc}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {card.bullets.map((b) =>
+                <div key={b} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: card.color, flexShrink: 0 }} />
+                      <span style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#8aaa8a', fontWeight: 600 }}>{b}</span>
+                    </div>
+                )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section style={{ padding: '80px 24px' }}>
+        <div style={{ maxWidth: 1000, margin: '0 auto' }}>
+          <SectionHeader tag="Simple Process" title="How It Works" />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 20, marginTop: 40 }}>
+            {[
+            { step: '01', title: 'Create Account', desc: 'Sign up free in seconds. Choose your coaching plan — Free or Premium.' },
+            { step: '02', title: 'Pick Your Session', desc: 'Book by date or browse coaches. Tournament coaching or personal training.' },
+            { step: '03', title: 'Pay Securely', desc: 'Visa, Mastercard, PayPal or Venmo. Instant confirmation.' },
+            { step: '04', title: 'Get Your Zoom Link', desc: 'A Zoom session is auto-scheduled and emailed to you and your coach immediately.' }].
+            map((s) =>
+            <div key={s.step} style={{ background: '#0a140a', border: '1px solid #162016', borderRadius: 16, padding: '26px 22px' }}>
+                <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 36, color: '#1e3020', marginBottom: 12, lineHeight: 1 }}>{s.step}</div>
+                <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 17, color: '#c0dcc0', marginBottom: 8 }}>{s.title}</div>
+                <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#5a7860', lineHeight: 1.7 }}>{s.desc}</div>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Plans preview */}
+      <section style={{ padding: '80px 24px', background: '#070e07' }}>
+        <div style={{ maxWidth: 800, margin: '0 auto' }}>
+          <SectionHeader tag="Pricing" title="Simple Plans" />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 20, marginTop: 40 }}>
+            {[
+            { name: 'Basic', price: '$0.00', color: '#4a9a5a', note: 'Unlimited sessions · 5 guaranteed Senior/month' },
+            { name: 'Premium', price: '$9.99/mo', color: '#3de05a', note: 'Unlimited sessions · Choose your coach', badge: true }].
+            map((p) =>
+            <div key={p.name} onClick={onSignInClick} style={{ background: '#0d150d', border: `1px solid ${p.badge ? '#3de05a40' : '#182018'}`, borderRadius: 16, padding: '28px 24px', cursor: 'pointer', transition: 'all 0.15s' }}
+            onMouseEnter={(e) => e.currentTarget.style.borderColor = p.color}
+            onMouseLeave={(e) => e.currentTarget.style.borderColor = p.badge ? '#3de05a40' : '#182018'}>
+              
+                <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 20, color: p.color, marginBottom: 6 }}>{p.name}</div>
+                <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 30, color: '#e8f4e8', marginBottom: 10 }}>{p.price}</div>
+                <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#5a7860' }}>{p.note}</div>
+              </div>
+            )}
+          </div>
+          <div style={{ textAlign: 'center', marginTop: 28 }}>
+            <button onClick={onSignInClick} style={{ background: '#3de05a', border: 'none', borderRadius: 10, padding: '13px 28px', fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 15, color: '#050d05', cursor: 'pointer' }}>Get Started Free →</button>
+          </div>
+        </div>
+      </section>
+
+      {/* Coaches preview */}
+      <section style={{ padding: '80px 24px' }}>
+        <div style={{ maxWidth: 1000, margin: '0 auto' }}>
+          <SectionHeader tag="Our Team" title="World-Class Coaching Staff" />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))', gap: 16, marginTop: 40 }}>
+            {COACHES.slice(0, 4).map((c) =>
+            <div key={c.id}>
+                <CoachCard coach={c} />
+                <div style={{ marginTop: 8, paddingLeft: 4 }}>
+                  <button onClick={() => onBookCoach(c)} style={{ background: '#3de05a', border: 'none', borderRadius: 8, padding: '9px 18px', fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 12, color: '#050d05', cursor: 'pointer', letterSpacing: '0.04em' }}>Book {c.name.split(' ')[0]} →</button>
+                </div>
+              </div>
+            )}
+          </div>
+          <div style={{ textAlign: 'center', marginTop: 28 }}>
+            <button onClick={() => setView('team')} style={{ background: 'transparent', border: '1px solid #2a3e2a', borderRadius: 10, padding: '12px 28px', fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 14, color: '#5a8060', cursor: 'pointer', letterSpacing: '0.04em' }}>View Full Team →</button>
+          </div>
+        </div>
+      </section>
+
+      <footer style={{ background: '#050d05', borderTop: '1px solid #121e12', padding: '28px 24px', textAlign: 'center' }}>
+        <Logo />
+        <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 12, color: '#3a5040', marginTop: 12 }}>
+          © 2026 SquashTime · Founded by Mohamed Rostom · All sessions via Zoom
+        </div>
+      </footer>
+    </div>);
+
+}
+
+// ── Team Page (was Coaches) ─────────────────────────────────────────
+function TeamPage({ setView, onBookCoach }) {
+  const [filter, setFilter] = useState('All');
+  const filterOptions = ['All', 'Senior', 'Fitness', 'Junior'];
+  const filtered = filter === 'All' ? COACHES : COACHES.filter((c) => c.level === filter);
+  const bookBtnColor = (c) => c.level === 'Fitness' ? '#e04040' : '#3de05a';
+  return (
+    <div style={{ maxWidth: 1240, margin: '0 auto', padding: '100px 24px 60px' }}>
+      <SectionHeader tag="Our Coaching Team" title="Meet the Team" />
+      <div style={{ display: 'flex', gap: 8, marginTop: 28, marginBottom: 36, flexWrap: 'wrap' }}>
+        {filterOptions.map((f) => {
+          const isFit = f === 'Fitness';
+          const accent = isFit ? '#e04040' : '#3de05a';
+          return (
+            <button key={f} onClick={() => setFilter(f)} style={{
+              background: filter === f ? accent : '#0d150d',
+              border: `1px solid ${filter === f ? accent : '#182018'}`,
+              borderRadius: 8, padding: '8px 18px', cursor: 'pointer',
+              fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 13,
+              color: filter === f ? '#050d05' : '#6a8a6a', letterSpacing: '0.06em', transition: 'all 0.15s'
+            }}>{f}</button>);
+        })}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 18 }}>
+        {filtered.map((c) => {
+          const isFounder = !!c.founder;
+          return (
+            <div key={c.id} style={{ display: 'flex', flexDirection: 'column', gap: 10,
+              ...(isFounder ? {
+                borderRadius: 18,
+                padding: 3,
+                background: 'linear-gradient(135deg, #f0b429, #3de05a, #f0b429)',
+              } : {})
+            }}>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10,
+                ...(isFounder ? { borderRadius: 16, background: '#060c06', padding: 0, overflow: 'hidden' } : {})
+              }}>
+                {isFounder && (
+                  <div style={{ background: 'linear-gradient(90deg, #f0b42922, #f0b42910)', borderBottom: '1px solid #f0b42940', padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 13 }}>★</span>
+                    <span style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 11, color: '#f0b429', letterSpacing: '0.18em', textTransform: 'uppercase' }}>Founder</span>
+                  </div>
+                )}
+                <div style={{ padding: isFounder ? '0 0 0 0' : 0 }}>
+                  <CoachCard coach={c} />
+                </div>
+              </div>
+              <button onClick={() => onBookCoach(c)} style={{
+                background: bookBtnColor(c), border: 'none', borderRadius: 8,
+                padding: '10px 0', width: '100%',
+                fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 13,
+                color: '#050d05', cursor: 'pointer', letterSpacing: '0.04em'
+              }}>Book {c.name.split(' ')[0]} →</button>
+            </div>
+          );
+        })}
+      </div>
+    </div>);
+}
+
+// ── Coach Portal Page ────────────────────────────────────────────────
+function CoachPortalPage({ user, onSignOut }) {
+  const coach = COACHES.find((c) => c.id === user.coachId);
+  if (!coach) return null;
+  const accent = coachAccentColor(coach);
+  return (
+    <div style={{ maxWidth: 960, margin: '0 auto', padding: '100px 24px 80px' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 40, flexWrap: 'wrap', gap: 16 }}>
+        <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
+          <CoachAvatar coach={coach} size="lg" />
+          <div>
+            <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 11, color: accent, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 6 }}>Coach Portal</div>
+            <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 'clamp(24px,4vw,36px)', color: '#e8f4e8', letterSpacing: '-0.02em', lineHeight: 1.1 }}>Welcome, {coach.name.split(' ')[0]}</div>
+            <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 14, color: '#5a7860', marginTop: 4 }}>{coach.title}</div>
+          </div>
+        </div>
+        <button onClick={onSignOut} style={{ background: '#0d150d', border: '1px solid #2a3e2a', borderRadius: 10, padding: '10px 20px', fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 13, color: '#5a7860', cursor: 'pointer' }}>Sign Out</button>
+      </div>
+      <div style={{ background: '#0a1a0a', border: '1px solid #1e3020', borderRadius: 14, padding: '16px 20px', marginBottom: 32, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+        <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>ℹ️</span>
+        <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#5a8060', lineHeight: 1.7 }}>
+          Your schedule is <strong style={{ color: '#8ab0a0' }}>live and real-time</strong>. Blocking a slot removes it from player availability immediately. Slots booked by players are shown in amber and cannot be modified — contact SquashTime admin to cancel a booked session.
+        </div>
+      </div>
+      <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 22, color: '#d8eed8', letterSpacing: '-0.01em', marginBottom: 6 }}>Your Availability</div>
+      <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#4a6050', marginBottom: 24 }}>Manage which slots players can book with you. Changes take effect immediately.</div>
+      <CoachScheduleManager coach={coach} />
+    </div>);
+
+}
+
+// ── Booking Page ─────────────────────────────────────────────────────
+function BookingPage({ preselectedCoach, onClearCoach, user, onRequireAuth }) {
+  const [stage, setStage] = useState('engine');
+  const [booking, setBooking] = useState(null);
+
+  // Gate: must be logged in
+  useEffect(() => {
+    if (!user) {onRequireAuth();}
+  }, [user]);
+
+  if (!user) return (
+    <div style={{ maxWidth: 500, margin: '0 auto', padding: '120px 24px', textAlign: 'center' }}>
+      <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 28, color: '#d0e8d0', marginBottom: 12 }}>Sign in to Book</div>
+      <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 15, color: '#4a6050', marginBottom: 28 }}>Create a free account or sign in to book a session with one of our coaches.</div>
+      <button onClick={onRequireAuth} style={{ background: '#3de05a', border: 'none', borderRadius: 11, padding: '14px 32px', fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 16, color: '#050d05', cursor: 'pointer' }}>Sign In / Create Account →</button>
+    </div>);
+
+
+  const [confirmedZoomLink, setConfirmedZoomLink] = useState(null);
+  function handleEngineComplete(data) {setBooking(data);setStage('payment');}
+  function handlePaySuccess(zoomLink) {
+    if (user) {
+      const session = buildSession(booking, zoomLink);
+      saveUserSession(user.email, session);
+      if (user.subscription === 'free' && booking.coach.level === 'Senior') {
+        updateCurrentUser({ sessionsUsedThisMonth: (user.sessionsUsedThisMonth || 0) + 1 });
+      }
+    }
+    setConfirmedZoomLink(zoomLink);
+    authIncrementSessions();
+    setStage('confirm');
+  }
+  function handleNewBooking() {onClearCoach && onClearCoach();setBooking(null);setConfirmedZoomLink(null);setStage('engine');}
+
+  const stageTitle = { confirm: "You're All Set!", payment: 'Secure Payment', engine: 'Book a Session' }[stage];
+  const stageSub = { confirm: 'Your Zoom session is scheduled and confirmed.', payment: 'One step away from your coaching session.', engine: 'Live 1-on-1 coaching via Zoom · Instant Zoom link on confirmation' }[stage];
+
+  // Subscription plan restriction banner for free users
+  const isFree = user.subscription === 'free';
+  const seniorLeft = isFree ? Math.max(0, 5 - (user.sessionsUsedThisMonth || 0)) : null;
+  const outOfSessions = false; // Free tier is unlimited; only Senior sessions are capped
+
+  return (
+    <div style={{ maxWidth: 800, margin: '0 auto', padding: '100px 24px 80px' }}>
+      {/* Free plan notice */}
+      {isFree && stage === 'engine' &&
+      <div style={{ background: '#0a1a10', border: '1px solid #2a4030', borderRadius: 12, padding: '14px 18px', marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+          <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#5a8060' }}>
+            <strong style={{ color: '#8ab0a0' }}>Free Plan</strong> · Unlimited sessions · {seniorLeft} guaranteed Senior session{seniorLeft !== 1 ? 's' : ''} remaining this month
+          </div>
+          <button style={{ background: '#3de05a', border: 'none', borderRadius: 7, padding: '7px 14px', fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 12, color: '#050d05', cursor: 'pointer' }}>Upgrade to Premium</button>
+        </div>
+      }
+
+      <div style={{ textAlign: 'center', marginBottom: 48 }}>
+        <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 'clamp(32px,5vw,52px)', color: '#e8f4e8', letterSpacing: '-0.02em' }}>{stageTitle}</div>
+        <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 15, color: '#4a6050', marginTop: 8 }}>{stageSub}</div>
+        {stage === 'engine' && preselectedCoach &&
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginTop: 16, background: '#0a1e10', border: '1px solid #3de05a50', borderRadius: 28, padding: '8px 16px' }}>
+            <CoachAvatar coach={preselectedCoach} size="xs" />
+            <span style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#7ab08a', fontWeight: 600 }}>Booking with {preselectedCoach.name}</span>
+            <button onClick={() => onClearCoach && onClearCoach()} style={{ background: 'none', border: 'none', color: '#3a6040', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: '0 0 0 2px' }}>×</button>
+          </div>
+        }
+      </div>
+
+      {outOfSessions ?
+      <div style={{ textAlign: 'center', padding: '40px 24px' }}>
+          <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 22, color: '#e05a3d', marginBottom: 12 }}>Monthly limit reached</div>
+          <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 15, color: '#5a7060', marginBottom: 28, lineHeight: 1.7 }}>You've used all 5 sessions for this month on the Free plan. Upgrade to Premium for unlimited sessions and full coach selection.</div>
+          <button style={{ background: '#3de05a', border: 'none', borderRadius: 12, padding: '15px 32px', fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 16, color: '#050d05', cursor: 'pointer' }}>Upgrade to Premium — $9.99/mo →</button>
+        </div> :
+
+      <>
+          {stage === 'engine' && <BookingEngine onComplete={handleEngineComplete} preselectedCoach={preselectedCoach} userTier={user.subscription} currentUser={user} />}
+          {stage === 'payment' && <PaymentPage booking={booking} onBack={() => setStage('engine')} onSuccess={handlePaySuccess} />}
+          {stage === 'confirm' && <ConfirmationPage booking={booking} onNewBooking={handleNewBooking} zoomLink={confirmedZoomLink} />}
+        </>
+      }
+    </div>);
+
+}
+
+// ── Tweaks Panel ─────────────────────────────────────────────────────
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "accentColor": "#3de05a",
+  "showPricing": true,
+  "compactCoachCards": false
+} /*EDITMODE-END*/;
+
+function TweaksPanel({ tweaks, setTweak, visible, onClose }) {
+  if (!visible) return null;
+  const palette = ['#3de05a', '#39e0a0', '#39c0e0', '#e0d039', '#e07039', '#a039e0'];
+  return (
+    <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 9999, width: 264, background: '#0a140a', border: '1px solid #1e3020', borderRadius: 16, boxShadow: '0 12px 48px #000c', padding: '20px', fontFamily: "'Quicksand',sans-serif" }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+        <span style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 15, color: '#c0dcc0', letterSpacing: '0.06em' }}>Tweaks</span>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#4a6050', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+        <div>
+          <div style={{ fontSize: 11, color: '#4a6050', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>Accent Color</div>
+          <div style={{ display: 'flex', gap: 7 }}>
+            {palette.map((c) =>
+            <div key={c} onClick={() => setTweak('accentColor', c)} style={{ width: 30, height: 30, borderRadius: '50%', background: c, cursor: 'pointer', outline: tweaks.accentColor === c ? `3px solid ${c}` : '3px solid transparent', outlineOffset: 2, transition: 'outline 0.1s' }} />
+            )}
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: 11, color: '#4a6050', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>Show Pricing on Cards</div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {[['Visible', true], ['Hidden', false]].map(([l, v]) =>
+            <button key={l} onClick={() => setTweak('showPricing', v)} style={{ flex: 1, background: tweaks.showPricing === v ? '#3de05a' : '#0d150d', border: '1px solid #1e2e1e', borderRadius: 7, padding: '8px', fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 12, color: tweaks.showPricing === v ? '#050d05' : '#6a8a6a', cursor: 'pointer' }}>{l}</button>
+            )}
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: 11, color: '#4a6050', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>Coach Card Style</div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {[['Full', false], ['Compact', true]].map(([l, v]) =>
+            <button key={l} onClick={() => setTweak('compactCoachCards', v)} style={{ flex: 1, background: tweaks.compactCoachCards === v ? '#3de05a' : '#0d150d', border: '1px solid #1e2e1e', borderRadius: 7, padding: '8px', fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 12, color: tweaks.compactCoachCards === v ? '#050d05' : '#6a8a6a', cursor: 'pointer' }}>{l}</button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>);
+
+}
+
+// ── About Page ───────────────────────────────────────────────────────
+function AboutPage() {
+  return (
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: '100px 24px 80px' }}>
+
+      {/* Hero */}
+      <div style={{ marginBottom: 72 }}>
+        <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 11, color: '#3de05a', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 12 }}>About Us</div>
+        <h1 style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 'clamp(36px,6vw,64px)', color: '#e8f4e8', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 28 }}>
+          Coaching built for<br /><span style={{ color: '#3de05a' }}>every junior player.</span>
+        </h1>
+        <p style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 17, color: '#6a8a72', lineHeight: 1.8, maxWidth: 680 }}>
+          SquashTime is a revolutionary online platform designed to democratize access to professional squash coaching. We believe that every junior player in the United States — regardless of location or background — should have the opportunity to learn from world-class coaches.
+        </p>
+      </div>
+
+      {/* Platform explanation */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 20, marginBottom: 72 }}>
+        {[
+        { label: 'How It Works', title: 'Connect Instantly', body: 'Through our platform, junior squash players connect instantly with our network of 8 professional coaches available 24/7. Whether you need personalized video analysis or live coaching sessions, SquashTime brings the expertise directly to you.' },
+        { label: 'Core Value', title: 'Technology Meets Coaching', body: 'We enhance junior players skills through expert coaching, leveraging modern technology for convenience and quality. Every session is live, personal, and designed around your game.' },
+        { label: 'Our Reach', title: 'Available Nationwide', body: 'Players from any state can access elite coaching instantly. No geography, no travel — just world-class instruction delivered wherever you are via Zoom.' }].
+        map((c) =>
+        <div key={c.label} style={{ background: '#0d160d', border: '1px solid #182018', borderRadius: 16, padding: '28px 24px' }}>
+            <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 10, color: '#3de05a', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 10 }}>{c.label}</div>
+            <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 20, color: '#c8e0c8', marginBottom: 12 }}>{c.title}</div>
+            <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 14, color: '#6a8a72', lineHeight: 1.8 }}>{c.body}</div>
+          </div>
+        )}
+      </div>
+
+      {/* Founder */}
+      <div style={{ marginBottom: 72 }}>
+        <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 11, color: '#3de05a', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 28 }}>About the Founder</div>
+        <div style={{ background: 'linear-gradient(135deg,#0a1e10,#0e2818)', border: '1px solid #3de05a30', borderRadius: 20, padding: '36px 32px', display: 'flex', gap: 32, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+          {/* Avatar */}
+          <div style={{ flexShrink: 0 }}>
+            <div style={{ width: 96, height: 96, borderRadius: '50%', background: 'linear-gradient(135deg,#0e2a18,#162e1e)', border: '3px solid #3de05a40', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 32, color: '#3de05a' }}>MR</div>
+            <div style={{ textAlign: 'center', marginTop: 10 }}>
+              <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 14, color: '#d0e8d0' }}>Mohamed Rostom</div>
+              <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 12, color: '#3de05a' }}>Founder & Junior Coach</div>
+            </div>
+          </div>
+          {/* Bio */}
+          <div style={{ flex: 1, minWidth: 260 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18 }}>
+              {['The Hill School Varsity #1', 'Egyptian Junior National Team', 'Drexel University — Sports Management', 'Graduating June 2026 — Sports Management'].map((tag) =>
+              <span key={tag} style={{ background: '#091209', border: '1px solid #1e3020', borderRadius: 6, padding: '4px 10px', fontFamily: "'Quicksand',sans-serif", fontWeight: 600, fontSize: 11, color: '#5a8060' }}>{tag}</span>
+              )}
+            </div>
+            <p style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 15, color: '#7a9a7a', lineHeight: 1.8, marginBottom: 16 }}>
+              Mohamed's personal journey as a competitive squash player — representing his school as Varsity #1 and competing for the Egyptian Junior National Team — revealed a critical gap: talented junior players across the US lacked consistent access to elite coaching.
+            </p>
+            <p style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 15, color: '#7a9a7a', lineHeight: 1.8 }}>
+              As a Sports Management student at Drexel University, he built SquashTime to remove those barriers and bring world-class coaching directly to every junior player — no matter where they live.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Mission Statement */}
+      <div style={{ background: '#070e07', border: '1px solid #1e3020', borderRadius: 20, padding: '48px 40px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 400, height: 200, borderRadius: '50%', background: 'radial-gradient(ellipse,#3de05a06 0%,transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 11, color: '#3de05a', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 20 }}>Our Mission</div>
+        <blockquote style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 'clamp(15px,2.2vw,19px)', color: '#a0c8a0', lineHeight: 1.8, maxWidth: 720, margin: '0 auto', fontStyle: 'italic', fontWeight: 600 }}>
+          "To provide accessible, professional coaching and video analysis for junior squash players in the United States, empowering them to develop their skills, build confidence, and compete at their highest level — all through innovative technology that meets them where they are."
+        </blockquote>
+      </div>
+
+    </div>);
+
+}
+
+// ── App Root ─────────────────────────────────────────────────────────
+function App() {
+  const [view, setView] = useState('home');
+  const [user, setUser] = useState(() => getCurrentUser());
+  const [preselectedCoach, setPreselectedCoach] = useState(null);
+  const [showAuth, setShowAuth] = useState(false);
+  const [authMode, setAuthMode] = useState('signup');
+  const [tweaks, setTweaksState] = useState(TWEAK_DEFAULTS);
+  const [tweaksVisible, setTweaksVisible] = useState(false);
+
+  function setTweak(key, val) {
+    const next = { ...tweaks, [key]: val };
+    setTweaksState(next);
+    window.parent && window.parent.postMessage({ type: '__edit_mode_set_keys', edits: next }, '*');
+  }
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (!e.data) return;
+      if (e.data.type === '__activate_edit_mode') setTweaksVisible(true);
+      if (e.data.type === '__deactivate_edit_mode') setTweaksVisible(false);
+    };
+    window.addEventListener('message', handler);
+    window.parent && window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', handler);
+  }, []);
+
+  function handleSetView(v) {
+    setView(v);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function handleBookCoach(coach) {
+    if (!user) {setAuthMode('signup');setShowAuth(true);return;}
+    setPreselectedCoach(coach);
+    handleSetView('booking');
+  }
+
+  function handleAuthSuccess(authedUser) {
+    setUser(authedUser);
+    setShowAuth(false);
+    if (authedUser.role === 'coach') {
+      handleSetView('coach-portal');
+      return;
+    }
+    if (!authedUser.subscription) {
+      handleSetView('subscription');
+    } else {
+      if (preselectedCoach) handleSetView('booking');else
+      handleSetView('account');
+    }
+  }
+
+  function handleSubscriptionChosen(updatedUser) {
+    setUser(updatedUser);
+    if (preselectedCoach) handleSetView('booking');else
+    handleSetView('home');
+  }
+
+  function handleSignOut() {
+    authSignOut();
+    setUser(null);
+    setPreselectedCoach(null);
+    handleSetView('home');
+  }
+
+  function handleRequireAuth() {
+    setAuthMode('signup');
+    setShowAuth(true);
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#060c06' }}>
+      <Nav
+        view={view} setView={handleSetView} user={user}
+        onSignInClick={() => {setAuthMode('signin');setShowAuth(true);}}
+        onSignOut={handleSignOut} />
+      
+
+      {view === 'home' && <HomePage setView={handleSetView} onBookCoach={handleBookCoach} onSignInClick={() => {setAuthMode('signup');setShowAuth(true);}} />}
+      {view === 'team' && <TeamPage setView={handleSetView} onBookCoach={handleBookCoach} />}
+      {view === 'coach-portal' && user?.role === 'coach' && <CoachPortalPage user={user} onSignOut={handleSignOut} />}
+      {view === 'booking' && <BookingPage preselectedCoach={preselectedCoach} onClearCoach={() => setPreselectedCoach(null)} user={user} onRequireAuth={handleRequireAuth} />}
+      {view === 'subscription' && user && <SubscriptionPage user={user} onChoose={handleSubscriptionChosen} />}
+      {view === 'account' && user && <AccountDashboard user={user} onSignOut={handleSignOut} onUpgrade={() => handleSetView('subscription')} setView={handleSetView} />}
+      {view === 'sessions' && user && <SessionsPage user={user} />}
+      {view === 'account' && !user &&
+      <div style={{ maxWidth: 500, margin: '0 auto', padding: '120px 24px', textAlign: 'center' }}>
+          <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 26, color: '#d0e8d0', marginBottom: 12 }}>Sign in to view your Account</div>
+          <button onClick={handleRequireAuth} style={{ background: '#3de05a', border: 'none', borderRadius: 11, padding: '14px 32px', fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 16, color: '#050d05', cursor: 'pointer' }}>Sign In →</button>
+        </div>
+      }
+      {view === 'about' && <AboutPage />}
+
+</script>
+</body>
+</html>
