@@ -73,7 +73,7 @@ function Nav({ view, setView, user, onSignInClick, onSignOut }) {
   { id: 'about', label: 'About' },
   { id: 'team', label: 'Team' },
   { id: 'booking', label: 'Book a Session' },
-  { id: 'sessions', label: 'Sessions' }];
+  { id: 'account', label: 'Account' }];
 
 
 
@@ -288,10 +288,11 @@ function TeamPage({ setView, onBookCoach }) {
   const [filter, setFilter] = useState('All');
   const filterOptions = ['All', 'Senior', 'Fitness', 'Junior'];
   const filtered = filter === 'All' ? COACHES : COACHES.filter((c) => c.level === filter);
+  const bookBtnColor = (c) => c.level === 'Fitness' ? '#e04040' : '#3de05a';
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: '100px 24px 60px' }}>
+    <div style={{ maxWidth: 1240, margin: '0 auto', padding: '100px 24px 60px' }}>
       <SectionHeader tag="Our Coaching Team" title="Meet the Team" />
-      <div style={{ display: 'flex', gap: 8, marginTop: 28, marginBottom: 32, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 8, marginTop: 28, marginBottom: 36, flexWrap: 'wrap' }}>
         {filterOptions.map((f) => {
           const isFit = f === 'Fitness';
           const accent = isFit ? '#e04040' : '#3de05a';
@@ -303,23 +304,43 @@ function TeamPage({ setView, onBookCoach }) {
               fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 13,
               color: filter === f ? '#050d05' : '#6a8a6a', letterSpacing: '0.06em', transition: 'all 0.15s'
             }}>{f}</button>);
-
         })}
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {filtered.map((c) =>
-        <div key={c.id}>
-            <CoachCard coach={c} />
-            <div style={{ display: 'flex', gap: 10, marginTop: 10, paddingLeft: 4 }}>
-              <button onClick={() => onBookCoach(c)} style={{ ...{ background: c.level === 'Fitness' ? '#e04040' : '#3de05a', border: 'none', borderRadius: 8, padding: '10px 20px', fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 13, color: '#050d05', cursor: 'pointer', letterSpacing: '0.04em' }, background: "rgb(61, 224, 90)" }}>
-                Book {c.name.split(' ')[0]} →
-              </button>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 18 }}>
+        {filtered.map((c) => {
+          const isFounder = !!c.founder;
+          return (
+            <div key={c.id} style={{ display: 'flex', flexDirection: 'column', gap: 10,
+              ...(isFounder ? {
+                borderRadius: 18,
+                padding: 3,
+                background: 'linear-gradient(135deg, #f0b429, #3de05a, #f0b429)',
+              } : {})
+            }}>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10,
+                ...(isFounder ? { borderRadius: 16, background: '#060c06', padding: 0, overflow: 'hidden' } : {})
+              }}>
+                {isFounder && (
+                  <div style={{ background: 'linear-gradient(90deg, #f0b42922, #f0b42910)', borderBottom: '1px solid #f0b42940', padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 13 }}>★</span>
+                    <span style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 11, color: '#f0b429', letterSpacing: '0.18em', textTransform: 'uppercase' }}>Founder</span>
+                  </div>
+                )}
+                <div style={{ padding: isFounder ? '0 0 0 0' : 0 }}>
+                  <CoachCard coach={c} />
+                </div>
+              </div>
+              <button onClick={() => onBookCoach(c)} style={{
+                background: bookBtnColor(c), border: 'none', borderRadius: 8,
+                padding: '10px 0', width: '100%',
+                fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 13,
+                color: '#050d05', cursor: 'pointer', letterSpacing: '0.04em'
+              }}>Book {c.name.split(' ')[0]} →</button>
             </div>
-          </div>
-        )}
+          );
+        })}
       </div>
     </div>);
-
 }
 
 // ── Coach Portal Page ────────────────────────────────────────────────
@@ -641,9 +662,9 @@ function App() {
       {view === 'subscription' && user && <SubscriptionPage user={user} onChoose={handleSubscriptionChosen} />}
       {view === 'account' && user && <AccountDashboard user={user} onSignOut={handleSignOut} onUpgrade={() => handleSetView('subscription')} setView={handleSetView} />}
       {view === 'sessions' && user && <SessionsPage user={user} />}
-      {view === 'sessions' && !user &&
+      {view === 'account' && !user &&
       <div style={{ maxWidth: 500, margin: '0 auto', padding: '120px 24px', textAlign: 'center' }}>
-          <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 26, color: '#d0e8d0', marginBottom: 12 }}>Sign in to view Sessions</div>
+          <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 26, color: '#d0e8d0', marginBottom: 12 }}>Sign in to view your Account</div>
           <button onClick={handleRequireAuth} style={{ background: '#3de05a', border: 'none', borderRadius: 11, padding: '14px 32px', fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 16, color: '#050d05', cursor: 'pointer' }}>Sign In →</button>
         </div>
       }

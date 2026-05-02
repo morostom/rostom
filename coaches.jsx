@@ -129,7 +129,7 @@ function getBaseAvailability(coachId) {
     date.setDate(today.getDate() + i);
     const hash = (date.getDate() * 13 + coachId * 7 + date.getMonth() * 3) % 10;
     if (hash > 2) {
-      const allSlots = ['9:00 AM', '10:00 AM', '11:00 AM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM', '6:00 PM'];
+      const allSlots = ['8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM', '6:00 PM', '7:00 PM', '8:00 PM'];
       const slots = allSlots.filter((_, idx) => (date.getDate() + idx * 3 + coachId * 2) % 4 !== 0);
       if (slots.length > 0) availability[date.toDateString()] = slots;
     }
