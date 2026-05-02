@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SquashTime — Anytime, Anywhere</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;500;600;700;800;900&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script type="text/babel" src="coaches.jsx"></script>
+  <script type="text/babel" src="booking.jsx"></script>
+  <script type="text/babel" src="payment.jsx"></script>
+  <script type="text/babel" src="auth.jsx"></script>
+  <script type="text/babel" src="subscription.jsx"></script>
+  <script type="text/babel" src="sessions.jsx"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: #060c06; color: #e0ece0; font-family: 'Quicksand', sans-serif; }
+    ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #0a100a; } ::-webkit-scrollbar-thumb { background: #1e3020; border-radius: 3px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+    input { transition: border-color 0.15s; }
+    input:focus { border-color: #3de05a !important; outline: none; }
+    a { color: inherit; text-decoration: none; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+
+
+const { useState, useEffect, useRef } = React;
+
+// ── Logo ─────────────────────────────────────────────────────────────
+function Logo({ size = 'md' }) {
+  const scales = { sm: 0.7, md: 1, lg: 1.4 };
+  const s = scales[size] || 1;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10 * s }}>
+      <svg width={36 * s} height={36 * s} viewBox="0 0 36 36" fill="none">
+        <circle cx="18" cy="18" r="17" fill="#0a1e0a" stroke="#3de05a" strokeWidth="1.5" />
+        <ellipse cx="18" cy="18" rx="9" ry="13" stroke="#3de05a" strokeWidth="1.5" fill="none" />
+        <ellipse cx="18" cy="18" rx="13" ry="9" stroke="#3de05a" strokeWidth="1.5" fill="none" transform="rotate(45 18 18)" opacity="0.4" />
+        <circle cx="18" cy="18" r="2.5" fill="#3de05a" />
+      </svg>
+      <div>
+        <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 26 * s, color: '#3de05a', letterSpacing: '-0.02em', lineHeight: 1 }}>SquashTime</div>
+        <div style={{ fontFamily: "'Quicksand',sans-serif", fontWeight: 500, fontSize: 9 * s, color: '#3de05a', letterSpacing: '0.2em', textTransform: 'uppercase', lineHeight: 1, marginTop: 1, textAlign: "center" }}>anytime, anywhere</div>
+      </div>
+    </div>);
+
+}
+
+// ── Nav ──────────────────────────────────────────────────────────────
+function Nav({ view, setView, user, onSignInClick, onSignOut }) {
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 30);
+    window.addEventListener('scroll', fn);
+    return () => window.removeEventListener('scroll', fn);
+  }, []);
+
+  const isCoach = user?.role === 'coach';
+  const links = isCoach ? [
+  { id: 'coach-portal', label: 'My Schedule' }] :
+  [
+  { id: 'home', label: 'Home' },
+  { id: 'about', label: 'About' },
+  { id: 'team', label: 'Team' },
+  { id: 'booking', label: 'Book a Session' },
+  { id: 'sessions', label: 'Sessions' }];
+
+
+
+  return (
+    <nav style={{
+      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200,
+      background: scrolled ? 'rgba(6,12,6,0.97)' : 'transparent',
+      borderBottom: scrolled ? '1px solid #182018' : '1px solid transparent',
+      backdropFilter: scrolled ? 'blur(12px)' : 'none',
+      transition: 'all 0.3s ease', padding: '0 24px'
+    }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto', height: 68, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ cursor: 'pointer' }} onClick={() => setView('home')}><Logo /></div>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          {links.map((l) =>
+          <button key={l.id} onClick={() => setView(l.id)} style={{
+            background: l.id === 'booking' ? '#3de05a' : 'none', border: 'none',
+            borderRadius: 8, padding: l.id === 'booking' ? '9px 18px' : '9px 14px',
+            fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 13,
+            color: l.id === 'booking' ? '#050d05' : view === l.id ? '#3de05a' : '#8aaa8a',
+            cursor: 'pointer', letterSpacing: '0.04em', transition: 'all 0.15s',
+            textTransform: l.id === 'booking' ? 'uppercase' : 'none'
+          }}>{l.label}</button>
+          )}
+
+          {/* Auth button / avatar */}
+          {user ?
+          <div style={{ position: 'relative' }}>
+              <button onClick={() => setMenuOpen((o) => !o)} style={{
+              display: 'flex', alignItems: 'center', gap: 8, background: '#0a1a0a',
+              border: '1px solid #1e3020', borderRadius: 10, padding: '7px 12px',
+              cursor: 'pointer', transition: 'all 0.15s'
+            }}>
+                <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#0d2a10', border: '1.5px solid #3de05a40', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 12, color: '#3de05a' }}>
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+                <span style={{ fontFamily: "'Quicksand',sans-serif", fontWeight: 600, fontSize: 13, color: '#8ab0a0' }}>{user.name.split(' ')[0]}</span>
+                <span style={{ color: '#4a6050', fontSize: 10 }}>▾</span>
+              </button>
+              {menuOpen &&
+            <div style={{ position: 'absolute', right: 0, top: '110%', background: '#0a140a', border: '1px solid #1e3020', borderRadius: 12, padding: '8px', minWidth: 180, boxShadow: '0 12px 40px #000a', zIndex: 300 }}>
+                  {[
+              { label: 'My Account', action: () => {setView('account');setMenuOpen(false);} },
+              { label: 'Sessions', action: () => {setView('sessions');setMenuOpen(false);} },
+              { label: 'Book a Session', action: () => {setView('booking');setMenuOpen(false);} },
+              { label: 'Sign Out', action: () => {onSignOut();setMenuOpen(false);}, danger: true }].
+              map((item) =>
+              <button key={item.label} onClick={item.action} style={{ width: '100%', background: 'none', border: 'none', borderRadius: 8, padding: '10px 12px', fontFamily: "'Quicksand',sans-serif", fontWeight: 600, fontSize: 13, color: item.danger ? '#e05a5a' : '#8aaa8a', cursor: 'pointer', textAlign: 'left', transition: 'all 0.12s' }}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#121e12'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'none'}>
+                {item.label}</button>
+              )}
+                </div>
+            }
+            </div> :
+
+          <button onClick={onSignInClick} style={{ background: 'none', border: '1px solid #2a3e2a', borderRadius: 8, padding: '8px 16px', fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 13, color: '#6a9070', cursor: 'pointer', letterSpacing: '0.04em' }}>Sign In</button>
+          }
+        </div>
+      </div>
+    </nav>);
+
+}
+
+// ── Shared UI ────────────────────────────────────────────────────────
+function SectionHeader({ tag, title }) {
+  return (
+    <div>
+      <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 11, color: '#3de05a', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 10 }}>{tag}</div>
+      <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 'clamp(26px,3.5vw,40px)', color: '#d8eed8', letterSpacing: '-0.02em', lineHeight: 1.1 }}>{title}</div>
+    </div>);
+
+}
+
+// ── Home Page ────────────────────────────────────────────────────────
+function HomePage({ setView, onBookCoach, onSignInClick }) {
+  return (
+    <div>
+      <section style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', padding: '100px 24px 60px' }}>
+        <div style={{ position: 'absolute', top: '20%', left: '50%', transform: 'translateX(-50%)', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle,#3de05a0a 0%,transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(#3de05a06 1px,transparent 1px),linear-gradient(90deg,#3de05a06 1px,transparent 1px)', backgroundSize: '60px 60px', pointerEvents: 'none' }} />
+        <div style={{ position: 'relative', textAlign: 'center', maxWidth: 780, animation: 'fadeUp 0.7s ease both' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#0a1a0a', border: '1px solid #1e3020', borderRadius: 24, padding: '7px 16px', marginBottom: 28 }}>
+            <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#3de05a', animation: 'pulse 2s ease infinite' }} />
+            <span style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 12, color: '#5a8060', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Live Online Coaching · US Junior Squash</span>
+          </div>
+          <h1 style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 'clamp(48px,8vw,88px)', color: '#e8f4e8', lineHeight: 0.95, letterSpacing: '-0.03em', marginBottom: 24 }}>
+            Elite Squash<br /><span style={{ color: '#3de05a' }}>Coaching</span><br />Online.
+          </h1>
+          <p style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 18, color: '#6a8a6a', lineHeight: 1.7, maxWidth: 520, margin: '0 auto 40px' }}>
+            Book live one-on-one sessions with world-class coaches. At tournaments, at home — anytime, anywhere via Zoom.
+          </p>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button onClick={() => setView('booking')} style={{ background: '#3de05a', border: 'none', borderRadius: 12, padding: '16px 32px', fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 16, color: '#050d05', cursor: 'pointer', letterSpacing: '0.04em' }}>Book a Session →</button>
+            <button onClick={() => setView('team')} style={{ background: 'transparent', border: '1px solid #2a3e2a', borderRadius: 12, padding: '16px 32px', fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 16, color: '#8aaa8a', cursor: 'pointer', letterSpacing: '0.04em' }}>Meet the Team</button>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 16, marginTop: 64, flexWrap: 'wrap', justifyContent: 'center', animation: 'fadeUp 0.9s ease 0.2s both' }}>
+          {[['8', 'Elite Coaches'], ['$90', 'Starting/hr'], ['Zoom', 'Live Sessions'], ['Free', 'Plan Available']].map(([num, lbl]) =>
+          <div key={lbl} style={{ background: '#0a140a', border: '1px solid #182018', borderRadius: 12, padding: '14px 22px', textAlign: 'center' }}>
+              <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 22, color: '#3de05a' }}>{num}</div>
+              <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 12, color: '#4a6050', marginTop: 2 }}>{lbl}</div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Session Types */}
+      <section style={{ padding: '80px 24px', background: '#070e07' }}>
+        <div style={{ maxWidth: 1000, margin: '0 auto' }}>
+          <SectionHeader tag="What We Offer" title="Two Ways to Train" />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 20, marginTop: 40 }}>
+            {[
+            { title: 'Tournament Coaching', color: '#3de05a', desc: 'Get live strategic coaching during your tournament weekend. Your coach watches, analyzes, and guides you between matches via Zoom.', bullets: ['Pre-match strategy sessions', 'Between-round tactical adjustments', 'Mental coaching & motivation', 'Tournament-specific game plans'] },
+            { title: 'Personal Training', color: '#1f9e48', desc: 'One-on-one skill sessions designed for your level and goals. No tournament needed — train from anywhere, anytime.', bullets: ['Technique & swing mechanics', 'Solo drill programs', 'Video analysis & feedback', 'Custom training plans'] }].
+            map((card) =>
+            <div key={card.title} style={{ background: '#0d160d', border: '1px solid #182018', borderRadius: 18, padding: '30px 28px' }}>
+                <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 22, color: card.color, marginBottom: 12 }}>{card.title}</div>
+                <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 14, color: '#6a8a72', lineHeight: 1.7, marginBottom: 20 }}>{card.desc}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {card.bullets.map((b) =>
+                <div key={b} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: card.color, flexShrink: 0 }} />
+                      <span style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#8aaa8a', fontWeight: 600 }}>{b}</span>
+                    </div>
+                )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section style={{ padding: '80px 24px' }}>
+        <div style={{ maxWidth: 1000, margin: '0 auto' }}>
+          <SectionHeader tag="Simple Process" title="How It Works" />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 20, marginTop: 40 }}>
+            {[
+            { step: '01', title: 'Create Account', desc: 'Sign up free in seconds. Choose your coaching plan — Free or Premium.' },
+            { step: '02', title: 'Pick Your Session', desc: 'Book by date or browse coaches. Tournament coaching or personal training.' },
+            { step: '03', title: 'Pay Securely', desc: 'Visa, Mastercard, PayPal or Venmo. Instant confirmation.' },
+            { step: '04', title: 'Get Your Zoom Link', desc: 'A Zoom session is auto-scheduled and emailed to you and your coach immediately.' }].
+            map((s) =>
+            <div key={s.step} style={{ background: '#0a140a', border: '1px solid #162016', borderRadius: 16, padding: '26px 22px' }}>
+                <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 36, color: '#1e3020', marginBottom: 12, lineHeight: 1 }}>{s.step}</div>
+                <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 17, color: '#c0dcc0', marginBottom: 8 }}>{s.title}</div>
+                <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#5a7860', lineHeight: 1.7 }}>{s.desc}</div>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Plans preview */}
+      <section style={{ padding: '80px 24px', background: '#070e07' }}>
+        <div style={{ maxWidth: 800, margin: '0 auto' }}>
+          <SectionHeader tag="Pricing" title="Simple Plans" />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 20, marginTop: 40 }}>
+            {[
+            { name: 'Basic', price: '$0.00', color: '#4a9a5a', note: 'Unlimited sessions · 5 guaranteed Senior/month' },
+            { name: 'Premium', price: '$9.99/mo', color: '#3de05a', note: 'Unlimited sessions · Choose your coach', badge: true }].
+            map((p) =>
+            <div key={p.name} onClick={onSignInClick} style={{ background: '#0d150d', border: `1px solid ${p.badge ? '#3de05a40' : '#182018'}`, borderRadius: 16, padding: '28px 24px', cursor: 'pointer', transition: 'all 0.15s' }}
+            onMouseEnter={(e) => e.currentTarget.style.borderColor = p.color}
+            onMouseLeave={(e) => e.currentTarget.style.borderColor = p.badge ? '#3de05a40' : '#182018'}>
+              
+                <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 20, color: p.color, marginBottom: 6 }}>{p.name}</div>
+                <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 30, color: '#e8f4e8', marginBottom: 10 }}>{p.price}</div>
+                <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#5a7860' }}>{p.note}</div>
+              </div>
+            )}
+          </div>
+          <div style={{ textAlign: 'center', marginTop: 28 }}>
+            <button onClick={onSignInClick} style={{ background: '#3de05a', border: 'none', borderRadius: 10, padding: '13px 28px', fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 15, color: '#050d05', cursor: 'pointer' }}>Get Started Free →</button>
+          </div>
+        </div>
+      </section>
+
+      {/* Coaches preview */}
+      <section style={{ padding: '80px 24px' }}>
+        <div style={{ maxWidth: 1000, margin: '0 auto' }}>
+          <SectionHeader tag="Our Team" title="World-Class Coaching Staff" />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))', gap: 16, marginTop: 40 }}>
+            {COACHES.slice(0, 4).map((c) =>
+            <div key={c.id}>
+                <CoachCard coach={c} />
+                <div style={{ marginTop: 8, paddingLeft: 4 }}>
+                  <button onClick={() => onBookCoach(c)} style={{ background: '#3de05a', border: 'none', borderRadius: 8, padding: '9px 18px', fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 12, color: '#050d05', cursor: 'pointer', letterSpacing: '0.04em' }}>Book {c.name.split(' ')[0]} →</button>
+                </div>
+              </div>
+            )}
+          </div>
+          <div style={{ textAlign: 'center', marginTop: 28 }}>
+            <button onClick={() => setView('team')} style={{ background: 'transparent', border: '1px solid #2a3e2a', borderRadius: 10, padding: '12px 28px', fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 14, color: '#5a8060', cursor: 'pointer', letterSpacing: '0.04em' }}>View Full Team →</button>
+          </div>
+        </div>
+      </section>
+
+      <footer style={{ background: '#050d05', borderTop: '1px solid #121e12', padding: '28px 24px', textAlign: 'center' }}>
+        <Logo />
+        <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 12, color: '#3a5040', marginTop: 12 }}>
+          © 2026 SquashTime · Founded by Mohamed Rostom · All sessions via Zoom
+        </div>
+      </footer>
+    </div>);
+
+}
+
+// ── Team Page (was Coaches) ─────────────────────────────────────────
+function TeamPage({ setView, onBookCoach }) {
+  const [filter, setFilter] = useState('All');
+  const filterOptions = ['All', 'Senior', 'Fitness', 'Junior'];
+  const filtered = filter === 'All' ? COACHES : COACHES.filter((c) => c.level === filter);
+  return (
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: '100px 24px 60px' }}>
+      <SectionHeader tag="Our Coaching Team" title="Meet the Team" />
+      <div style={{ display: 'flex', gap: 8, marginTop: 28, marginBottom: 32, flexWrap: 'wrap' }}>
+        {filterOptions.map((f) => {
+          const isFit = f === 'Fitness';
+          const accent = isFit ? '#e04040' : '#3de05a';
+          return (
+            <button key={f} onClick={() => setFilter(f)} style={{
+              background: filter === f ? accent : '#0d150d',
+              border: `1px solid ${filter === f ? accent : '#182018'}`,
+              borderRadius: 8, padding: '8px 18px', cursor: 'pointer',
+              fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 13,
+              color: filter === f ? '#050d05' : '#6a8a6a', letterSpacing: '0.06em', transition: 'all 0.15s'
+            }}>{f}</button>);
+
+        })}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {filtered.map((c) =>
+        <div key={c.id}>
+            <CoachCard coach={c} />
+            <div style={{ display: 'flex', gap: 10, marginTop: 10, paddingLeft: 4 }}>
+              <button onClick={() => onBookCoach(c)} style={{ ...{ background: c.level === 'Fitness' ? '#e04040' : '#3de05a', border: 'none', borderRadius: 8, padding: '10px 20px', fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 13, color: '#050d05', cursor: 'pointer', letterSpacing: '0.04em' }, background: "rgb(61, 224, 90)" }}>
+                Book {c.name.split(' ')[0]} →
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>);
+
+}
+
+// ── Coach Portal Page ────────────────────────────────────────────────
+function CoachPortalPage({ user, onSignOut }) {
+  const coach = COACHES.find((c) => c.id === user.coachId);
+  if (!coach) return null;
+  const accent = coachAccentColor(coach);
+  return (
+    <div style={{ maxWidth: 960, margin: '0 auto', padding: '100px 24px 80px' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 40, flexWrap: 'wrap', gap: 16 }}>
+        <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
+          <CoachAvatar coach={coach} size="lg" />
+          <div>
+            <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 11, color: accent, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 6 }}>Coach Portal</div>
+            <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 'clamp(24px,4vw,36px)', color: '#e8f4e8', letterSpacing: '-0.02em', lineHeight: 1.1 }}>Welcome, {coach.name.split(' ')[0]}</div>
+            <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 14, color: '#5a7860', marginTop: 4 }}>{coach.title}</div>
+          </div>
+        </div>
+        <button onClick={onSignOut} style={{ background: '#0d150d', border: '1px solid #2a3e2a', borderRadius: 10, padding: '10px 20px', fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 13, color: '#5a7860', cursor: 'pointer' }}>Sign Out</button>
+      </div>
+      <div style={{ background: '#0a1a0a', border: '1px solid #1e3020', borderRadius: 14, padding: '16px 20px', marginBottom: 32, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+        <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>ℹ️</span>
+        <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#5a8060', lineHeight: 1.7 }}>
+          Your schedule is <strong style={{ color: '#8ab0a0' }}>live and real-time</strong>. Blocking a slot removes it from player availability immediately. Slots booked by players are shown in amber and cannot be modified — contact SquashTime admin to cancel a booked session.
+        </div>
+      </div>
+      <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 22, color: '#d8eed8', letterSpacing: '-0.01em', marginBottom: 6 }}>Your Availability</div>
+      <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#4a6050', marginBottom: 24 }}>Manage which slots players can book with you. Changes take effect immediately.</div>
+      <CoachScheduleManager coach={coach} />
+    </div>);
+
+}
+
+// ── Booking Page ─────────────────────────────────────────────────────
+function BookingPage({ preselectedCoach, onClearCoach, user, onRequireAuth }) {
+  const [stage, setStage] = useState('engine');
+  const [booking, setBooking] = useState(null);
+
+  // Gate: must be logged in
+  useEffect(() => {
+    if (!user) {onRequireAuth();}
+  }, [user]);
+
+  if (!user) return (
+    <div style={{ maxWidth: 500, margin: '0 auto', padding: '120px 24px', textAlign: 'center' }}>
+      <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 28, color: '#d0e8d0', marginBottom: 12 }}>Sign in to Book</div>
+      <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 15, color: '#4a6050', marginBottom: 28 }}>Create a free account or sign in to book a session with one of our coaches.</div>
+      <button onClick={onRequireAuth} style={{ background: '#3de05a', border: 'none', borderRadius: 11, padding: '14px 32px', fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 16, color: '#050d05', cursor: 'pointer' }}>Sign In / Create Account →</button>
+    </div>);
+
+
+  const [confirmedZoomLink, setConfirmedZoomLink] = useState(null);
+  function handleEngineComplete(data) {setBooking(data);setStage('payment');}
+  function handlePaySuccess(zoomLink) {
+    if (user) {
+      const session = buildSession(booking, zoomLink);
+      saveUserSession(user.email, session);
+      if (user.subscription === 'free' && booking.coach.level === 'Senior') {
+        updateCurrentUser({ sessionsUsedThisMonth: (user.sessionsUsedThisMonth || 0) + 1 });
+      }
+    }
+    setConfirmedZoomLink(zoomLink);
+    authIncrementSessions();
+    setStage('confirm');
+  }
+  function handleNewBooking() {onClearCoach && onClearCoach();setBooking(null);setConfirmedZoomLink(null);setStage('engine');}
+
+  const stageTitle = { confirm: "You're All Set!", payment: 'Secure Payment', engine: 'Book a Session' }[stage];
+  const stageSub = { confirm: 'Your Zoom session is scheduled and confirmed.', payment: 'One step away from your coaching session.', engine: 'Live 1-on-1 coaching via Zoom · Instant Zoom link on confirmation' }[stage];
+
+  // Subscription plan restriction banner for free users
+  const isFree = user.subscription === 'free';
+  const seniorLeft = isFree ? Math.max(0, 5 - (user.sessionsUsedThisMonth || 0)) : null;
+  const outOfSessions = false; // Free tier is unlimited; only Senior sessions are capped
+
+  return (
+    <div style={{ maxWidth: 800, margin: '0 auto', padding: '100px 24px 80px' }}>
+      {/* Free plan notice */}
+      {isFree && stage === 'engine' &&
+      <div style={{ background: '#0a1a10', border: '1px solid #2a4030', borderRadius: 12, padding: '14px 18px', marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+          <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#5a8060' }}>
+            <strong style={{ color: '#8ab0a0' }}>Free Plan</strong> · Unlimited sessions · {seniorLeft} guaranteed Senior session{seniorLeft !== 1 ? 's' : ''} remaining this month
+          </div>
+          <button style={{ background: '#3de05a', border: 'none', borderRadius: 7, padding: '7px 14px', fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 12, color: '#050d05', cursor: 'pointer' }}>Upgrade to Premium</button>
+        </div>
+      }
+
+      <div style={{ textAlign: 'center', marginBottom: 48 }}>
+        <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 'clamp(32px,5vw,52px)', color: '#e8f4e8', letterSpacing: '-0.02em' }}>{stageTitle}</div>
+        <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 15, color: '#4a6050', marginTop: 8 }}>{stageSub}</div>
+        {stage === 'engine' && preselectedCoach &&
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginTop: 16, background: '#0a1e10', border: '1px solid #3de05a50', borderRadius: 28, padding: '8px 16px' }}>
+            <CoachAvatar coach={preselectedCoach} size="xs" />
+            <span style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 13, color: '#7ab08a', fontWeight: 600 }}>Booking with {preselectedCoach.name}</span>
+            <button onClick={() => onClearCoach && onClearCoach()} style={{ background: 'none', border: 'none', color: '#3a6040', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: '0 0 0 2px' }}>×</button>
+          </div>
+        }
+      </div>
+
+      {outOfSessions ?
+      <div style={{ textAlign: 'center', padding: '40px 24px' }}>
+          <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 22, color: '#e05a3d', marginBottom: 12 }}>Monthly limit reached</div>
+          <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 15, color: '#5a7060', marginBottom: 28, lineHeight: 1.7 }}>You've used all 5 sessions for this month on the Free plan. Upgrade to Premium for unlimited sessions and full coach selection.</div>
+          <button style={{ background: '#3de05a', border: 'none', borderRadius: 12, padding: '15px 32px', fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 16, color: '#050d05', cursor: 'pointer' }}>Upgrade to Premium — $9.99/mo →</button>
+        </div> :
+
+      <>
+          {stage === 'engine' && <BookingEngine onComplete={handleEngineComplete} preselectedCoach={preselectedCoach} userTier={user.subscription} currentUser={user} />}
+          {stage === 'payment' && <PaymentPage booking={booking} onBack={() => setStage('engine')} onSuccess={handlePaySuccess} />}
+          {stage === 'confirm' && <ConfirmationPage booking={booking} onNewBooking={handleNewBooking} zoomLink={confirmedZoomLink} />}
+        </>
+      }
+    </div>);
+
+}
+
+// ── Tweaks Panel ─────────────────────────────────────────────────────
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "accentColor": "#3de05a",
+  "showPricing": true,
+  "compactCoachCards": false
+} /*EDITMODE-END*/;
+
+function TweaksPanel({ tweaks, setTweak, visible, onClose }) {
+  if (!visible) return null;
+  const palette = ['#3de05a', '#39e0a0', '#39c0e0', '#e0d039', '#e07039', '#a039e0'];
+  return (
+    <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 9999, width: 264, background: '#0a140a', border: '1px solid #1e3020', borderRadius: 16, boxShadow: '0 12px 48px #000c', padding: '20px', fontFamily: "'Quicksand',sans-serif" }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+        <span style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 15, color: '#c0dcc0', letterSpacing: '0.06em' }}>Tweaks</span>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#4a6050', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+        <div>
+          <div style={{ fontSize: 11, color: '#4a6050', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>Accent Color</div>
+          <div style={{ display: 'flex', gap: 7 }}>
+            {palette.map((c) =>
+            <div key={c} onClick={() => setTweak('accentColor', c)} style={{ width: 30, height: 30, borderRadius: '50%', background: c, cursor: 'pointer', outline: tweaks.accentColor === c ? `3px solid ${c}` : '3px solid transparent', outlineOffset: 2, transition: 'outline 0.1s' }} />
+            )}
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: 11, color: '#4a6050', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>Show Pricing on Cards</div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {[['Visible', true], ['Hidden', false]].map(([l, v]) =>
+            <button key={l} onClick={() => setTweak('showPricing', v)} style={{ flex: 1, background: tweaks.showPricing === v ? '#3de05a' : '#0d150d', border: '1px solid #1e2e1e', borderRadius: 7, padding: '8px', fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 12, color: tweaks.showPricing === v ? '#050d05' : '#6a8a6a', cursor: 'pointer' }}>{l}</button>
+            )}
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: 11, color: '#4a6050', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>Coach Card Style</div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {[['Full', false], ['Compact', true]].map(([l, v]) =>
+            <button key={l} onClick={() => setTweak('compactCoachCards', v)} style={{ flex: 1, background: tweaks.compactCoachCards === v ? '#3de05a' : '#0d150d', border: '1px solid #1e2e1e', borderRadius: 7, padding: '8px', fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 12, color: tweaks.compactCoachCards === v ? '#050d05' : '#6a8a6a', cursor: 'pointer' }}>{l}</button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>);
+
+}
+
+// ── About Page ───────────────────────────────────────────────────────
+function AboutPage() {
+  return (
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: '100px 24px 80px' }}>
+
+      {/* Hero */}
+      <div style={{ marginBottom: 72 }}>
+        <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 11, color: '#3de05a', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 12 }}>About Us</div>
+        <h1 style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 'clamp(36px,6vw,64px)', color: '#e8f4e8', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 28 }}>
+          Coaching built for<br /><span style={{ color: '#3de05a' }}>every junior player.</span>
+        </h1>
+        <p style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 17, color: '#6a8a72', lineHeight: 1.8, maxWidth: 680 }}>
+          SquashTime is a revolutionary online platform designed to democratize access to professional squash coaching. We believe that every junior player in the United States — regardless of location or background — should have the opportunity to learn from world-class coaches.
+        </p>
+      </div>
+
+      {/* Platform explanation */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 20, marginBottom: 72 }}>
+        {[
+        { label: 'How It Works', title: 'Connect Instantly', body: 'Through our platform, junior squash players connect instantly with our network of 8 professional coaches available 24/7. Whether you need personalized video analysis or live coaching sessions, SquashTime brings the expertise directly to you.' },
+        { label: 'Core Value', title: 'Technology Meets Coaching', body: 'We enhance junior players skills through expert coaching, leveraging modern technology for convenience and quality. Every session is live, personal, and designed around your game.' },
+        { label: 'Our Reach', title: 'Available Nationwide', body: 'Players from any state can access elite coaching instantly. No geography, no travel — just world-class instruction delivered wherever you are via Zoom.' }].
+        map((c) =>
+        <div key={c.label} style={{ background: '#0d160d', border: '1px solid #182018', borderRadius: 16, padding: '28px 24px' }}>
+            <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 10, color: '#3de05a', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 10 }}>{c.label}</div>
+            <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 20, color: '#c8e0c8', marginBottom: 12 }}>{c.title}</div>
+            <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 14, color: '#6a8a72', lineHeight: 1.8 }}>{c.body}</div>
+          </div>
+        )}
+      </div>
+
+      {/* Founder */}
+      <div style={{ marginBottom: 72 }}>
+        <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 11, color: '#3de05a', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 28 }}>About the Founder</div>
+        <div style={{ background: 'linear-gradient(135deg,#0a1e10,#0e2818)', border: '1px solid #3de05a30', borderRadius: 20, padding: '36px 32px', display: 'flex', gap: 32, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+          {/* Avatar */}
+          <div style={{ flexShrink: 0 }}>
+            <div style={{ width: 96, height: 96, borderRadius: '50%', background: 'linear-gradient(135deg,#0e2a18,#162e1e)', border: '3px solid #3de05a40', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 32, color: '#3de05a' }}>MR</div>
+            <div style={{ textAlign: 'center', marginTop: 10 }}>
+              <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 14, color: '#d0e8d0' }}>Mohamed Rostom</div>
+              <div style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 12, color: '#3de05a' }}>Founder & Junior Coach</div>
+            </div>
+          </div>
+          {/* Bio */}
+          <div style={{ flex: 1, minWidth: 260 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18 }}>
+              {['The Hill School Varsity #1', 'Egyptian Junior National Team', 'Drexel University — Sports Management', 'Graduating June 2026 — Sports Management'].map((tag) =>
+              <span key={tag} style={{ background: '#091209', border: '1px solid #1e3020', borderRadius: 6, padding: '4px 10px', fontFamily: "'Quicksand',sans-serif", fontWeight: 600, fontSize: 11, color: '#5a8060' }}>{tag}</span>
+              )}
+            </div>
+            <p style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 15, color: '#7a9a7a', lineHeight: 1.8, marginBottom: 16 }}>
+              Mohamed's personal journey as a competitive squash player — representing his school as Varsity #1 and competing for the Egyptian Junior National Team — revealed a critical gap: talented junior players across the US lacked consistent access to elite coaching.
+            </p>
+            <p style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 15, color: '#7a9a7a', lineHeight: 1.8 }}>
+              As a Sports Management student at Drexel University, he built SquashTime to remove those barriers and bring world-class coaching directly to every junior player — no matter where they live.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Mission Statement */}
+      <div style={{ background: '#070e07', border: '1px solid #1e3020', borderRadius: 20, padding: '48px 40px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 400, height: 200, borderRadius: '50%', background: 'radial-gradient(ellipse,#3de05a06 0%,transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 700, fontSize: 11, color: '#3de05a', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 20 }}>Our Mission</div>
+        <blockquote style={{ fontFamily: "'Quicksand',sans-serif", fontSize: 'clamp(15px,2.2vw,19px)', color: '#a0c8a0', lineHeight: 1.8, maxWidth: 720, margin: '0 auto', fontStyle: 'italic', fontWeight: 600 }}>
+          "To provide accessible, professional coaching and video analysis for junior squash players in the United States, empowering them to develop their skills, build confidence, and compete at their highest level — all through innovative technology that meets them where they are."
+        </blockquote>
+      </div>
+
+    </div>);
+
+}
+
+// ── App Root ─────────────────────────────────────────────────────────
+function App() {
+  const [view, setView] = useState('home');
+  const [user, setUser] = useState(() => getCurrentUser());
+  const [preselectedCoach, setPreselectedCoach] = useState(null);
+  const [showAuth, setShowAuth] = useState(false);
+  const [authMode, setAuthMode] = useState('signup');
+  const [tweaks, setTweaksState] = useState(TWEAK_DEFAULTS);
+  const [tweaksVisible, setTweaksVisible] = useState(false);
+
+  function setTweak(key, val) {
+    const next = { ...tweaks, [key]: val };
+    setTweaksState(next);
+    window.parent && window.parent.postMessage({ type: '__edit_mode_set_keys', edits: next }, '*');
+  }
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (!e.data) return;
+      if (e.data.type === '__activate_edit_mode') setTweaksVisible(true);
+      if (e.data.type === '__deactivate_edit_mode') setTweaksVisible(false);
+    };
+    window.addEventListener('message', handler);
+    window.parent && window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', handler);
+  }, []);
+
+  function handleSetView(v) {
+    setView(v);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function handleBookCoach(coach) {
+    if (!user) {setAuthMode('signup');setShowAuth(true);return;}
+    setPreselectedCoach(coach);
+    handleSetView('booking');
+  }
+
+  function handleAuthSuccess(authedUser) {
+    setUser(authedUser);
+    setShowAuth(false);
+    if (authedUser.role === 'coach') {
+      handleSetView('coach-portal');
+      return;
+    }
+    if (!authedUser.subscription) {
+      handleSetView('subscription');
+    } else {
+      if (preselectedCoach) handleSetView('booking');else
+      handleSetView('account');
+    }
+  }
+
+  function handleSubscriptionChosen(updatedUser) {
+    setUser(updatedUser);
+    if (preselectedCoach) handleSetView('booking');else
+    handleSetView('home');
+  }
+
+  function handleSignOut() {
+    authSignOut();
+    setUser(null);
+    setPreselectedCoach(null);
+    handleSetView('home');
+  }
+
+  function handleRequireAuth() {
+    setAuthMode('signup');
+    setShowAuth(true);
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#060c06' }}>
+      <Nav
+        view={view} setView={handleSetView} user={user}
+        onSignInClick={() => {setAuthMode('signin');setShowAuth(true);}}
+        onSignOut={handleSignOut} />
+      
+
+      {view === 'home' && <HomePage setView={handleSetView} onBookCoach={handleBookCoach} onSignInClick={() => {setAuthMode('signup');setShowAuth(true);}} />}
+      {view === 'team' && <TeamPage setView={handleSetView} onBookCoach={handleBookCoach} />}
+      {view === 'coach-portal' && user?.role === 'coach' && <CoachPortalPage user={user} onSignOut={handleSignOut} />}
+      {view === 'booking' && <BookingPage preselectedCoach={preselectedCoach} onClearCoach={() => setPreselectedCoach(null)} user={user} onRequireAuth={handleRequireAuth} />}
+      {view === 'subscription' && user && <SubscriptionPage user={user} onChoose={handleSubscriptionChosen} />}
+      {view === 'account' && user && <AccountDashboard user={user} onSignOut={handleSignOut} onUpgrade={() => handleSetView('subscription')} setView={handleSetView} />}
+      {view === 'sessions' && user && <SessionsPage user={user} />}
+      {view === 'sessions' && !user &&
+      <div style={{ maxWidth: 500, margin: '0 auto', padding: '120px 24px', textAlign: 'center' }}>
+          <div style={{ fontFamily: "'League Spartan',sans-serif", fontWeight: 900, fontSize: 26, color: '#d0e8d0', marginBottom: 12 }}>Sign in to view Sessions</div>
+          <button onClick={handleRequireAuth} style={{ background: '#3de05a', border: 'none', borderRadius: 11, padding: '14px 32px', fontFamily: "'League Spartan',sans-serif", fontWeight: 800, fontSize: 16, color: '#050d05', cursor: 'pointer' }}>Sign In →</button>
+        </div>
+      }
+      {view === 'about' && <AboutPage />}
+
+      {showAuth &&
+      <AuthModal
+        mode={authMode}
+        onSuccess={handleAuthSuccess}
+        onClose={() => setShowAuth(false)} />
+
+      }
+
+      <TweaksPanel
+        tweaks={tweaks} setTweak={setTweak} visible={tweaksVisible}
+        onClose={() => {setTweaksVisible(false);window.parent && window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*');}} />
+      
+    </div>);
+
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
