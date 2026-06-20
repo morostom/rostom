@@ -8,7 +8,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Icons } from '../components/Icons';
 import { MScreen } from '../components/mobile';
 import { useNav } from '../navigation/nav';
-import { CLUB } from '../data';
+import { CLUB, resolveAccessCode } from '../data';
 import { EASE_IOS } from '../motion';
 
 // ── the unlock animation, choreographed in sub-300ms beats ──
@@ -106,7 +106,7 @@ function UnlockOverlay({ onDone }) {
 const CELLS = 6;
 
 export default function JoinClubScreen() {
-  const { nav, setClubJoined } = useNav();
+  const { nav, setClubJoined, player } = useNav();
   const [code, setCode] = useState('');
   const [unlocking, setUnlocking] = useState(false);
   const inputRef = useRef(null);
@@ -115,8 +115,12 @@ export default function JoinClubScreen() {
     inputRef.current?.focus();
   }, []);
 
-  const matched = code.length === CELLS && code === CLUB.validCode;
-  const wrong = code.length === CELLS && code !== CLUB.validCode;
+  // Validate against the same codes the coordinator issued in the coach console.
+  const result = code.length === CELLS ? resolveAccessCode(code) : null;
+  const matched = !!result?.ok;
+  const wrong = !!result && !result.ok;
+  // a matched code may be assigned to a specific member — join as them
+  const joiningAs = result?.record?.to || player?.name || 'you';
 
   function onType(e) {
     const v = e.target.value
@@ -220,7 +224,13 @@ export default function JoinClubScreen() {
                 <span style={{ fontSize: 12.5, color: 'var(--sq-text-2)' }}>Code matched to a club</span>
               </div>
             )}
-            {wrong && <span style={{ fontSize: 12.5, color: 'var(--sq-danger)' }}>That code didn't match. Check it and try again.</span>}
+            {wrong && (
+              <span style={{ fontSize: 12.5, color: 'var(--sq-danger)' }}>
+                {result.reason === 'expired'
+                  ? 'This code has expired — ask your squash office for a new one.'
+                  : "That code didn't match. Check it and try again."}
+              </span>
+            )}
             {!matched && !wrong && (
               <button
                 onClick={() => setCode(CLUB.validCode)}
@@ -284,6 +294,9 @@ export default function JoinClubScreen() {
                     </div>
                   </div>
                 ))}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--sq-text-2)', background: 'rgba(255,255,255,0.03)', padding: '9px 11px', borderRadius: 9 }}>
+                <Icons.User size={13} /> Joining as <strong style={{ color: 'var(--sq-text)', fontWeight: 600 }}>{joiningAs}</strong>
               </div>
             </motion.div>
           )}

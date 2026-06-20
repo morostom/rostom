@@ -161,3 +161,18 @@ export const CODES = [
   { code: 'B8N3VD', to: null, status: 'open', when: 'Generated 19 May', via: null },
   { code: 'M2W9HF', to: 'Adam Sobhy', status: 'expired', when: 'Expired 02 May', via: 'WhatsApp' },
 ];
+
+// ── access-code resolution (shared by the coach console + player join) ─
+// CODES above is the single source of truth: the codes a coordinator issues
+// are exactly the codes a player can redeem to unlock the club. An expired
+// code is recognised but refused; an unknown code never matches.
+//
+// resolveAccessCode(input) → { ok, reason?, record? }
+//   reason: 'unknown' | 'expired'   record: the matching CODES entry
+export function resolveAccessCode(input) {
+  const code = (input || '').trim().toUpperCase();
+  const record = CODES.find((c) => c.code === code);
+  if (!record) return { ok: false, reason: 'unknown' };
+  if (record.status === 'expired') return { ok: false, reason: 'expired', record };
+  return { ok: true, record };
+}
