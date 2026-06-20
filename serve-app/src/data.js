@@ -136,3 +136,28 @@ export const WEEK_DAYS = [
   ['Mon', '12'], ['Tue', '13'], ['Wed', '14', true], ['Thu', '15'],
   ['Fri', '16'], ['Sat', '17'], ['Sun', '18'],
 ];
+
+// ── club coordinator console (coach side) ────────────────────────────
+// Member  { name, initials, group, status: 'active'|'pending'|'expired',
+//           since, expires, last }
+export const MEMBERS = [
+  { name: 'Omar Khaled', initials: 'OK', group: 'U15 Squad', status: 'active', since: '2023', expires: 'May 2027', last: 'On court now' },
+  { name: 'Seif Wael', initials: 'SW', group: 'U15 Squad', status: 'active', since: '2022', expires: 'Dec 2026', last: 'Today · 16:30' },
+  { name: 'Nour Hassan', initials: 'NH', group: 'U13 Squad', status: 'pending', since: '—', expires: '—', last: 'Invite sent · 2d ago' },
+  { name: 'Laila Mansour', initials: 'LM', group: 'Adults Social', status: 'expired', since: '2019', expires: 'Jan 2026', last: '3 weeks ago' },
+  { name: 'Karim Fouad', initials: 'KF', group: 'Elite Squad', status: 'active', since: '2020', expires: 'Sep 2026', last: 'Yesterday' },
+  { name: 'Hana Sherif', initials: 'HS', group: 'U13 Squad', status: 'active', since: '2024', expires: 'Mar 2027', last: 'Today · 14:10' },
+  { name: 'Youssef Adel', initials: 'YA', group: 'U15 Squad', status: 'pending', since: '—', expires: '—', last: 'Invite sent · 5h ago' },
+  { name: 'Farida Gamal', initials: 'FG', group: 'Adults Social', status: 'active', since: '2021', expires: 'Nov 2026', last: '2 days ago' },
+  { name: 'Salma Ezzat', initials: 'SE', group: 'Elite Squad', status: 'expired', since: '2018', expires: 'Feb 2026', last: '1 month ago' },
+];
+
+// Code  { code, to, status: 'redeemed'|'sent'|'open'|'expired', when, via }
+export const CODES = [
+  { code: '9F4K2A', to: 'Omar Khaled', status: 'redeemed', when: 'Redeemed 12 May', via: 'WhatsApp' },
+  { code: '3T8M1P', to: 'Nour Hassan', status: 'sent', when: 'Sent 18 May', via: 'WhatsApp' },
+  { code: 'QX7L0R', to: 'Youssef Adel', status: 'sent', when: 'Sent 19 May', via: 'SMS' },
+  { code: 'K5R2WQ', to: null, status: 'open', when: 'Generated 19 May', via: null },
+  { code: 'B8N3VD', to: null, status: 'open', when: 'Generated 19 May', via: null },
+  { code: 'M2W9HF', to: 'Adam Sobhy', status: 'expired', when: 'Expired 02 May', via: 'WhatsApp' },
+];

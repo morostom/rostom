@@ -175,4 +175,20 @@ export const Icons = {
       <path d="M21 4v4h-4M3 20v-4h4" />
     </SQIcon>
   ),
+  Users: ({ size = 16 }) => (
+    <SQIcon size={size}>
+      <circle cx="9" cy="8" r="3.5" />
+      <path d="M2 21c0-3.5 3-6 7-6s7 2.5 7 6" />
+      <path d="M17 11a3 3 0 100-6" opacity="0.7" />
+      <path d="M22 21c0-3-2-5-5-5" opacity="0.7" />
+    </SQIcon>
+  ),
+  TrendUp: ({ size = 16 }) => <SQIcon size={size} d="M3 17l6-6 4 4 8-8M14 7h7v7" />,
+  Wallet: ({ size = 16 }) => (
+    <SQIcon size={size}>
+      <rect x="3" y="6" width="18" height="14" rx="2" />
+      <path d="M3 10h18M16 15h2" />
+    </SQIcon>
+  ),
+  Activity: ({ size = 16 }) => <SQIcon size={size} d="M3 12h3.5l2.5-7 4 14 2.5-7H21" />,
 };

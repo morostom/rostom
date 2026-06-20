@@ -1,10 +1,15 @@
-// App.jsx — owns top-level app state (the signed-in player, club membership)
-// and maps screen names to components. The Navigator handles the animated
-// stack + tab transitions; the PhoneFrame is the device chrome around it.
+// App.jsx — top-level surface switching (player app / academy admin / coach
+// console) plus the player app's own state (signed-in player, club membership)
+// and screen-name → component mapping for the Navigator.
 
 import { useState } from 'react';
 import { PhoneFrame } from './components/mobile';
 import { Navigator } from './navigation/nav';
+import SurfaceSwitcher from './components/SurfaceSwitcher';
+import DesktopFrame from './desktop/DesktopFrame';
+import ChromeWindow from './components/ChromeWindow';
+import AdminConsole from './desktop/admin/AdminConsole';
+import CoachConsole from './desktop/coach/CoachConsole';
 import { SAMPLE_PLAYER } from './data';
 
 import SignupScreen from './screens/SignupScreen';
@@ -16,10 +21,9 @@ import JoinClubScreen from './screens/JoinClubScreen';
 import MyClubScreen from './screens/MyClubScreen';
 import PlaceholderScreen from './screens/PlaceholderScreen';
 
-export default function App() {
+function PlayerApp() {
   const [player, setPlayer] = useState(SAMPLE_PLAYER);
   const [clubJoined, setClubJoined] = useState(false);
-
   const app = { player, setPlayer, clubJoined, setClubJoined };
 
   function render(entry) {
@@ -50,5 +54,33 @@ export default function App() {
     <PhoneFrame>
       <Navigator initial="signup" render={render} app={app} />
     </PhoneFrame>
+  );
+}
+
+export default function App() {
+  const [surface, setSurface] = useState('app');
+
+  return (
+    <>
+      <SurfaceSwitcher surface={surface} onChange={setSurface} />
+
+      {surface === 'app' && <PlayerApp />}
+
+      {surface === 'admin' && (
+        <DesktopFrame>
+          <ChromeWindow tabs={[{ title: 'SERVE · Academy admin' }]} url="admin.serve.app/apex">
+            <AdminConsole />
+          </ChromeWindow>
+        </DesktopFrame>
+      )}
+
+      {surface === 'coach' && (
+        <DesktopFrame>
+          <ChromeWindow tabs={[{ title: 'SERVE · Coach console' }]} url="club.serve.app/hsc">
+            <CoachConsole />
+          </ChromeWindow>
+        </DesktopFrame>
+      )}
+    </>
   );
 }
