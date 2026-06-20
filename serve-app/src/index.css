@@ -1,0 +1,234 @@
+@import 'tailwindcss';
+
+/* ──────────────────────────────────────────────────────────────────
+   SERVE design system — neon-on-black
+   Base black #070707 · neon red accent #f5453b
+   Display: Space Grotesk · Body: Geist · Mono: JetBrains Mono
+   ────────────────────────────────────────────────────────────────── */
+:root {
+  --sq-bg: #070707;
+  --sq-surface: #121212;
+  --sq-surface-2: #1c1c1c;
+  --sq-gold: #f5453b; /* the single accent token — SERVE neon red */
+  --sq-gold-hi: #ff6258;
+  --sq-blue: #4ea8ff;
+  --sq-green: #4ade80;
+  --sq-text: #ffffff;
+  --sq-text-2: #b4b4b4;
+  --sq-text-3: #6e6e6e;
+  --sq-border: rgba(255, 255, 255, 0.08);
+  --sq-border-2: rgba(255, 255, 255, 0.14);
+  --sq-danger: #ef5560;
+  --sq-display: 'Space Grotesk', system-ui, sans-serif;
+  --sq-body: 'Geist', system-ui, sans-serif;
+  --sq-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+@theme inline {
+  --color-bg: var(--sq-bg);
+  --color-surface: var(--sq-surface);
+  --color-surface-2: var(--sq-surface-2);
+  --color-accent: var(--sq-gold);
+  --color-accent-hi: var(--sq-gold-hi);
+  --color-text: var(--sq-text);
+  --color-text-2: var(--sq-text-2);
+  --color-text-3: var(--sq-text-3);
+  --font-display: var(--sq-display);
+  --font-body: var(--sq-body);
+  --font-mono: var(--sq-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--sq-bg);
+  color: var(--sq-text);
+  font-family: var(--sq-body);
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* hide scrollbars but keep scrolling (matches the prototype) */
+::-webkit-scrollbar {
+  display: none;
+}
+* {
+  scrollbar-width: none;
+}
+
+.sq-mono {
+  font-family: var(--sq-mono);
+  font-variant-numeric: tabular-nums;
+}
+.sq-display {
+  font-family: var(--sq-display);
+  letter-spacing: -0.025em;
+}
+
+/* ── SERVE neon wordmark ── */
+.serve-wordmark {
+  font-family: var(--sq-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: transparent;
+  -webkit-text-stroke: 1.4px rgba(255, 255, 255, 0.92);
+  letter-spacing: 0.04em;
+  line-height: 0.9;
+  text-shadow:
+    0 0 4px rgba(255, 255, 255, 0.55),
+    0 0 14px rgba(255, 255, 255, 0.35),
+    0 0 30px rgba(255, 255, 255, 0.18);
+}
+.serve-wordmark.accent {
+  -webkit-text-stroke-color: var(--sq-gold);
+  text-shadow:
+    0 0 4px color-mix(in srgb, var(--sq-gold) 60%, transparent),
+    0 0 16px color-mix(in srgb, var(--sq-gold) 40%, transparent),
+    0 0 34px color-mix(in srgb, var(--sq-gold) 22%, transparent);
+}
+.serve-est {
+  color: var(--sq-gold);
+  font-family: var(--sq-mono);
+  letter-spacing: 0.42em;
+}
+.serve-glow-soft {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--sq-gold) 30%, transparent),
+    0 0 28px color-mix(in srgb, var(--sq-gold) 16%, transparent);
+}
+
+/* ── buttons ── */
+.sq-btn-gold {
+  background: var(--sq-gold);
+  color: #0a0a0a;
+  border: 0;
+  font-family: var(--sq-display);
+  font-weight: 600;
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    transform 0.1s,
+    opacity 0.15s;
+  letter-spacing: -0.01em;
+}
+.sq-btn-gold:hover {
+  background: var(--sq-gold-hi);
+}
+.sq-btn-gold:active {
+  transform: translateY(1px);
+}
+.sq-btn-gold:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.sq-btn-ghost {
+  background: transparent;
+  color: var(--sq-text);
+  border: 1px solid var(--sq-border-2);
+  border-radius: 999px;
+  font-family: var(--sq-display);
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+.sq-btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+/* ── card / chip ── */
+.sq-card {
+  background: var(--sq-surface);
+  border: 1px solid var(--sq-border);
+  border-radius: 14px;
+}
+.sq-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--sq-border);
+  color: var(--sq-text-2);
+}
+.sq-chip.gold {
+  background: color-mix(in srgb, var(--sq-gold) 12%, transparent);
+  border-color: color-mix(in srgb, var(--sq-gold) 30%, transparent);
+  color: var(--sq-gold);
+}
+
+/* ── form fields (real inputs styled like the prototype's PField) ── */
+.sq-field {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 14px;
+  border-radius: 11px;
+  border: 1px solid var(--sq-border-2);
+  background: rgba(255, 255, 255, 0.025);
+  transition: border-color 0.15s;
+}
+.sq-field:focus-within {
+  border-color: color-mix(in srgb, var(--sq-gold) 55%, transparent);
+}
+.sq-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  color: var(--sq-text);
+  font-family: var(--sq-body);
+  font-size: 14.5px;
+}
+.sq-input::placeholder {
+  color: var(--sq-text-3);
+}
+.sq-input.mono {
+  font-family: var(--sq-mono);
+}
+.sq-select {
+  appearance: none;
+  cursor: pointer;
+}
+.sq-select option {
+  background: var(--sq-surface);
+  color: var(--sq-text);
+}
+.sq-label {
+  font-size: 10.5px;
+  color: var(--sq-text-3);
+  font-family: var(--sq-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+@keyframes sq-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.sq-fade-up {
+  animation: sq-fade-up 0.4s ease both;
+}
