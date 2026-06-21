@@ -8,10 +8,13 @@ import { MScreen, MTabBar, Pill, StatTile } from '../components/mobile';
 import PlayerCard from '../components/PlayerCard';
 import FlipReveal from '../components/FlipReveal';
 import { useNav } from '../navigation/nav';
-import { SEASON_STATS, UP_NEXT } from '../data';
+import { SEASON_STATS, REC_STATS, UP_NEXT } from '../data';
 
 export default function ProfileHomeScreen({ justCreated }) {
   const { nav, player } = useNav();
+  const recreational = player.cardType === 'recreational';
+  const stats = recreational ? REC_STATS : SEASON_STATS;
+  const accent = recreational ? 'var(--sq-blue)' : 'var(--sq-gold)';
 
   return (
     <MScreen
@@ -40,18 +43,18 @@ export default function ProfileHomeScreen({ justCreated }) {
       <div style={{ padding: '4px 20px 18px' }}>
         <FlipReveal play={!!justCreated}>
           <div onClick={() => nav.push('cardCloseup', { player })} style={{ cursor: 'pointer' }}>
-            <PlayerCard player={player} accent="var(--sq-gold)" />
+            <PlayerCard player={player} accent={accent} />
           </div>
         </FlipReveal>
       </div>
 
-      {/* season stats */}
+      {/* stats */}
       <div style={{ padding: '0 20px 18px' }}>
         <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>
-          This season
+          {recreational ? 'Your squash' : 'This season'}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-          {SEASON_STATS.map((s) => (
+          {stats.map((s) => (
             <StatTile key={s.label} label={s.label} value={s.value} hint={s.hint} />
           ))}
         </div>

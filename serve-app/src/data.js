@@ -1,50 +1,102 @@
-// data.js — all mock data for SERVE, kept in one place and shaped the way a
-// backend/API would eventually return it. Swapping these constants for fetch()
-// calls later should not require touching the screens.
-//
-// Shapes
-// ──────
-// Player  { id, name, age, division, club, rank, rankLabel, racket, fav,
-//           wins, losses, since, accent, photo (data-URL | null), initials }
-// Court   { court, type, status: 'lesson'|'playing'|'free', who, coach,
-//           until, left (min), next }
-// Lesson  { id, time, group, coach, court, spots, you }
-// Club    { id, name, short, section, city, est, members, courts,
-//           membershipLabel, validCode }
+// data.js — all mock data for SERVE (Egyptian context), shaped to map onto a
+// future API. Swapping these constants for fetch() calls later should not
+// require touching the screens.
 
-// ── form option lists ────────────────────────────────────────────────
-export const DIVISIONS = [
-  'U11 Boys', 'U11 Girls', 'U13 Boys', 'U13 Girls', 'U15 Boys',
-  'U15 Girls', 'U17 Boys', 'U17 Girls', 'U19 Boys', 'U19 Girls',
+// ── locations & options (Egyptian) ───────────────────────────────────
+export const LOCATIONS = [
+  'Heliopolis · Cairo',
+  'Zamalek · Cairo',
+  'Maadi · Cairo',
+  'Nasr City · Cairo',
+  'New Cairo',
+  '6th of October · Giza',
+  'Dokki · Giza',
 ];
 
-export const CLUBS = [
-  'Apex Squash Club', 'Glasshouse Squash', 'Baseline Academy',
-  'Frontwall Club', 'Center Court', 'Heliopolis Sporting Club',
+// Real Egyptian squash academies / clubs.
+export const ACADEMIES_LIST = [
+  'Wadi Degla Squash Academy',
+  'Gezira Sporting Club',
+  'Smash Academy',
+  'Black Ball Academy',
+  'Heliopolis Sporting Club',
+  'Zamalek Sporting Club',
+  'Shooting Club · Dokki',
 ];
 
+// Egyptian squash pros (plus a couple of global names players look up to).
 export const FAV_PLAYERS = [
-  'Ali Farag', 'Mostafa Asal', 'Nour El Sherbini', 'Nouran Gohar',
-  'Hania El Hammamy', 'Tarek Momen', 'Paul Coll', 'Amanda Sobhy',
+  'Ali Farag',
+  'Mostafa Asal',
+  'Nour El Sherbini',
+  'Nouran Gohar',
+  'Hania El Hammamy',
+  'Karim Abdel Gawad',
+  'Tarek Momen',
+  'Marwan ElShorbagy',
+  'Amanda Sobhy',
+  'Paul Coll',
 ];
 
-// ── the signed-in player (pre-filled so the card looks complete) ──────
-export const SAMPLE_PLAYER = {
-  id: 'me',
-  name: 'Omar Khaled',
-  age: '14',
-  division: 'U15 Boys',
-  club: 'Apex Squash Club',
-  rank: 3,
-  rankLabel: '#3 · U15 National',
-  racket: 'Tecnifibre Carboflex 125',
-  fav: 'Ali Farag',
-  wins: 38,
-  losses: 9,
-  since: '2023',
-  accent: '#f5453b',
-  initials: 'OK',
-  photo: null,
+// Recreational card: favourite shot instead of ranking.
+export const FAV_SHOTS = [
+  'Straight drop',
+  'Backhand boast',
+  'Cross-court nick',
+  'Volley drop',
+  'Trickle boast',
+  'Deep lob',
+  'Forehand kill',
+];
+
+export const YEARS_OPTIONS = ['Less than 1 year', '1–2 years', '3–5 years', '5–10 years', '10+ years'];
+
+export const RACKETS = [
+  'Tecnifibre Carboflex 125',
+  'Dunlop Sonic Core Pro',
+  'Head Speed 120 SB',
+  'Eye Rackets V.Lite',
+  'Harrow Vapor',
+  'Wilson Ultra Team',
+  'Black Knight Ion',
+];
+
+// Age → competitive division (no manual selection).
+//  ≤10 U11 · 11–12 U13 · 13–14 U15 · 15–16 U17 · 17–18 U19 · 19+ Senior
+export function divisionForAge(age) {
+  const a = parseInt(age, 10);
+  if (!a || a < 4) return '';
+  if (a <= 10) return 'U11';
+  if (a <= 12) return 'U13';
+  if (a <= 14) return 'U15';
+  if (a <= 16) return 'U17';
+  if (a <= 18) return 'U19';
+  return 'Senior';
+}
+
+// ── player card templates ────────────────────────────────────────────
+const YEAR = String(new Date().getFullYear());
+
+export const EMPTY_COMPETITIVE = {
+  id: 'me', cardType: 'competitive', forChild: false,
+  name: '', age: '', division: '', club: '',
+  rank: '', rankLabel: '', racket: '', fav: '',
+  wins: 0, losses: 0, since: YEAR, accent: '#f5453b', photo: null,
+};
+
+export const EMPTY_RECREATIONAL = {
+  id: 'me', cardType: 'recreational', forChild: false,
+  name: '', age: '', division: '', club: '',
+  favShot: '', yearsPlaying: '', accent: '#4ea8ff', photo: null,
+};
+
+// A fully-filled demo card used by the "Log in" path so the pitcher can land
+// straight in a populated profile without typing.
+export const DEMO_PLAYER = {
+  id: 'me', cardType: 'competitive', forChild: false,
+  name: 'Omar Khaled', age: '14', division: 'U15', club: 'Wadi Degla Squash Academy',
+  rank: 3, rankLabel: '#3 · U15 National', racket: 'Tecnifibre Carboflex 125',
+  fav: 'Ali Farag', wins: 38, losses: 9, since: '2023', accent: '#f5453b', photo: null,
 };
 
 // ── player dashboard extras ──────────────────────────────────────────
@@ -54,66 +106,35 @@ export const SEASON_STATS = [
   { label: 'Best rank', value: '#3', hint: 'U15 National' },
 ];
 
+export const REC_STATS = [
+  { label: 'Sessions', value: '32', hint: 'this season' },
+  { label: 'Regular court', value: 'Heliopolis', hint: 'Tue & Thu' },
+  { label: 'Playing since', value: '2019', hint: '6 years' },
+];
+
 export const UP_NEXT = {
-  day: 'FRI',
-  date: '16',
-  title: 'Friday Night Drill Squad',
-  meta: '18:00 · Group training · Apex',
+  day: 'FRI', date: '16', title: 'Friday Night Drill Squad',
+  meta: '18:00 · Group training · Wadi Degla',
 };
 
 // ── junior roster (the Players gallery) ──────────────────────────────
 export const JUNIORS = [
-  SAMPLE_PLAYER,
-  {
-    id: 'lina', photo: null, name: 'Lina Saleh', initials: 'LS', age: 13,
-    division: 'U13 Girls', rank: 1, rankLabel: '#1 · U13 Girls',
-    club: 'Glasshouse Squash', racket: 'Dunlop Sonic Core Pro',
-    fav: 'Nour El Sherbini', wins: 44, losses: 4, since: '2022', accent: '#4ea8ff',
-  },
-  {
-    id: 'yusuf', photo: null, name: 'Yusuf Adel', initials: 'YA', age: 15,
-    division: 'U15 Boys', rank: 7, rankLabel: '#7 · U15 National',
-    club: 'Baseline Academy', racket: 'Head Speed 120 SB',
-    fav: 'Mostafa Asal', wins: 29, losses: 12, since: '2023', accent: '#4ade80',
-  },
-  {
-    id: 'hana', photo: null, name: 'Hana Tarek', initials: 'HT', age: 12,
-    division: 'U13 Girls', rank: 2, rankLabel: '#2 · U13 Girls',
-    club: 'Frontwall Club', racket: 'Harrow Vapor',
-    fav: 'Nouran Gohar', wins: 31, losses: 7, since: '2024', accent: '#a779f0',
-  },
-  {
-    id: 'karim', photo: null, name: 'Karim Nabil', initials: 'KN', age: 16,
-    division: 'U17 Boys', rank: 5, rankLabel: '#5 · U17 National',
-    club: 'Center Court', racket: 'Wilson Ultra Team',
-    fav: 'Paul Coll', wins: 41, losses: 15, since: '2021', accent: '#2dd4bf',
-  },
-  {
-    id: 'maya', photo: null, name: 'Maya Reda', initials: 'MR', age: 11,
-    division: 'U11 Girls', rank: 4, rankLabel: '#4 · U11 Girls',
-    club: 'Apex Squash Club', racket: 'Salming Cannone',
-    fav: 'Amanda Sobhy', wins: 22, losses: 6, since: '2024', accent: '#ff8a3d',
-  },
+  DEMO_PLAYER,
+  { id: 'lina', cardType: 'competitive', photo: null, name: 'Lina Saleh', initials: 'LS', age: 13, division: 'U13', rank: 1, rankLabel: '#1 · U13 Girls', club: 'Gezira Sporting Club', racket: 'Dunlop Sonic Core Pro', fav: 'Nour El Sherbini', wins: 44, losses: 4, since: '2022', accent: '#4ea8ff' },
+  { id: 'yusuf', cardType: 'competitive', photo: null, name: 'Yusuf Adel', initials: 'YA', age: 15, division: 'U17', rank: 7, rankLabel: '#7 · U17 National', club: 'Smash Academy', racket: 'Head Speed 120 SB', fav: 'Mostafa Asal', wins: 29, losses: 12, since: '2023', accent: '#4ade80' },
+  { id: 'hana', cardType: 'competitive', photo: null, name: 'Hana Tarek', initials: 'HT', age: 12, division: 'U13', rank: 2, rankLabel: '#2 · U13 Girls', club: 'Black Ball Academy', racket: 'Harrow Vapor', fav: 'Nouran Gohar', wins: 31, losses: 7, since: '2024', accent: '#a779f0' },
+  { id: 'karim', cardType: 'competitive', photo: null, name: 'Karim Nabil', initials: 'KN', age: 16, division: 'U17', rank: 5, rankLabel: '#5 · U17 National', club: 'Heliopolis Sporting Club', racket: 'Wilson Ultra Team', fav: 'Karim Abdel Gawad', wins: 41, losses: 15, since: '2021', accent: '#2dd4bf' },
+  { id: 'maya', cardType: 'competitive', photo: null, name: 'Maya Reda', initials: 'MR', age: 11, division: 'U11', rank: 4, rankLabel: '#4 · U11 Girls', club: 'Wadi Degla Squash Academy', racket: 'Eye Rackets V.Lite', fav: 'Hania El Hammamy', wins: 22, losses: 6, since: '2024', accent: '#ff8a3d' },
 ];
 
 export const JUNIOR_FILTERS = ['All', 'U11', 'U13', 'U15', 'U17'];
 
-export function getJuniorById(id) {
-  return JUNIORS.find((j) => j.id === id) || null;
-}
-
 // ── Heliopolis Sporting Club (members-only Clubs pillar) ─────────────
 export const CLUB = {
-  id: 'hsc',
-  name: 'Heliopolis Sporting Club',
-  short: 'Heliopolis SC',
-  section: 'Squash Section',
-  city: 'Heliopolis · Cairo',
-  est: '1905',
-  members: 186,
-  courts: 4,
-  membershipLabel: 'Membership active · renews May 2027',
-  validCode: '9F4K2A', // the access code that unlocks the club in this demo
+  id: 'hsc', name: 'Heliopolis Sporting Club', short: 'Heliopolis SC',
+  section: 'Squash Section', city: 'Heliopolis · Cairo', est: '1905',
+  members: 186, courts: 4, membershipLabel: 'Membership active · renews May 2027',
+  validCode: '9F4K2A',
 };
 
 export const COURTS = [
@@ -138,8 +159,6 @@ export const WEEK_DAYS = [
 ];
 
 // ── club coordinator console (coach side) ────────────────────────────
-// Member  { name, initials, group, status: 'active'|'pending'|'expired',
-//           since, expires, last }
 export const MEMBERS = [
   { name: 'Omar Khaled', initials: 'OK', group: 'U15 Squad', status: 'active', since: '2023', expires: 'May 2027', last: 'On court now' },
   { name: 'Seif Wael', initials: 'SW', group: 'U15 Squad', status: 'active', since: '2022', expires: 'Dec 2026', last: 'Today · 16:30' },
@@ -152,7 +171,6 @@ export const MEMBERS = [
   { name: 'Salma Ezzat', initials: 'SE', group: 'Elite Squad', status: 'expired', since: '2018', expires: 'Feb 2026', last: '1 month ago' },
 ];
 
-// Code  { code, to, status: 'redeemed'|'sent'|'open'|'expired', when, via }
 export const CODES = [
   { code: '9F4K2A', to: 'Omar Khaled', status: 'redeemed', when: 'Redeemed 12 May', via: 'WhatsApp' },
   { code: '3T8M1P', to: 'Nour Hassan', status: 'sent', when: 'Sent 18 May', via: 'WhatsApp' },
@@ -162,13 +180,7 @@ export const CODES = [
   { code: 'M2W9HF', to: 'Adam Sobhy', status: 'expired', when: 'Expired 02 May', via: 'WhatsApp' },
 ];
 
-// ── access-code resolution (shared by the coach console + player join) ─
-// CODES above is the single source of truth: the codes a coordinator issues
-// are exactly the codes a player can redeem to unlock the club. An expired
-// code is recognised but refused; an unknown code never matches.
-//
-// resolveAccessCode(input) → { ok, reason?, record? }
-//   reason: 'unknown' | 'expired'   record: the matching CODES entry
+// access-code resolution — shared by the coach console + player join flow.
 export function resolveAccessCode(input) {
   const code = (input || '').trim().toUpperCase();
   const record = CODES.find((c) => c.code === code);
@@ -176,3 +188,67 @@ export function resolveAccessCode(input) {
   if (record.status === 'expired') return { ok: false, reason: 'expired', record };
   return { ok: true, record };
 }
+
+export function randomCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+}
+
+// ── academy admin console (Wadi Degla) ───────────────────────────────
+export const ACADEMY = {
+  name: 'Wadi Degla Squash Academy', short: 'Wadi Degla',
+  city: 'Maadi · Cairo', district: 'Maadi', owner: 'Hisham Maged',
+  ownerInitials: 'HM', tagline: 'Where Cairo juniors level up.',
+  contact: 'play@wadidegla.club', courts: 6, juniors: 184, minPrice: 180,
+  rating: 4.9, todayRevenue: '$4,180', todayBookings: 22, todayTrainings: 4,
+};
+
+export const ADMIN_COURTS = [
+  { n: 'Court 1', type: 'Glass back · Pro', base: 280, peak: 420, peakOn: true },
+  { n: 'Court 2', type: 'Glass back · Pro', base: 280, peak: 420, peakOn: true },
+  { n: 'Court 3', type: 'Standard', base: 180, peak: 270, peakOn: true },
+  { n: 'Court 4', type: 'Standard', base: 180, peak: 270, peakOn: true },
+  { n: 'Court 5', type: 'Standard', base: 180, peak: null, peakOn: false },
+  { n: 'Court 6', type: 'Standard', base: 180, peak: null, peakOn: false },
+];
+
+export const ADMIN_COACHES = [
+  { name: 'Karim El-Hosary', initials: 'KE', role: 'Head Coach', squads: 'Elite · U17', sessions: 28, rating: 4.9 },
+  { name: 'Mona Saleh', initials: 'MS', role: 'Junior Development', squads: 'U11 · U13', sessions: 22, rating: 4.8 },
+  { name: 'Tarek Refaat', initials: 'TR', role: 'Performance Coach', squads: 'U15 · U19', sessions: 24, rating: 4.9 },
+  { name: 'Nada Sobhy', initials: 'NS', role: 'Fitness & Conditioning', squads: 'All squads', sessions: 18, rating: 4.7 },
+  { name: 'Omar Hany', initials: 'OH', role: 'Assistant Coach', squads: 'Beginners', sessions: 15, rating: 4.6 },
+  { name: 'Mariam Adel', initials: 'MA', role: 'Private Coach', squads: 'Privates', sessions: 31, rating: 5.0 },
+];
+
+export const ADMIN_PLAYERS = [
+  { name: 'Omar Khaled', initials: 'OK', division: 'U15', coach: 'Tarek Refaat', status: 'active', joined: '2023', spend: '12,400' },
+  { name: 'Lina Saleh', initials: 'LS', division: 'U13', coach: 'Mona Saleh', status: 'active', joined: '2022', spend: '18,900' },
+  { name: 'Yusuf Adel', initials: 'YA', division: 'U17', coach: 'Karim El-Hosary', status: 'active', joined: '2023', spend: '9,600' },
+  { name: 'Hana Tarek', initials: 'HT', division: 'U13', coach: 'Mona Saleh', status: 'trial', joined: '2025', spend: '1,200' },
+  { name: 'Karim Nabil', initials: 'KN', division: 'U17', coach: 'Tarek Refaat', status: 'active', joined: '2021', spend: '22,300' },
+  { name: 'Maya Reda', initials: 'MR', division: 'U11', coach: 'Mona Saleh', status: 'active', joined: '2024', spend: '7,800' },
+  { name: 'Adam Sobhy', initials: 'AS', division: 'Senior', coach: 'Karim El-Hosary', status: 'inactive', joined: '2020', spend: '15,100' },
+];
+
+export const REVENUE_7D = [2400, 3100, 2700, 4200, 3800, 5100, 4180];
+export const REVENUE_DAYS = ['Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed'];
+
+// academy onboarding wizard — 5 steps, pre-filled so it's demo-steppable.
+export const SETUP_STEPS = [
+  { n: 1, key: 'details', label: 'Academy details & logo' },
+  { n: 2, key: 'hours', label: 'Operating hours' },
+  { n: 3, key: 'courts', label: 'Courts & pricing' },
+  { n: 4, key: 'coaches', label: 'Coaches & priority times' },
+  { n: 5, key: 'open', label: 'Open to players' },
+];
+
+export const OPERATING_HOURS = [
+  { day: 'Monday', open: '07:00', close: '23:00', on: true },
+  { day: 'Tuesday', open: '07:00', close: '23:00', on: true },
+  { day: 'Wednesday', open: '07:00', close: '23:00', on: true },
+  { day: 'Thursday', open: '07:00', close: '23:00', on: true },
+  { day: 'Friday', open: '09:00', close: '23:59', on: true },
+  { day: 'Saturday', open: '09:00', close: '23:59', on: true },
+  { day: 'Sunday', open: '07:00', close: '22:00', on: true },
+];

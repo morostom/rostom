@@ -1,14 +1,15 @@
-// PlayerCard.jsx — the collectible junior player card. Two variants:
-//  - full    : the hero card (profile, closeup, signup preview)
-//  - compact : the grid tile used in the Juniors gallery
-// Wired to normalized player data + an optional uploaded photo (data URL).
+// PlayerCard.jsx — the collectible card. Two card TYPES and two layout VARIANTS.
+//  type:    'competitive' (ranking, division, tournament record)
+//           'recreational' (no ranking — favourite shot + years playing)
+//  variant: 'full' (hero) | 'compact' (gallery tile)
 
+import { memo } from 'react';
 import { Icons } from './Icons';
 
 function rankOf(p) {
   if (typeof p.rank === 'number') return String(p.rank);
   const m = (p.rankLabel || '').match(/\d+/);
-  return m ? m[0] : '—';
+  return m ? m[0] : null;
 }
 
 function PhotoArea({ player, height, placeholder }) {
@@ -43,7 +44,7 @@ function CardStat({ label, value, accent }) {
       <div className="sq-mono" style={{ fontSize: 8.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
         {label}
       </div>
-      <div className="sq-display" style={{ fontSize: 17, fontWeight: 700, marginTop: 3, color: accent || 'var(--sq-text)' }}>
+      <div className="sq-display" style={{ fontSize: 16, fontWeight: 700, marginTop: 3, color: accent || 'var(--sq-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
         {value}
       </div>
     </div>
@@ -57,17 +58,19 @@ function CardField({ icon, label, value, accent }) {
       <span className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', width: 96, flexShrink: 0 }}>
         {label}
       </span>
-      <span style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--sq-text)', textAlign: 'right', flex: 1 }}>{value || '—'}</span>
+      <span style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--sq-text)', textAlign: 'right', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value || '—'}</span>
     </div>
   );
 }
 
-export default function PlayerCard({ player, accent, variant = 'full' }) {
-  const ac = accent || player.accent || 'var(--sq-gold)';
+function PlayerCard({ player, accent, variant = 'full' }) {
+  const recreational = player.cardType === 'recreational';
+  const ac = accent || player.accent || (recreational ? 'var(--sq-blue)' : 'var(--sq-gold)');
   const compact = variant === 'compact';
   const firstName = (player.name || 'Player').split(' ')[0];
   const rank = rankOf(player);
   const record = player.wins != null ? `${player.wins}–${player.losses}` : '—';
+  const tag = recreational ? 'Recreational' : player.division || 'Junior';
 
   return (
     <div
@@ -88,7 +91,7 @@ export default function PlayerCard({ player, accent, variant = 'full' }) {
           SERVE
         </span>
         <span className="sq-mono" style={{ fontSize: compact ? 8.5 : 10, color: ac, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-          {player.division || 'Junior'}
+          {tag}
         </span>
       </div>
 
@@ -105,15 +108,14 @@ export default function PlayerCard({ player, accent, variant = 'full' }) {
       >
         <PhotoArea player={player} height={compact ? 132 : 230} placeholder={compact ? 'photo' : `${firstName}'s photo`} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 40%, rgba(7,7,7,0.92) 100%)', pointerEvents: 'none' }} />
-        {/* rank badge */}
-        <div style={{ position: 'absolute', top: 10, right: 10, pointerEvents: 'none', lineHeight: 1 }}>
-          <span
-            className="sq-display"
-            style={{ fontSize: compact ? 26 : 40, fontWeight: 700, color: ac, textShadow: `0 0 16px color-mix(in srgb, ${ac} 55%, transparent)` }}
-          >
-            #{rank}
-          </span>
-        </div>
+        {/* rank badge — competitive only */}
+        {!recreational && rank && (
+          <div style={{ position: 'absolute', top: 10, right: 10, pointerEvents: 'none', lineHeight: 1 }}>
+            <span className="sq-display" style={{ fontSize: compact ? 26 : 40, fontWeight: 700, color: ac, textShadow: `0 0 16px color-mix(in srgb, ${ac} 55%, transparent)` }}>
+              #{rank}
+            </span>
+          </div>
+        )}
         {/* name + age */}
         <div style={{ position: 'absolute', left: 12, right: 12, bottom: 10, pointerEvents: 'none' }}>
           <div className="sq-display" style={{ fontSize: compact ? 16 : 23, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.05 }}>
@@ -128,19 +130,30 @@ export default function PlayerCard({ player, accent, variant = 'full' }) {
       {compact ? (
         <div style={{ padding: '9px 12px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-            {record}
+            {recreational ? player.yearsPlaying || '—' : record}
           </span>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10.5, color: 'var(--sq-text-2)' }}>
             <span style={{ color: ac, display: 'inline-flex' }}>
-              <Icons.Heart size={11} filled />
+              {recreational ? <Icons.Racket size={11} /> : <Icons.Heart size={11} filled />}
             </span>{' '}
-            {player.fav}
+            {recreational ? player.favShot : player.fav}
           </span>
+        </div>
+      ) : recreational ? (
+        <div style={{ padding: '14px 15px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            <CardStat label="Playing for" value={player.yearsPlaying || '—'} accent={ac} />
+            <CardStat label="Level" value="Recreational" />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 1, borderTop: '1px solid var(--sq-border)', paddingTop: 12 }}>
+            <CardField icon={<Icons.Pin size={13} />} label="Club" value={player.club} />
+            <CardField icon={<span style={{ color: ac, display: 'inline-flex' }}><Icons.Racket size={13} /></span>} label="Favourite shot" value={player.favShot} accent={ac} />
+          </div>
         </div>
       ) : (
         <div style={{ padding: '14px 15px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-            <CardStat label="Ranking" value={`#${rank}`} accent={ac} />
+            <CardStat label="Ranking" value={rank ? `#${rank}` : '—'} accent={ac} />
             <CardStat label="Record" value={record} />
             <CardStat label="Since" value={player.since || '—'} />
           </div>
@@ -148,11 +161,7 @@ export default function PlayerCard({ player, accent, variant = 'full' }) {
             <CardField icon={<Icons.Pin size={13} />} label="Club" value={player.club} />
             <CardField icon={<Icons.Racket size={13} />} label="Racket" value={player.racket} />
             <CardField
-              icon={
-                <span style={{ color: ac, display: 'inline-flex' }}>
-                  <Icons.Heart size={13} filled />
-                </span>
-              }
+              icon={<span style={{ color: ac, display: 'inline-flex' }}><Icons.Heart size={13} filled /></span>}
               label="Favorite player"
               value={player.fav}
               accent={ac}
@@ -163,3 +172,5 @@ export default function PlayerCard({ player, accent, variant = 'full' }) {
     </div>
   );
 }
+
+export default memo(PlayerCard);

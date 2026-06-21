@@ -1,43 +1,62 @@
-// DesktopFrame.jsx — centers a fixed-size desktop console on the dark backdrop
-// and scales it down to fit smaller viewports (keeps the 1240×804 layout intact).
+// DesktopFrame.jsx — renders a desktop console at full width (min 1280px) and,
+// on narrow screens, swaps in a "best viewed on desktop" notice instead.
 
-import { useEffect, useState } from 'react';
+import SQLogo from '../components/SQLogo';
+import { Icons } from '../components/Icons';
 
-const W = 1240;
-const H = 804;
-
-function useFitScale(pad = 56) {
-  const [scale, setScale] = useState(1);
-  useEffect(() => {
-    const fit = () => {
-      const s = Math.min((window.innerWidth - pad) / W, (window.innerHeight - pad) / H, 1);
-      setScale(s > 0 ? s : 0.2);
-    };
-    fit();
-    window.addEventListener('resize', fit);
-    return () => window.removeEventListener('resize', fit);
-  }, [pad]);
-  return scale;
+function MobileNotice() {
+  return (
+    <div
+      className="serve-mobile-notice"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        textAlign: 'center',
+        gap: 18,
+        padding: 32,
+        background: 'var(--sq-bg)',
+        zIndex: 5,
+      }}
+    >
+      <SQLogo size={30} accent est align="center" />
+      <div
+        style={{
+          width: 64,
+          height: 64,
+          borderRadius: 18,
+          background: 'var(--sq-surface)',
+          border: '1px solid var(--sq-border)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'var(--sq-gold)',
+          marginTop: 8,
+        }}
+      >
+        <Icons.Court size={30} />
+      </div>
+      <div>
+        <h1 className="sq-display" style={{ margin: 0, fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>
+          Best viewed on desktop
+        </h1>
+        <p style={{ margin: '10px 0 0', color: 'var(--sq-text-2)', fontSize: 14, lineHeight: 1.55, maxWidth: 320 }}>
+          This is the academy management console — built for a laptop or desktop screen. Open it on a wider display to manage courts, schedules, and members.
+        </p>
+      </div>
+    </div>
+  );
 }
 
 export default function DesktopFrame({ children }) {
-  const scale = useFitScale();
   return (
-    <div
-      style={{
-        minHeight: '100dvh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
-        background:
-          'radial-gradient(120% 80% at 50% -10%, color-mix(in srgb, var(--sq-gold) 8%, transparent), transparent 60%), var(--sq-bg)',
-      }}
-    >
-      {/* reserve the scaled footprint so the window stays centered */}
-      <div style={{ width: W * scale, height: H * scale }}>
-        <div style={{ width: W, height: H, transform: `scale(${scale})`, transformOrigin: 'top left' }}>{children}</div>
+    <>
+      <div className="serve-desktop">
+        <div className="serve-desktop-inner">{children}</div>
       </div>
-    </div>
+      <MobileNotice />
+    </>
   );
 }

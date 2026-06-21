@@ -3,8 +3,8 @@
 
 // iOS-style ease (UINavigationController push curve) and snappy duration.
 export const EASE_IOS = [0.32, 0.72, 0, 1];
-export const DUR = 0.28; // seconds — every screen/element transition stays under 300ms
-export const DUR_FAST = 0.18;
+export const DUR = 0.22; // seconds — snappy screen transitions, well under 300ms
+export const DUR_FAST = 0.12;
 
 // Screen stack slide: forward (dir +1) pushes in from the right with the
 // outgoing screen parallaxing left; back (dir -1) reverses it. Tab switches

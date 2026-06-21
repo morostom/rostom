@@ -8,31 +8,10 @@ export const STATUS_TOP = 58;
 export const HOME_BOTTOM = 26;
 
 export function PhoneFrame({ children }) {
+  // Fills the screen on mobile; renders as a centered device mockup ≥480px.
   return (
-    <div
-      style={{
-        minHeight: '100dvh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 24,
-        background:
-          'radial-gradient(120% 80% at 50% -10%, color-mix(in srgb, var(--sq-gold) 9%, transparent), transparent 60%), var(--sq-bg)',
-      }}
-    >
-      <div
-        style={{
-          width: '100%',
-          maxWidth: 402,
-          height: 'min(860px, 94dvh)',
-          borderRadius: 44,
-          overflow: 'hidden',
-          background: 'var(--sq-bg)',
-          border: '1px solid var(--sq-border-2)',
-          boxShadow: '0 40px 120px rgba(0,0,0,0.7)',
-          position: 'relative',
-        }}
-      >
+    <div className="serve-phone-backdrop">
+      <div className="serve-phone-device">
         {/* the navigator stacks absolutely-positioned screens inside here */}
         {children}
       </div>

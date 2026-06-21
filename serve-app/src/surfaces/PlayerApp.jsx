@@ -1,12 +1,16 @@
-// PlayerApp.jsx — the mobile player surface: app state (signed-in player, club
-// membership) + screen-name → component mapping for the animated Navigator.
+// PlayerApp.jsx — the mobile player surface. Holds onboarding + app state
+// (account, who-the-card-is-for, card type, the player card, club membership)
+// and maps screen names to components for the animated Navigator.
 
 import { useState } from 'react';
 import { PhoneFrame } from '../components/mobile';
 import { Navigator } from '../navigation/nav';
-import { SAMPLE_PLAYER } from '../data';
+import { EMPTY_COMPETITIVE } from '../data';
 
-import SignupScreen from '../screens/SignupScreen';
+import AuthScreen from '../screens/AuthScreen';
+import WhoForScreen from '../screens/WhoForScreen';
+import CompeteScreen from '../screens/CompeteScreen';
+import BuildCardScreen from '../screens/BuildCardScreen';
 import ProfileHomeScreen from '../screens/ProfileHomeScreen';
 import CardCloseupScreen from '../screens/CardCloseupScreen';
 import JuniorsScreen from '../screens/JuniorsScreen';
@@ -16,15 +20,31 @@ import MyClubScreen from '../screens/MyClubScreen';
 import PlaceholderScreen from '../screens/PlaceholderScreen';
 
 export default function PlayerApp() {
-  const [player, setPlayer] = useState(SAMPLE_PLAYER);
+  const [account, setAccount] = useState(null);
+  const [forChild, setForChild] = useState(false);
+  const [cardType, setCardType] = useState('competitive');
+  const [player, setPlayer] = useState(EMPTY_COMPETITIVE);
   const [clubJoined, setClubJoined] = useState(false);
-  const app = { player, setPlayer, clubJoined, setClubJoined };
+
+  const app = {
+    account, setAccount,
+    forChild, setForChild,
+    cardType, setCardType,
+    player, setPlayer,
+    clubJoined, setClubJoined,
+  };
 
   function render(entry) {
     const { name, params } = entry;
     switch (name) {
-      case 'signup':
-        return <SignupScreen />;
+      case 'auth':
+        return <AuthScreen />;
+      case 'whoFor':
+        return <WhoForScreen />;
+      case 'compete':
+        return <CompeteScreen />;
+      case 'build':
+        return <BuildCardScreen />;
       case 'profile':
         return <ProfileHomeScreen justCreated={params.justCreated} />;
       case 'players':
@@ -40,13 +60,13 @@ export default function PlayerApp() {
       case 'joinClub':
         return <JoinClubScreen />;
       default:
-        return <SignupScreen />;
+        return <AuthScreen />;
     }
   }
 
   return (
     <PhoneFrame>
-      <Navigator initial="signup" render={render} app={app} />
+      <Navigator initial="auth" render={render} app={app} />
     </PhoneFrame>
   );
 }
