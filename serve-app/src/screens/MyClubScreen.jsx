@@ -80,10 +80,10 @@ function MySessionRow({ s }) {
 }
 
 export default function MyClubScreen() {
-  const { nav } = useNav();
+  const { nav, player } = useNav();
   const state = useStore();
   const free = state.courts.filter((c) => c.status === 'free').length;
-  const mine = state.sessions.filter((s) => s.mine);
+  const mine = state.sessions.filter((s) => s.mine || (player?.name && s.players?.includes(player.name)));
 
   return (
     <ThemeScope accent={state.clubTheme}>

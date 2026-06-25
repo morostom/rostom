@@ -1,69 +1,122 @@
-// DiscoverScreen.jsx — browse Egypt's clubs & academies. The member's own club
-// opens straight to My Club; others show how to get access / book.
+// DiscoverScreen.jsx — the booking front door. A glimpse of courts available
+// right now and open group sessions, then the full directory: academies (open
+// booking) on the left, clubs (members-only) on the right.
 
-import { useState } from 'react';
 import { Icons } from '../components/Icons';
 import SQLogo from '../components/SQLogo';
 import { MScreen, MTabBar } from '../components/mobile';
 import { useNav } from '../navigation/nav';
-import { CLUBS_DIR, ACADEMIES_DIR } from '../data';
+import { OPEN_COURTS, OPEN_SESSIONS, ACADEMIES_DIR, CLUBS_DIR } from '../data';
 
-function OrgRow({ o, onOpen }) {
-  return (
-    <button onClick={onOpen} className="sq-card" style={{ textAlign: 'left', cursor: 'pointer', padding: 14, display: 'flex', alignItems: 'center', gap: 13, width: '100%' }}>
-      <div style={{ width: 46, height: 46, borderRadius: 12, flexShrink: 0, background: `color-mix(in srgb, ${o.accent || 'var(--sq-gold)'} 16%, transparent)`, border: `1px solid color-mix(in srgb, ${o.accent || 'var(--sq-gold)'} 30%, transparent)`, color: o.accent || 'var(--sq-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {o.type === 'club' ? <Icons.Club size={22} /> : <Icons.Trophy size={20} />}
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div className="sq-display" style={{ fontSize: 14.5, fontWeight: 600, lineHeight: 1.15 }}>{o.name}</div>
-        <div style={{ fontSize: 12, color: 'var(--sq-text-2)', marginTop: 3, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Icons.Pin size={11} /> {o.city}
-        </div>
-      </div>
-      <div style={{ textAlign: 'right' }}>
-        <div className="sq-mono" style={{ fontSize: 13, fontWeight: 600 }}>{o.courts}</div>
-        <div className="sq-mono" style={{ fontSize: 9, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>courts</div>
-      </div>
-      <Icons.Chevron size={15} />
-    </button>
-  );
+function endOf(time) {
+  const [h, m] = time.split(':').map(Number);
+  const d = new Date(2000, 0, 1, h, m + 60);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
 export default function DiscoverScreen() {
-  const { nav, clubJoined } = useNav();
-  const [tab, setTab] = useState('clubs');
-  const list = tab === 'clubs' ? CLUBS_DIR : ACADEMIES_DIR;
+  const { nav } = useNav();
 
-  function open(o) {
-    if (o.id === 'heliopolis') {
-      nav.switchTab('clubs'); // the joinable demo club
-    } else {
-      nav.push('joinClub');
-    }
+  function openCourt(c) {
+    nav.push('payment', { courtNo: c.court, type: c.type, venue: c.venue, day: 'Today', time: c.time, endTime: endOf(c.time), price: c.price, guest: c.guest });
+  }
+  function openSession(s) {
+    nav.push('payment', { title: s.title, venue: s.venue, day: s.time, time: s.time, price: s.price });
+  }
+  function openAcademy(a) {
+    nav.push('academy', { academy: a });
+  }
+  function openClub(c) {
+    if (c.id === 'heliopolis') nav.push('clubBio');
+    else nav.push('joinClub');
   }
 
   return (
     <MScreen
       tabBar={<MTabBar active="discover" onTab={nav.switchTab} />}
       header={
-        <div style={{ padding: '4px 20px 12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <h1 className="sq-display" style={{ margin: 0, fontSize: 30, fontWeight: 700, letterSpacing: '-0.03em' }}>Discover</h1>
-            <SQLogo size={18} accent />
+        <div style={{ padding: '4px 20px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <h1 className="sq-display" style={{ margin: 0, fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em' }}>Discover</h1>
+            <div style={{ fontSize: 12.5, color: 'var(--sq-text-2)', marginTop: 2 }}>Book a court anywhere in Egypt</div>
           </div>
-          <div style={{ display: 'flex', background: 'var(--sq-surface)', borderRadius: 11, padding: 4, border: '1px solid var(--sq-border)' }}>
-            {[['clubs', `Clubs · ${CLUBS_DIR.length}`], ['academies', `Academies · ${ACADEMIES_DIR.length}`]].map(([id, label]) => (
-              <button key={id} onClick={() => setTab(id)} style={{ flex: 1, padding: '9px', borderRadius: 8, border: 0, cursor: 'pointer', fontFamily: 'var(--sq-display)', fontWeight: 600, fontSize: 13, background: tab === id ? 'var(--sq-gold)' : 'transparent', color: tab === id ? '#0a0a0a' : 'var(--sq-text-2)' }}>{label}</button>
-            ))}
-          </div>
+          <SQLogo size={18} accent />
         </div>
       }
     >
-      <div style={{ padding: '4px 20px 28px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {list.map((o) => <OrgRow key={o.id} o={o} onOpen={() => open(o)} />)}
-        <p style={{ margin: '6px 2px 0', fontSize: 11.5, color: 'var(--sq-text-3)', lineHeight: 1.5, display: 'flex', gap: 7 }}>
-          <Icons.Lock size={13} /> Clubs are members-only — open Heliopolis SC to see the live demo, or enter an access code to join another.
-        </p>
+      {/* available now — horizontal scroll */}
+      <div style={{ padding: '12px 0 18px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 20px', marginBottom: 10 }}>
+          <span className="sq-live-dot" />
+          <span className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-2)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Available now</span>
+        </div>
+        <div style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '0 20px' }}>
+          {OPEN_COURTS.map((c) => (
+            <div key={c.id} className="sq-card" style={{ flex: '0 0 200px', padding: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span className="sq-chip gold" style={{ fontSize: 9.5, padding: '2px 8px' }}>Court {c.court}</span>
+                {c.guest && <span className="sq-chip" style={{ fontSize: 9, padding: '2px 7px' }}>Guest pass</span>}
+              </div>
+              <div className="sq-display" style={{ fontSize: 14.5, fontWeight: 600, lineHeight: 1.2 }}>{c.venue}</div>
+              <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-2)' }}>Today {c.time} · {c.type}</div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
+                <span className="sq-mono" style={{ fontSize: 13, color: 'var(--sq-gold)' }}>EGP {c.price}</span>
+                <button className="sq-btn-gold" style={{ padding: '7px 14px', fontSize: 12 }} onClick={() => openCourt(c)}>Book</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* open group sessions */}
+      <div style={{ padding: '0 0 20px' }}>
+        <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', padding: '0 20px', marginBottom: 10 }}>Open group sessions</div>
+        <div style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '0 20px' }}>
+          {OPEN_SESSIONS.map((s) => (
+            <div key={s.id} className="sq-card" style={{ flex: '0 0 210px', padding: 14, display: 'flex', flexDirection: 'column', gap: 7 }}>
+              <span className="sq-chip" style={{ fontSize: 9.5, padding: '2px 8px', width: 'fit-content', color: 'var(--sq-blue)', borderColor: 'rgba(78,168,255,0.25)', background: 'rgba(78,168,255,0.1)' }}><Icons.Users size={10} /> {s.spots}</span>
+              <div className="sq-display" style={{ fontSize: 14.5, fontWeight: 600, lineHeight: 1.2 }}>{s.title}</div>
+              <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-2)' }}>{s.coach} · {s.time}</div>
+              <div style={{ fontSize: 11, color: 'var(--sq-text-3)' }}>{s.venue}</div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
+                <span className="sq-mono" style={{ fontSize: 13, color: 'var(--sq-gold)' }}>EGP {s.price}</span>
+                <button className="sq-btn-gold" style={{ padding: '7px 14px', fontSize: 12 }} onClick={() => openSession(s)}>Join</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* directory — academies left, clubs right */}
+      <div style={{ padding: '0 20px 28px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
+          <div>
+            <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-gold)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Academies</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {ACADEMIES_DIR.map((a) => (
+                <button key={a.id} onClick={() => openAcademy(a)} className="sq-card" style={{ textAlign: 'left', cursor: 'pointer', padding: 12, display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  <div style={{ width: 34, height: 34, borderRadius: 9, background: 'color-mix(in srgb, var(--sq-gold) 14%, transparent)', border: '1px solid color-mix(in srgb, var(--sq-gold) 28%, transparent)', color: 'var(--sq-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icons.Trophy size={17} /></div>
+                  <div className="sq-display" style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.2 }}>{a.short}</div>
+                  <div className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)' }}>{a.courts} courts · book</div>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-blue)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Clubs</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {CLUBS_DIR.map((c) => (
+                <button key={c.id} onClick={() => openClub(c)} className="sq-card" style={{ textAlign: 'left', cursor: 'pointer', padding: 12, display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  <div style={{ width: 34, height: 34, borderRadius: 9, background: `color-mix(in srgb, ${c.accent} 16%, transparent)`, border: `1px solid color-mix(in srgb, ${c.accent} 30%, transparent)`, color: c.accent, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icons.Club size={17} /></div>
+                  <div className="sq-display" style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.2 }}>{c.short}</div>
+                  <div className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    {c.guestPass ? 'Guest passes' : <><Icons.Lock size={9} /> members</>}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </MScreen>
   );

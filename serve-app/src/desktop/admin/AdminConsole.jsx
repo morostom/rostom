@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Icons } from '../../components/Icons';
 import SQLogo from '../../components/SQLogo';
 import ImgPlaceholder from '../../components/ImgPlaceholder';
+import UploadSlot from '../../components/UploadSlot';
 import { ToastProvider, useToast } from '../../components/Toast';
 import ThemeScope from '../../components/ThemeScope';
 import { DUR_FAST } from '../../motion';
@@ -27,8 +28,9 @@ function Sidebar({ active, onNav }) {
     { id: 'schedule', icon: <Icons.Calendar size={16} />, label: 'Court schedule' },
     { id: 'courts', icon: <Icons.Court size={16} />, label: 'Courts', badge: String(ADMIN_COURTS.length) },
     { id: 'coaches', icon: <Icons.Users size={16} />, label: 'Coaches', badge: String(ADMIN_COACHES.length) },
-    { id: 'players', icon: <Icons.User size={16} />, label: 'Players', badge: '184' },
+    { id: 'players', icon: <Icons.User size={16} />, label: 'Players', badge: String(ADMIN_PLAYERS.length) },
     { id: 'clinics', icon: <Icons.Bolt size={16} />, label: 'Group training' },
+    { id: 'payments', icon: <Icons.Wallet size={16} />, label: 'Payments' },
     { id: 'revenue', icon: <Icons.TrendUp size={16} />, label: 'Revenue' },
   ];
   return (
@@ -37,8 +39,8 @@ function Sidebar({ active, onNav }) {
         <SQLogo size={20} accent />
       </div>
       <div className="sq-card" style={{ padding: '10px 12px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{ width: 30, height: 30, borderRadius: 8, overflow: 'hidden', flexShrink: 0 }}>
-          <ImgPlaceholder label="WD" height={30} radius={8} hue="gold" />
+        <div style={{ width: 30, height: 30, borderRadius: 8, overflow: 'hidden', flexShrink: 0, background: 'color-mix(in srgb, var(--sq-gold) 14%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--sq-gold)' }}>
+          {store.get().images.academyLogo ? <img src={store.get().images.academyLogo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Icons.Trophy size={16} />}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="sq-display" style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.1 }}>{ACADEMY.short}</div>
@@ -553,11 +555,11 @@ function AcademyProfile() {
             <div style={{ display: 'flex', gap: 16 }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: 110, flexShrink: 0 }}>
                 <label style={{ fontSize: 11, color: 'var(--sq-text-3)', fontFamily: 'var(--sq-mono)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Logo</label>
-                <ImgPlaceholder label="Drop logo" height={110} radius={16} hue="gold" />
+                <UploadSlot value={state.images.academyLogo} onChange={(d) => { store.setImage('academyLogo', d); notify('Logo updated'); }} label="Drop logo" height={110} radius={16} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1 }}>
                 <label style={{ fontSize: 11, color: 'var(--sq-text-3)', fontFamily: 'var(--sq-mono)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Cover image</label>
-                <ImgPlaceholder label="Drop a cover photo of your courts" height={110} radius={12} hue="gold" />
+                <UploadSlot value={state.images.academyCover} onChange={(d) => { store.setImage('academyCover', d); notify('Cover updated'); }} label="Drop a cover photo of your courts" height={110} radius={12} />
               </div>
             </div>
           </FormCard>
@@ -588,13 +590,13 @@ function AcademyProfile() {
           <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>Players see this →</div>
           <div className="sq-card" style={{ padding: 0, overflow: 'hidden' }}>
             <div style={{ position: 'relative', height: 150 }}>
-              <ImgPlaceholder label="cover" height={150} radius={0} hue="gold" style={{ borderRadius: 0, border: 0 }} />
+              {state.images.academyCover ? <img src={state.images.academyCover} alt="" style={{ width: '100%', height: 150, objectFit: 'cover' }} /> : <ImgPlaceholder label="cover" height={150} radius={0} hue="gold" style={{ borderRadius: 0, border: 0 }} />}
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(7,7,7,0.95) 100%)' }} />
               <span className="sq-chip gold" style={{ position: 'absolute', top: 12, left: 12 }}><span className="sq-live-dot" /> Open now</span>
             </div>
             <div style={{ padding: '0 18px 18px', marginTop: -34, position: 'relative' }}>
-              <div style={{ width: 64, height: 64, borderRadius: 16, overflow: 'hidden', border: '2px solid var(--sq-bg)' }}>
-                <ImgPlaceholder label="logo" height={64} radius={16} hue="gold" />
+              <div style={{ width: 64, height: 64, borderRadius: 16, overflow: 'hidden', border: '2px solid var(--sq-bg)', background: 'var(--sq-surface-2)' }}>
+                {state.images.academyLogo ? <img src={state.images.academyLogo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <ImgPlaceholder label="logo" height={64} radius={16} hue="gold" />}
               </div>
               <h2 className="sq-display" style={{ margin: '12px 0 2px', fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>{ACADEMY.name}</h2>
               <div style={{ color: 'var(--sq-text-2)', fontSize: 12.5, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -739,7 +741,7 @@ function WizardStep({ step }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 560 }}>
         <h1 className="sq-display" style={{ margin: 0, fontSize: 30, fontWeight: 700, letterSpacing: '-0.025em' }}>Tell us about your academy.</h1>
         <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-          <div style={{ width: 80, height: 80, borderRadius: 16, overflow: 'hidden', flexShrink: 0 }}><ImgPlaceholder label="Logo" height={80} radius={16} hue="gold" /></div>
+          <div style={{ width: 80, flexShrink: 0 }}><UploadSlot value={store.get().images.academyLogo} onChange={(d) => store.setImage('academyLogo', d)} label="Logo" height={80} radius={16} /></div>
           <div style={{ flex: 1 }}><Field label="Academy name" value={ACADEMY.name} /></div>
         </div>
         <Field label="Tagline" value={ACADEMY.tagline} />
@@ -818,10 +820,70 @@ function WizardStep({ step }) {
   );
 }
 
+// ── Payments (academy only — mark paid by cash or card) ──────────────
+function Payments() {
+  const notify = useToast();
+  const state = useStore();
+  const [filter, setFilter] = useState('all');
+  const rows = filter === 'all' ? state.payments : state.payments.filter((p) => p.status === filter);
+  const outstanding = state.payments.filter((p) => p.status === 'unpaid').reduce((s, p) => s + p.amount, 0);
+  const segs = [['all', 'All'], ['unpaid', 'Unpaid'], ['paid', 'Paid']];
+  const GRID = '1.6fr 2fr 0.9fr 1.2fr 1.4fr';
+  return (
+    <>
+      <Topbar title="Payments" sub="Mark cash or card — manual reconciliation" trailing={
+        <button className="sq-btn-gold" style={{ padding: '9px 16px', fontSize: 12.5 }} onClick={() => notify('Add a charge')}>
+          <Icons.Plus size={14} /> Add charge
+        </button>
+      } />
+      <div style={{ padding: '20px 32px 40px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ display: 'flex', gap: 8, flex: 1 }}>
+            {segs.map(([id, label]) => (
+              <button key={id} onClick={() => setFilter(id)} className={'sq-chip' + (filter === id ? ' gold' : '')} style={{ cursor: 'pointer', padding: '8px 14px', fontSize: 12.5 }}>{label}</button>
+            ))}
+          </div>
+          <div className="sq-mono" style={{ fontSize: 12.5, color: 'var(--sq-text-2)' }}>Outstanding: <span style={{ color: 'var(--sq-gold)', fontWeight: 600 }}>EGP {outstanding.toLocaleString()}</span></div>
+        </div>
+        <div className="sq-card" style={{ overflow: 'hidden' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: GRID, gap: 12, padding: '12px 20px', borderBottom: '1px solid var(--sq-border)', background: 'rgba(255,255,255,0.015)' }}>
+            {['Player', 'Charge', 'Amount', 'Status', 'Mark paid'].map((h) => <span key={h} className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{h}</span>)}
+          </div>
+          {rows.map((p, i) => (
+            <div key={p.id} style={{ display: 'grid', gridTemplateColumns: GRID, gap: 12, padding: '13px 20px', alignItems: 'center', borderBottom: i < rows.length - 1 ? '1px solid var(--sq-border)' : 'none' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+                <div style={{ width: 30, height: 30, borderRadius: 15, background: 'linear-gradient(135deg, #2a2a2a, #161616)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10.5, fontWeight: 600 }}>{p.player.split(' ').map((w) => w[0]).slice(0, 2).join('')}</div>
+                <span style={{ fontSize: 13.5, fontWeight: 500 }}>{p.player}</span>
+              </div>
+              <span style={{ fontSize: 12.5, color: 'var(--sq-text-2)' }}>{p.item}</span>
+              <span className="sq-mono" style={{ fontSize: 13 }}>EGP {p.amount}</span>
+              <div>
+                {p.status === 'paid'
+                  ? <span className="sq-chip" style={{ fontSize: 10.5, color: 'var(--sq-green)', borderColor: 'rgba(74,222,128,0.25)', background: 'rgba(74,222,128,0.1)' }}><Icons.Check size={11} /> {p.method === 'cash' ? 'Cash' : 'Card'}</span>
+                  : <span className="sq-chip" style={{ fontSize: 10.5 }}>Unpaid</span>}
+              </div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {p.status === 'unpaid' ? (
+                  <>
+                    <button className="sq-btn-gold" style={{ padding: '6px 12px', fontSize: 11 }} onClick={() => { store.setPayment(p.id, { status: 'paid', method: 'cash' }); notify(`${p.player.split(' ')[0]} marked paid — cash`); }}>Cash</button>
+                    <button className="sq-btn-ghost" style={{ padding: '6px 12px', fontSize: 11 }} onClick={() => { store.setPayment(p.id, { status: 'paid', method: 'card' }); notify(`${p.player.split(' ')[0]} marked paid — card`); }}>Card</button>
+                  </>
+                ) : (
+                  <button className="sq-btn-ghost" style={{ padding: '6px 12px', fontSize: 11, color: 'var(--sq-text-3)' }} onClick={() => { store.setPayment(p.id, { status: 'unpaid', method: null }); notify('Marked unpaid'); }}>Undo</button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
 // ── shell ────────────────────────────────────────────────────────────
 const SECTIONS = {
   dashboard: Dashboard, profile: AcademyProfile, schedule: Schedule,
-  courts: Courts, coaches: Coaches, players: Players, clinics: CreateClinic, revenue: Revenue,
+  courts: Courts, coaches: Coaches, players: Players, clinics: CreateClinic, payments: Payments, revenue: Revenue,
 };
 
 function ConsoleInner() {

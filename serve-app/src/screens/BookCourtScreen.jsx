@@ -59,7 +59,7 @@ export default function BookCourtScreen({ court: preCourt }) {
               <div className="sq-display" style={{ fontSize: 20, fontWeight: 700 }}>EGP {price}</div>
             </div>
             <button className="sq-btn-gold serve-glow-soft" style={{ padding: '15px 22px', fontSize: 14.5 }} disabled={!court || !time}
-              onClick={() => nav.push('payment', { courtNo, time, endTime: endOf(time), price })}>
+              onClick={() => nav.push('payment', { courtNo, type: court?.type, venue: 'Heliopolis SC', day: 'Today', time, endTime: endOf(time), price, secureCourt: true })}>
               Continue to pay →
             </button>
           </div>

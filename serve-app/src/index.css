@@ -120,6 +120,11 @@ body {
     transform 0.1s,
     opacity 0.15s;
   letter-spacing: -0.01em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
 }
 .sq-btn-gold:hover {
   background: var(--sq-gold-hi);
@@ -142,6 +147,11 @@ body {
   transition:
     background 0.15s,
     border-color 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
 }
 .sq-btn-ghost:hover {
   background: rgba(255, 255, 255, 0.04);

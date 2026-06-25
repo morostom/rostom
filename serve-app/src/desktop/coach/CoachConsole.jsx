@@ -9,6 +9,7 @@ import { Icons } from '../../components/Icons';
 import SQLogo from '../../components/SQLogo';
 import ThemeScope from '../../components/ThemeScope';
 import ImgPlaceholder from '../../components/ImgPlaceholder';
+import UploadSlot from '../../components/UploadSlot';
 import { ToastProvider, useToast } from '../../components/Toast';
 import { DUR_FAST } from '../../motion';
 import { useStore, store } from '../../store';
@@ -357,7 +358,7 @@ function ClubProfile() {
           <div className="sq-card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
             <h2 className="sq-display" style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Identity</h2>
             <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-              <div style={{ width: 72, height: 72, borderRadius: 16, overflow: 'hidden', flexShrink: 0 }}><ImgPlaceholder label="Crest" height={72} radius={16} /></div>
+              <div style={{ width: 72, flexShrink: 0 }}><UploadSlot value={state.images.clubCrest} onChange={(d) => { store.setImage('clubCrest', d); notify('Crest updated'); }} label="Crest" height={72} radius={16} /></div>
               <div style={{ flex: 1 }}>
                 <label className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 6 }}>Club name</label>
                 <input style={fieldCss} value={name} onChange={(e) => setName(e.target.value)} />

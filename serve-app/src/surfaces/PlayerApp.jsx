@@ -20,6 +20,8 @@ import BookCourtScreen from '../screens/BookCourtScreen';
 import PaymentScreen from '../screens/PaymentScreen';
 import BookingsScreen from '../screens/BookingsScreen';
 import DiscoverScreen from '../screens/DiscoverScreen';
+import ClubBioScreen from '../screens/ClubBioScreen';
+import AcademyScreen from '../screens/AcademyScreen';
 
 export default function PlayerApp() {
   const [account, setAccount] = useState(null);
@@ -44,6 +46,8 @@ export default function PlayerApp() {
       case 'payment': return <PaymentScreen {...params} />;
       case 'bookings': return <BookingsScreen />;
       case 'discover': return <DiscoverScreen />;
+      case 'clubBio': return <ClubBioScreen />;
+      case 'academy': return <AcademyScreen academy={params.academy} />;
       case 'cardCloseup': return <CardCloseupScreen player={params.player} ownCard={params.player?.id === player.id} />;
       case 'joinClub': return <JoinClubScreen />;
       default: return <AuthScreen />;

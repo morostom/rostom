@@ -37,16 +37,16 @@ export default function BookingsScreen() {
 
         {state.bookings.length > 0 && (
           <div>
-            <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>Court reservations</div>
+            <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>Reservations</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {state.bookings.map((b) => (
                 <div key={b.id} className="sq-card serve-glow-soft" style={{ padding: 15, display: 'flex', alignItems: 'center', gap: 14 }}>
                   <div style={{ width: 46, height: 46, borderRadius: 12, background: 'color-mix(in srgb, var(--sq-gold) 14%, transparent)', border: '1px solid color-mix(in srgb, var(--sq-gold) 28%, transparent)', color: 'var(--sq-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Icons.Court size={22} />
+                    {b.title ? <Icons.Users size={20} /> : <Icons.Court size={22} />}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className="sq-display" style={{ fontSize: 15, fontWeight: 600 }}>Court {b.court} · {b.type}</div>
-                    <div className="sq-mono" style={{ fontSize: 11.5, color: 'var(--sq-text-2)', marginTop: 2 }}>{b.day} · {b.time} – {b.endTime}</div>
+                    <div className="sq-display" style={{ fontSize: 15, fontWeight: 600 }}>{b.title || `Court ${b.court}`}</div>
+                    <div className="sq-mono" style={{ fontSize: 11.5, color: 'var(--sq-text-2)', marginTop: 2 }}>{b.venue} · {b.day} · {b.time}{b.endTime ? ` – ${b.endTime}` : ''}</div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <span className="sq-chip" style={{ fontSize: 9.5, color: 'var(--sq-green)', borderColor: 'rgba(74,222,128,0.25)', background: 'rgba(74,222,128,0.1)' }}><Icons.Check size={10} /> Paid</span>

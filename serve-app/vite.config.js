@@ -24,5 +24,7 @@ export default defineConfig(() => {
   return {
     plugins: [react(), tailwindcss()],
     server: { host: true, port: 5173 },
+    // only scan the dev entry; ignore the generated export/ + netlify/ HTML
+    optimizeDeps: { entries: ['index.html'] },
   };
 });
