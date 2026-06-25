@@ -1,38 +1,36 @@
 # SERVE — standalone builds
 
-Three self-contained HTML files, one per surface. Each has all JS + CSS
-inlined (only the Google Fonts stylesheet loads from the network), so any
-one file can be deployed on its own.
+Self-contained HTML files (all JS + CSS inlined; only Google Fonts loads from
+the network). Regenerate with `npm install && npm run export`.
 
 | File | Surface | Open on |
 | --- | --- | --- |
 | `serve-player.html` | Mobile player app | phone |
 | `serve-admin.html` | Academy owner console | laptop/desktop |
 | `serve-club.html` | Club coordinator (coach) console | laptop/desktop |
+| `serve-demo.html` | **All three in one page** (surface switcher) | laptop |
 
-## Regenerate
+## Deploy on Netlify (drag & drop)
 
-```bash
-npm install
-npm run export   # rebuilds all three into export/
-```
+Folders are pre-built under `netlify/`. Drag any one folder
+(e.g. `netlify/serve-player`) onto https://app.netlify.com/drop for its own URL.
 
-## Deploy on Netlify (separate URL each)
+## Live "connected" demo
 
-Netlify serves a site's root `index.html`. Easiest path per surface:
+State (live courts, schedule, brand colour, bookings) is shared through the
+browser. To show the platform reacting in real time:
 
-1. Make a folder, copy the file in as `index.html`, e.g.
-   `mkdir player && cp serve-player.html player/index.html`
-2. Drag that folder onto https://app.netlify.com/drop (or `netlify deploy --dir player --prod`).
+- **Easiest:** open `serve-demo.html`, switch to **Coach console**, mark a court
+  busy or change the brand colour, then switch to **Player app** — the change is
+  already there.
+- **Two screens, same site:** deploy `serve-demo.html` once and open it in two
+  tabs/windows of that one URL; changes sync across them via the browser.
 
-Repeat for admin and club to get three independent URLs.
+Note: three *separately* deployed Netlify sites have different origins, so they
+won't sync with each other — real cross-device sync is the backend's job. The
+combined `serve-demo.html` is the way to show the connection live in a pitch.
 
-## Access codes (player ↔ club connection)
+## Access codes (player ↔ club)
 
-The club console issues access codes; the player join flow validates against
-that same list. Codes that work in the player app right now:
-
-- `9F4K2A` — issued to Omar Khaled (redeemed)
-- `K5R2WQ`, `B8N3VD` — open/unused
-- `3T8M1P`, `QX7L0R` — sent
-- `M2W9HF` — **expired** (intentionally refused, to show validation)
+Codes the coach console issues are the codes the player app accepts. Working
+codes: `9F4K2A`, `K5R2WQ`, `B8N3VD`, `3T8M1P`, `QX7L0R`.

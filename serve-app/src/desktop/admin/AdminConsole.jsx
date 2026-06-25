@@ -9,10 +9,12 @@ import { Icons } from '../../components/Icons';
 import SQLogo from '../../components/SQLogo';
 import ImgPlaceholder from '../../components/ImgPlaceholder';
 import { ToastProvider, useToast } from '../../components/Toast';
+import ThemeScope from '../../components/ThemeScope';
 import { DUR_FAST } from '../../motion';
+import { useStore, store } from '../../store';
 import {
   ACADEMY, ADMIN_COURTS, ADMIN_COACHES, ADMIN_PLAYERS,
-  REVENUE_7D, REVENUE_DAYS, SETUP_STEPS, OPERATING_HOURS, FAV_PLAYERS,
+  REVENUE_7D, REVENUE_DAYS, SETUP_STEPS, OPERATING_HOURS, REVENUE_BREAKDOWN, BRAND_COLORS,
 } from '../../data';
 
 const SIDEBAR_W = 232;
@@ -416,7 +418,7 @@ function Coaches() {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, color: 'var(--sq-text-2)', paddingTop: 10, borderTop: '1px solid var(--sq-border)' }}>
               <span>{c.squads}</span>
-              <span className="sq-mono"><Icons.Star size={11} filled /> {c.rating} · {c.sessions}/wk</span>
+              <span className="sq-mono" style={{ color: 'var(--sq-text-3)' }}>{c.sessions} sessions/wk</span>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button className="sq-btn-ghost" style={{ flex: 1, padding: '8px', fontSize: 12 }} onClick={() => notify(`Messaging ${c.name.split(' ')[0]}`)}>Message</button>
@@ -480,12 +482,7 @@ function Players() {
 // ── Revenue ──────────────────────────────────────────────────────────
 function Revenue() {
   const [range, setRange] = useState('7d');
-  const breakdown = [
-    ['Court bookings', '58%', 'EGP 48,800'],
-    ['Group training', '27%', 'EGP 22,700'],
-    ['Private coaching', '11%', 'EGP 9,200'],
-    ['Memberships', '4%', 'EGP 3,500'],
-  ];
+  const breakdown = REVENUE_BREAKDOWN;
   return (
     <>
       <Topbar title="Revenue" sub="Income & breakdown" trailing={<Seg options={['7d', '30d', '90d']} value={range} onChange={setRange} />} />
@@ -541,8 +538,7 @@ function PreviewStat({ label, value }) {
 }
 function AcademyProfile() {
   const notify = useToast();
-  const BRAND = ['#f5453b', '#4ea8ff', '#4ade80', '#a779f0', '#ff8a3d', '#d4a64f'];
-  const [color, setColor] = useState(0);
+  const state = useStore();
   return (
     <>
       <Topbar title="Academy profile" sub="Branding · public page" trailing={
@@ -575,11 +571,16 @@ function AcademyProfile() {
             <Field label="Contact" value={ACADEMY.contact} mono />
           </FormCard>
           <FormCard title="Brand color" step="Accent">
-            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              {BRAND.map((c, i) => (
-                <button key={c} onClick={() => setColor(i)} style={{ width: 38, height: 38, borderRadius: 10, background: c, cursor: 'pointer', border: 0, boxShadow: i === color ? `0 0 0 2px var(--sq-bg), 0 0 0 4px ${c}` : 'none' }} />
-              ))}
-              <span style={{ fontSize: 12, color: 'var(--sq-text-3)', marginLeft: 4 }}>Players see your academy in this color.</span>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+              {BRAND_COLORS.map((c) => {
+                const on = state.academyTheme.toLowerCase() === c.hex.toLowerCase();
+                return (
+                  <button key={c.hex} title={c.name} onClick={() => { store.setAcademyTheme(c.hex); notify(`Theme set to ${c.name}`); }} style={{ width: 38, height: 38, borderRadius: 10, background: c.hex, cursor: 'pointer', border: 0, color: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: on ? `0 0 0 2px var(--sq-bg), 0 0 0 4px ${c.hex}` : 'none' }}>
+                    {on && <Icons.Check size={16} />}
+                  </button>
+                );
+              })}
+              <span style={{ fontSize: 12, color: 'var(--sq-text-3)', marginLeft: 4 }}>SERVE runs in your colour, everywhere.</span>
             </div>
           </FormCard>
         </div>
@@ -597,7 +598,7 @@ function AcademyProfile() {
               </div>
               <h2 className="sq-display" style={{ margin: '12px 0 2px', fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>{ACADEMY.name}</h2>
               <div style={{ color: 'var(--sq-text-2)', fontSize: 12.5, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Icons.Pin size={12} /> {ACADEMY.city} · ★ {ACADEMY.rating}
+                <Icons.Pin size={12} /> {ACADEMY.city}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, margin: '14px 0 0' }}>
                 <PreviewStat label="Courts" value={ACADEMY.courts} />
@@ -824,21 +825,21 @@ const SECTIONS = {
 };
 
 function ConsoleInner() {
+  const state = useStore();
   const [active, setActive] = useState('dashboard');
-  if (active === 'setup') return <Wizard onExit={() => setActive('dashboard')} />;
-  const Section = SECTIONS[active] || Dashboard;
-  return (
+  const body = active === 'setup' ? <Wizard onExit={() => setActive('dashboard')} /> : (
     <div className="sq-app" style={{ display: 'flex', width: '100%', height: '100%', overflow: 'hidden' }}>
       <Sidebar active={active} onNav={setActive} />
       <div style={{ flex: 1, minWidth: 0, height: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
         <AnimatePresence mode="wait">
           <motion.div key={active} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: DUR_FAST }}>
-            <Section />
+            {(() => { const Section = SECTIONS[active] || Dashboard; return <Section />; })()}
           </motion.div>
         </AnimatePresence>
       </div>
     </div>
   );
+  return <ThemeScope accent={state.academyTheme}>{body}</ThemeScope>;
 }
 
 export default function AdminConsole() {

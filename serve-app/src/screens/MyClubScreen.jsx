@@ -1,271 +1,149 @@
-// MyClubScreen.jsx — the members-only hero: a live court board (occupied
-// courts gently pulse) and today's lesson sheet, replacing the club's
-// photographed paper schedule.
+// MyClubScreen.jsx — what a member sees on entering their club: the LIVE court
+// tracker first, then THEIR OWN schedule (with a link to the full club
+// schedule), plus a "Book a court" entry. Reads live state from the store, so
+// a court the coordinator marks busy shows here instantly; themed in the club's
+// own brand colour.
 
 import { motion } from 'framer-motion';
 import { Icons } from '../components/Icons';
 import { MScreen, MTabBar } from '../components/mobile';
+import ThemeScope from '../components/ThemeScope';
 import { useNav } from '../navigation/nav';
-import { CLUB, COURTS, SCHEDULE, WEEK_DAYS } from '../data';
+import { useStore } from '../store';
+import { CLUB } from '../data';
 
 const STATUS = {
-  lesson: { ring: 'var(--sq-gold)', tag: 'Lesson', tagCls: 'gold', dot: false },
-  playing: { ring: 'var(--sq-green)', tag: 'In play', tagCls: 'green', dot: true },
-  free: { ring: 'var(--sq-border-2)', tag: 'Open', tagCls: '', dot: false },
+  lesson: { ring: 'var(--sq-gold)', tag: 'Lesson', cls: 'gold' },
+  playing: { ring: 'var(--sq-green)', tag: 'In play', cls: 'green' },
+  booked: { ring: 'var(--sq-gold)', tag: 'Booked', cls: 'gold' },
+  free: { ring: 'var(--sq-border-2)', tag: 'Open', cls: '' },
 };
 
-function CourtNow({ c }) {
-  const m = STATUS[c.status];
-  const isFree = c.status === 'free';
-
+function CourtTile({ c, onBook }) {
+  const m = STATUS[c.status] || STATUS.free;
+  const free = c.status === 'free';
   return (
     <motion.div
-      // occupied courts breathe: a subtle, looping glow pulse
-      animate={
-        isFree
-          ? {}
-          : {
-              boxShadow: [
-                `0 0 0 0 color-mix(in srgb, ${m.ring} 0%, transparent)`,
-                `0 0 16px 1px color-mix(in srgb, ${m.ring} 28%, transparent)`,
-                `0 0 0 0 color-mix(in srgb, ${m.ring} 0%, transparent)`,
-              ],
-            }
-      }
-      transition={isFree ? undefined : { duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+      animate={free ? {} : { boxShadow: [`0 0 0 0 color-mix(in srgb, ${m.ring} 0%, transparent)`, `0 0 16px 1px color-mix(in srgb, ${m.ring} 26%, transparent)`, `0 0 0 0 color-mix(in srgb, ${m.ring} 0%, transparent)`] }}
+      transition={free ? undefined : { duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
       style={{
-        borderRadius: 14,
-        padding: 13,
-        background: isFree
-          ? 'var(--sq-surface)'
-          : `linear-gradient(150deg, color-mix(in srgb, ${m.ring} 12%, var(--sq-surface)) 0%, var(--sq-surface) 70%)`,
-        border: '1px solid ' + (isFree ? 'var(--sq-border)' : `color-mix(in srgb, ${m.ring} 32%, transparent)`),
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 9,
-        minHeight: 116,
+        borderRadius: 14, padding: 13, minHeight: 112, display: 'flex', flexDirection: 'column', gap: 8,
+        background: free ? 'var(--sq-surface)' : `linear-gradient(150deg, color-mix(in srgb, ${m.ring} 12%, var(--sq-surface)), var(--sq-surface) 70%)`,
+        border: '1px solid ' + (free ? 'color-mix(in srgb, var(--sq-gold) 25%, transparent)' : `color-mix(in srgb, ${m.ring} 32%, transparent)`),
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', letterSpacing: '0.06em' }}>
-          COURT {c.court}
-        </span>
-        <span className={'sq-chip ' + m.tagCls} style={{ padding: '2px 8px', fontSize: 10 }}>
-          {m.dot && <span className="sq-live-dot" style={{ background: 'var(--sq-green)' }} />}
-          {m.tag}
+        <span className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', letterSpacing: '0.06em' }}>COURT {c.court}</span>
+        <span className={'sq-chip ' + (m.cls === 'green' ? '' : m.cls)} style={m.cls === 'green' ? { fontSize: 9.5, padding: '2px 8px', color: 'var(--sq-green)', borderColor: 'rgba(74,222,128,0.25)', background: 'rgba(74,222,128,0.1)' } : { fontSize: 9.5, padding: '2px 8px' }}>
+          {c.status === 'playing' && <span className="sq-live-dot" style={{ background: 'var(--sq-green)' }} />}{m.tag}
         </span>
       </div>
-      {isFree ? (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--sq-text-2)' }}>Available now</div>
-          <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', marginTop: 4 }}>
-            Next · {c.next}
+      {free ? (
+        <>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--sq-text-2)' }}>Available</div>
+            <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', marginTop: 3 }}>{c.type}</div>
           </div>
-        </div>
+          <button className="sq-btn-gold" style={{ padding: '8px', fontSize: 12 }} onClick={() => onBook(c)}>Book →</button>
+        </>
       ) : (
-        <div style={{ flex: 1 }}>
-          <div className="sq-display" style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.15 }}>
-            {c.who}
+        <>
+          <div style={{ flex: 1 }}>
+            <div className="sq-display" style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.15 }}>{c.who}</div>
+            {c.coach && <div style={{ fontSize: 11.5, color: 'var(--sq-text-2)', marginTop: 2 }}>{c.coach}</div>}
           </div>
-          {c.coach && <div style={{ fontSize: 12, color: 'var(--sq-text-2)', marginTop: 2 }}>{c.coach}</div>}
-        </div>
-      )}
-      {!isFree && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--sq-border)', paddingTop: 8 }}>
-          <span className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)' }}>
-            until {c.until}
-          </span>
-          <span className="sq-mono" style={{ fontSize: 11, color: m.ring, fontWeight: 600 }}>
-            {c.left}m left
-          </span>
-        </div>
+          {c.left != null && (
+            <div className="sq-mono" style={{ fontSize: 10.5, color: m.ring, fontWeight: 600 }}>{c.left}m left</div>
+          )}
+        </>
       )}
     </motion.div>
   );
 }
 
-function LessonRow({ s }) {
+const TYPE_ICON = { Lesson: Icons.Medal, 'Group training': Icons.Users, Fitness: Icons.Bolt };
+
+function MySessionRow({ s }) {
+  const Ic = TYPE_ICON[s.type] || Icons.Calendar;
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 14,
-        padding: '12px 14px',
-        borderRadius: 13,
-        background: s.you ? 'linear-gradient(120deg, color-mix(in srgb, var(--sq-gold) 14%, var(--sq-surface)), var(--sq-surface) 75%)' : 'var(--sq-surface)',
-        border: '1px solid ' + (s.you ? 'color-mix(in srgb, var(--sq-gold) 38%, transparent)' : 'var(--sq-border)'),
-      }}
-    >
-      <div style={{ textAlign: 'center', minWidth: 44 }}>
-        <div className="sq-mono" style={{ fontSize: 15, fontWeight: 600, color: s.you ? 'var(--sq-gold)' : 'var(--sq-text)' }}>
-          {s.time}
-        </div>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '13px 14px', borderRadius: 13, background: 'linear-gradient(120deg, color-mix(in srgb, var(--sq-gold) 12%, var(--sq-surface)), var(--sq-surface) 78%)', border: '1px solid color-mix(in srgb, var(--sq-gold) 30%, transparent)' }}>
+      <div style={{ width: 40, height: 40, borderRadius: 11, flexShrink: 0, background: 'color-mix(in srgb, var(--sq-gold) 16%, transparent)', color: 'var(--sq-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Ic size={18} />
       </div>
-      <div style={{ width: 1, alignSelf: 'stretch', background: 'var(--sq-border)' }} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div className="sq-display" style={{ fontSize: 14.5, fontWeight: 600, lineHeight: 1.15, display: 'flex', alignItems: 'center', gap: 7 }}>
-          {s.you && (
-            <span className="sq-chip gold" style={{ padding: '1px 7px', fontSize: 9.5 }}>
-              YOU
-            </span>
-          )}
-          {s.group}
-        </div>
-        <div style={{ fontSize: 12, color: 'var(--sq-text-2)', marginTop: 3 }}>{s.coach}</div>
+        <div className="sq-display" style={{ fontSize: 14.5, fontWeight: 600 }}>{s.title}</div>
+        <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-2)', marginTop: 2 }}>{s.day} · {s.time} · {s.coach} · Court {s.court}</div>
       </div>
-      <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 5 }}>
-        <span className="sq-chip" style={{ padding: '2px 8px', fontSize: 10 }}>
-          Court {s.court}
-        </span>
-        <span className="sq-mono" style={{ fontSize: 10, color: s.spots === 'Full' ? 'var(--sq-text-3)' : 'var(--sq-text-2)' }}>
-          {s.spots}
-        </span>
-      </div>
+      <span className="sq-chip gold" style={{ fontSize: 9.5, padding: '2px 8px' }}>{s.type}</span>
     </div>
   );
 }
 
 export default function MyClubScreen() {
   const { nav } = useNav();
-  const free = COURTS.filter((c) => c.status === 'free').length;
+  const state = useStore();
+  const free = state.courts.filter((c) => c.status === 'free').length;
+  const mine = state.sessions.filter((s) => s.mine);
 
   return (
-    <MScreen
-      tabBar={<MTabBar active="clubs" onTab={nav.switchTab} />}
-      header={
-        <div style={{ padding: '4px 20px 12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
-              <div
-                style={{
-                  width: 42,
-                  height: 42,
-                  borderRadius: 11,
-                  flexShrink: 0,
-                  background: 'var(--sq-surface-2)',
-                  border: '1px solid var(--sq-border-2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--sq-gold)',
-                }}
-              >
-                <Icons.Club size={22} />
-              </div>
-              <div style={{ minWidth: 0 }}>
-                <div className="sq-display" style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.1, whiteSpace: 'nowrap' }}>
-                  {CLUB.short}
+    <ThemeScope accent={state.clubTheme}>
+      <MScreen
+        tabBar={<MTabBar active="clubs" onTab={nav.switchTab} />}
+        header={
+          <div style={{ padding: '4px 20px 12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+                <div style={{ width: 42, height: 42, borderRadius: 11, flexShrink: 0, background: 'color-mix(in srgb, var(--sq-gold) 16%, transparent)', border: '1px solid color-mix(in srgb, var(--sq-gold) 30%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--sq-gold)' }}>
+                  <Icons.Club size={22} />
                 </div>
-                <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', letterSpacing: '0.04em', marginTop: 2 }}>
-                  SQUASH SECTION
+                <div>
+                  <div className="sq-display" style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.1 }}>{CLUB.short}</div>
+                  <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', marginTop: 2 }}>SQUASH SECTION</div>
                 </div>
               </div>
-            </div>
-            <div style={{ width: 36, height: 36, borderRadius: 18, background: 'var(--sq-surface)', border: '1px solid var(--sq-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--sq-text-2)' }}>
-              <Icons.More size={16} />
+              <span className="sq-chip" style={{ fontSize: 10.5, color: 'var(--sq-green)', borderColor: 'rgba(74,222,128,0.25)', background: 'rgba(74,222,128,0.1)' }}>
+                <Icons.Check size={11} /> Member
+              </span>
             </div>
           </div>
-          <span className="sq-chip green" style={{ fontSize: 10.5 }}>
-            <Icons.Check size={11} /> {CLUB.membershipLabel}
-          </span>
-        </div>
-      }
-    >
-      <div style={{ padding: '4px 20px 22px', display: 'flex', flexDirection: 'column', gap: 22 }}>
-        {/* live courts */}
-        <div>
+        }
+      >
+        {/* live court tracker */}
+        <div style={{ padding: '2px 20px 18px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 11 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span className="sq-live-dot" />
-              <span className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-2)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                Courts right now
-              </span>
+              <span className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-2)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Courts right now</span>
             </div>
-            <span className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-green)' }}>
-              {free} open
-            </span>
+            <span className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-green)' }}>{free} open</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            {COURTS.map((c) => (
-              <CourtNow key={c.court} c={c} />
-            ))}
+            {state.courts.map((c) => <CourtTile key={c.court} c={c} onBook={(court) => nav.push('book', { court })} />)}
           </div>
+          <button className="sq-btn-gold serve-glow-soft" style={{ width: '100%', padding: '14px', fontSize: 14, marginTop: 12 }} onClick={() => nav.push('book')}>
+            <Icons.Plus size={15} style={{ verticalAlign: -3, marginRight: 6 }} /> Book a court
+          </button>
         </div>
 
-        {/* your next lesson banner */}
-        <div
-          style={{
-            borderRadius: 14,
-            padding: '14px 16px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 13,
-            background: 'linear-gradient(120deg, color-mix(in srgb, var(--sq-gold) 18%, var(--sq-bg)), var(--sq-surface) 80%)',
-            border: '1px solid color-mix(in srgb, var(--sq-gold) 30%, transparent)',
-          }}
-        >
-          <div style={{ width: 40, height: 40, borderRadius: 12, background: 'color-mix(in srgb, var(--sq-gold) 18%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--sq-gold)', flexShrink: 0 }}>
-            <Icons.Bolt size={19} />
+        {/* your schedule */}
+        <div style={{ padding: '0 20px 24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <span className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Your schedule</span>
+            <button onClick={() => nav.push('clubSchedule')} style={{ background: 'none', border: 0, color: 'var(--sq-gold)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--sq-body)' }}>
+              Full club schedule →
+            </button>
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-gold)', letterSpacing: '0.1em' }}>
-              YOUR NEXT LESSON
+          {mine.length ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+              {mine.map((s) => <MySessionRow key={s.id} s={s} />)}
             </div>
-            <div className="sq-display" style={{ fontSize: 14.5, fontWeight: 600, marginTop: 2 }}>
-              Today 18:00 · Coach Mariam · Court 2
+          ) : (
+            <div className="sq-card" style={{ padding: 20, textAlign: 'center', color: 'var(--sq-text-3)', fontSize: 13 }}>
+              No sessions yet. Your coach's lessons & training will appear here.
             </div>
-          </div>
+          )}
         </div>
-
-        {/* today's lesson sheet */}
-        <div>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 12 }}>
-            <h2 className="sq-display" style={{ margin: 0, fontSize: 19, fontWeight: 700, letterSpacing: '-0.02em' }}>
-              Lesson sheet
-            </h2>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--sq-text-3)' }}>
-              <Icons.Refresh size={12} /> Synced 2 min ago
-            </span>
-          </div>
-
-          {/* day selector */}
-          <div style={{ display: 'flex', gap: 7, marginBottom: 14, overflowX: 'auto' }}>
-            {WEEK_DAYS.map(([d, n, active]) => (
-              <div
-                key={d}
-                style={{
-                  flexShrink: 0,
-                  width: 46,
-                  padding: '9px 0',
-                  borderRadius: 12,
-                  textAlign: 'center',
-                  background: active ? 'var(--sq-gold)' : 'var(--sq-surface)',
-                  border: '1px solid ' + (active ? 'transparent' : 'var(--sq-border)'),
-                  color: active ? '#0a0a0a' : 'var(--sq-text-2)',
-                }}
-              >
-                <div className="sq-mono" style={{ fontSize: 9.5, opacity: 0.75, letterSpacing: '0.05em' }}>
-                  {d}
-                </div>
-                <div className="sq-display" style={{ fontSize: 16, fontWeight: 700, marginTop: 1 }}>
-                  {n}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-            {SCHEDULE.map((s) => (
-              <LessonRow key={s.id} s={s} />
-            ))}
-          </div>
-
-          <p style={{ margin: '14px 2px 0', fontSize: 11.5, color: 'var(--sq-text-3)', lineHeight: 1.5, display: 'flex', gap: 7 }}>
-            <Icons.Chat size={14} /> <span>No more screenshots in the WhatsApp group — the office publishes the sheet straight to SERVE.</span>
-          </p>
-        </div>
-      </div>
-    </MScreen>
+      </MScreen>
+    </ThemeScope>
   );
 }

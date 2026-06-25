@@ -8,7 +8,7 @@ import { viteSingleFile } from 'vite-plugin-singlefile';
 // With no SURFACE set, this is the normal dev/preview config (the combined
 // app with the surface switcher, served from index.html).
 const surface = process.env.SURFACE;
-const PAGES = { player: 'player.html', admin: 'admin.html', club: 'club.html' };
+const PAGES = { player: 'player.html', admin: 'admin.html', club: 'club.html', demo: 'index.html' };
 
 export default defineConfig(() => {
   if (surface && PAGES[surface]) {

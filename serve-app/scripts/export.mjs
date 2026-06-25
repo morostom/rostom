@@ -13,17 +13,18 @@ import { dirname, resolve } from 'node:path';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SURFACES = [
-  { id: 'player', name: 'serve-player', label: 'Mobile player app' },
-  { id: 'admin', name: 'serve-admin', label: 'Academy owner console' },
-  { id: 'club', name: 'serve-club', label: 'Club coordinator console' },
+  { id: 'player', page: 'player.html', name: 'serve-player', label: 'Mobile player app' },
+  { id: 'admin', page: 'admin.html', name: 'serve-admin', label: 'Academy owner console' },
+  { id: 'club', page: 'club.html', name: 'serve-club', label: 'Club coordinator console' },
+  { id: 'demo', page: 'index.html', name: 'serve-demo', label: 'Connected demo (all 3 + live sync)' },
 ];
 
 mkdirSync(resolve(root, 'export'), { recursive: true });
 
-for (const { id, name, label } of SURFACES) {
+for (const { id, page, name, label } of SURFACES) {
   console.log(`\n▸ Building ${id} …`);
   execSync('npm run build:surface', { cwd: root, stdio: 'inherit', env: { ...process.env, SURFACE: id } });
-  const src = resolve(root, `dist/${id}/${id}.html`);
+  const src = resolve(root, `dist/${id}/${page}`);
 
   // 1. bare single file
   const flat = resolve(root, `export/${name}.html`);

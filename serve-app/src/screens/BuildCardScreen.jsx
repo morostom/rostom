@@ -38,6 +38,34 @@ function PSelect({ label, value, onChange, options, placeholder, icon }) {
   );
 }
 
+// A dropdown that becomes a free-text field when "Other" is picked, so players
+// can write in a value not on the list.
+function SelectOrOther({ label, value, onChange, options, placeholder, icon }) {
+  const [other, setOther] = useState(value && !options.includes(value));
+  if (other) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <label className="sq-label">{label}</label>
+        <div className="sq-field">
+          {icon && <span style={{ color: 'var(--sq-text-3)' }}>{icon}</span>}
+          <input className="sq-input" value={value} placeholder={`Write your ${label.toLowerCase()}`} autoFocus onChange={(e) => onChange(e.target.value)} />
+          <button onClick={() => { setOther(false); onChange(''); }} style={{ background: 'none', border: 0, color: 'var(--sq-text-3)', cursor: 'pointer', fontSize: 11, fontFamily: 'var(--sq-mono)' }}>list</button>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <PSelect
+      label={label}
+      value={value}
+      icon={icon}
+      placeholder={placeholder}
+      options={options}
+      onChange={(v) => { if (v === 'Other') { setOther(true); onChange(''); } else onChange(v); }}
+    />
+  );
+}
+
 export default function BuildCardScreen() {
   const { nav, player, setPlayer, cardType, forChild } = useNav();
   const recreational = cardType === 'recreational';
@@ -155,14 +183,21 @@ export default function BuildCardScreen() {
 
         {recreational ? (
           <>
-            <PSelect label="Favourite shot" value={form.favShot} onChange={set('favShot')} options={FAV_SHOTS} placeholder="Pick your signature shot" icon={<Icons.Racket size={15} />} />
+            <SelectOrOther label="Favourite shot" value={form.favShot} onChange={set('favShot')} options={FAV_SHOTS} placeholder="Pick your signature shot" icon={<Icons.Racket size={15} />} />
             <PSelect label="Years playing" value={form.yearsPlaying} onChange={set('yearsPlaying')} options={YEARS_OPTIONS} placeholder="How long have you played?" icon={<Icons.Calendar size={15} />} />
+            <SelectOrOther label="Favorite player" value={form.fav} onChange={set('fav')} options={FAV_PLAYERS} placeholder="Pick a pro (or write your own)" icon={<Icons.Heart size={15} />} />
           </>
         ) : (
           <>
-            <PField label="National ranking" value={form.rankLabel} onChange={set('rankLabel')} placeholder="e.g. #3 · U15 National" icon={<Icons.Medal size={15} />} />
-            <PSelect label="Racket" value={form.racket} onChange={set('racket')} options={RACKETS} placeholder="Pick your racket" icon={<Icons.Racket size={15} />} />
-            <PSelect label="Favorite player" value={form.fav} onChange={set('fav')} options={FAV_PLAYERS} placeholder="Pick a pro" icon={<Icons.Heart size={15} />} />
+            <div>
+              <PField label="National ranking" value={form.rankLabel} onChange={set('rankLabel')} placeholder="e.g. #3 · U17 National" icon={<Icons.Medal size={15} />} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 7, color: 'var(--sq-text-3)', fontSize: 11.5, lineHeight: 1.4 }}>
+                <Icons.Lock size={12} />
+                <span>A SERVE team member verifies your ranking before the badge appears on your card.</span>
+              </div>
+            </div>
+            <SelectOrOther label="Racket" value={form.racket} onChange={set('racket')} options={RACKETS} placeholder="Pick your racket" icon={<Icons.Racket size={15} />} />
+            <SelectOrOther label="Favorite player" value={form.fav} onChange={set('fav')} options={FAV_PLAYERS} placeholder="Pick a pro (or write your own)" icon={<Icons.Heart size={15} />} />
           </>
         )}
 

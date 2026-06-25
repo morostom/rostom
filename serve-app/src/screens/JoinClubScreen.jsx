@@ -233,10 +233,10 @@ export default function JoinClubScreen() {
             )}
             {!matched && !wrong && (
               <button
-                onClick={() => setCode(CLUB.validCode)}
+                onClick={() => setCode('9F4K2A')}
                 style={{ background: 'none', border: 0, color: 'var(--sq-text-3)', fontSize: 12, cursor: 'pointer', fontFamily: 'var(--sq-mono)', letterSpacing: '0.04em' }}
               >
-                Demo · tap to fill {CLUB.validCode}
+                Demo · tap to fill {'9F4K2A'}
               </button>
             )}
           </div>

@@ -45,9 +45,8 @@ export function MScreen({ children, bg = 'var(--sq-bg)', tabBar = null, header =
 
 const TABS = [
   { id: 'profile', icon: Icons.User, label: 'Profile' },
-  { id: 'players', icon: Icons.Trophy, label: 'Players' },
-  { id: 'clubs', icon: Icons.Club, label: 'Clubs' },
-  { id: 'discover', icon: Icons.Home, label: 'Discover' },
+  { id: 'clubs', icon: Icons.Club, label: 'My Club' },
+  { id: 'discover', icon: Icons.Search, label: 'Discover' },
   { id: 'bookings', icon: Icons.Calendar, label: 'Bookings' },
 ];
 

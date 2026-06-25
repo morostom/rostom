@@ -1,6 +1,5 @@
-// PlayerApp.jsx — the mobile player surface. Holds onboarding + app state
-// (account, who-the-card-is-for, card type, the player card, club membership)
-// and maps screen names to components for the animated Navigator.
+// PlayerApp.jsx — the mobile player surface. Holds onboarding + app state and
+// maps screen names to components for the animated Navigator.
 
 import { useState } from 'react';
 import { PhoneFrame } from '../components/mobile';
@@ -13,11 +12,14 @@ import CompeteScreen from '../screens/CompeteScreen';
 import BuildCardScreen from '../screens/BuildCardScreen';
 import ProfileHomeScreen from '../screens/ProfileHomeScreen';
 import CardCloseupScreen from '../screens/CardCloseupScreen';
-import JuniorsScreen from '../screens/JuniorsScreen';
 import ClubsLockedScreen from '../screens/ClubsLockedScreen';
 import JoinClubScreen from '../screens/JoinClubScreen';
 import MyClubScreen from '../screens/MyClubScreen';
-import PlaceholderScreen from '../screens/PlaceholderScreen';
+import ClubScheduleScreen from '../screens/ClubScheduleScreen';
+import BookCourtScreen from '../screens/BookCourtScreen';
+import PaymentScreen from '../screens/PaymentScreen';
+import BookingsScreen from '../screens/BookingsScreen';
+import DiscoverScreen from '../screens/DiscoverScreen';
 
 export default function PlayerApp() {
   const [account, setAccount] = useState(null);
@@ -26,41 +28,25 @@ export default function PlayerApp() {
   const [player, setPlayer] = useState(EMPTY_COMPETITIVE);
   const [clubJoined, setClubJoined] = useState(false);
 
-  const app = {
-    account, setAccount,
-    forChild, setForChild,
-    cardType, setCardType,
-    player, setPlayer,
-    clubJoined, setClubJoined,
-  };
+  const app = { account, setAccount, forChild, setForChild, cardType, setCardType, player, setPlayer, clubJoined, setClubJoined };
 
   function render(entry) {
     const { name, params } = entry;
     switch (name) {
-      case 'auth':
-        return <AuthScreen />;
-      case 'whoFor':
-        return <WhoForScreen />;
-      case 'compete':
-        return <CompeteScreen />;
-      case 'build':
-        return <BuildCardScreen />;
-      case 'profile':
-        return <ProfileHomeScreen justCreated={params.justCreated} />;
-      case 'players':
-        return <JuniorsScreen />;
-      case 'clubs':
-        return clubJoined ? <MyClubScreen /> : <ClubsLockedScreen />;
-      case 'discover':
-        return <PlaceholderScreen tab="discover" />;
-      case 'bookings':
-        return <PlaceholderScreen tab="bookings" />;
-      case 'cardCloseup':
-        return <CardCloseupScreen player={params.player} ownCard={params.player?.id === player.id} />;
-      case 'joinClub':
-        return <JoinClubScreen />;
-      default:
-        return <AuthScreen />;
+      case 'auth': return <AuthScreen />;
+      case 'whoFor': return <WhoForScreen />;
+      case 'compete': return <CompeteScreen />;
+      case 'build': return <BuildCardScreen />;
+      case 'profile': return <ProfileHomeScreen justCreated={params.justCreated} />;
+      case 'clubs': return clubJoined ? <MyClubScreen /> : <ClubsLockedScreen />;
+      case 'clubSchedule': return <ClubScheduleScreen />;
+      case 'book': return <BookCourtScreen court={params.court} />;
+      case 'payment': return <PaymentScreen {...params} />;
+      case 'bookings': return <BookingsScreen />;
+      case 'discover': return <DiscoverScreen />;
+      case 'cardCloseup': return <CardCloseupScreen player={params.player} ownCard={params.player?.id === player.id} />;
+      case 'joinClub': return <JoinClubScreen />;
+      default: return <AuthScreen />;
     }
   }
 

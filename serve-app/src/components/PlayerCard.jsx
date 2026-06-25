@@ -108,11 +108,24 @@ function PlayerCard({ player, accent, variant = 'full' }) {
       >
         <PhotoArea player={player} height={compact ? 132 : 230} placeholder={compact ? 'photo' : `${firstName}'s photo`} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 40%, rgba(7,7,7,0.92) 100%)', pointerEvents: 'none' }} />
-        {/* rank badge — competitive only */}
-        {!recreational && rank && (
-          <div style={{ position: 'absolute', top: 10, right: 10, pointerEvents: 'none', lineHeight: 1 }}>
+        {/* rank badge — competitive + SERVE-verified only */}
+        {!recreational && rank && player.rankVerified && (
+          <div style={{ position: 'absolute', top: 10, right: 10, pointerEvents: 'none', lineHeight: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
             <span className="sq-display" style={{ fontSize: compact ? 26 : 40, fontWeight: 700, color: ac, textShadow: `0 0 16px color-mix(in srgb, ${ac} 55%, transparent)` }}>
               #{rank}
+            </span>
+            {!compact && (
+              <span className="sq-mono" style={{ fontSize: 8, color: 'var(--sq-green)', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: 3 }}>
+                <Icons.Check size={9} /> VERIFIED
+              </span>
+            )}
+          </div>
+        )}
+        {/* unverified ranking — awaiting SERVE verification */}
+        {!recreational && rank && !player.rankVerified && !compact && (
+          <div style={{ position: 'absolute', top: 10, right: 10, pointerEvents: 'none' }}>
+            <span className="sq-chip" style={{ fontSize: 9, padding: '3px 8px', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }}>
+              Rank pending
             </span>
           </div>
         )}
@@ -153,7 +166,7 @@ function PlayerCard({ player, accent, variant = 'full' }) {
       ) : (
         <div style={{ padding: '14px 15px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-            <CardStat label="Ranking" value={rank ? `#${rank}` : '—'} accent={ac} />
+            <CardStat label="Ranking" value={!rank ? '—' : player.rankVerified ? `#${rank}` : 'Pending'} accent={ac} />
             <CardStat label="Record" value={record} />
             <CardStat label="Since" value={player.since || '—'} />
           </div>
