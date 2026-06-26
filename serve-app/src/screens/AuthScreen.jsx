@@ -8,6 +8,8 @@ import { Icons } from '../components/Icons';
 import { MScreen } from '../components/mobile';
 import { useNav } from '../navigation/nav';
 import { DEMO_PLAYER } from '../data';
+import { hasBackend } from '../lib/supabase';
+import { signUp, signIn, loadCard } from '../lib/auth';
 
 function Field({ label, type, value, onChange, placeholder, icon, prefix }) {
   return (
@@ -31,17 +33,36 @@ export default function AuthScreen() {
   const [pw, setPw] = useState('');
   const [err, setErr] = useState('');
 
+  const [busy, setBusy] = useState(false);
   const identifier = method === 'phone' ? phone : email;
 
-  function submit() {
+  async function submit() {
     setErr('');
     if (method === 'phone' && phone.replace(/\D/g, '').length < 7) return setErr('Enter a valid phone number.');
     if (method === 'email' && !/\S+@\S+\.\S+/.test(email)) return setErr('Enter a valid email address.');
     if (pw.length < 4) return setErr('Password must be at least 4 characters.');
 
     setAccount({ method, identifier });
+
+    if (hasBackend) {
+      setBusy(true);
+      const res = mode === 'login'
+        ? await signIn({ method, identifier, password: pw })
+        : await signUp({ method, identifier, password: pw });
+      setBusy(false);
+      if (res.error) return setErr(res.error);
+      if (mode === 'login') {
+        const card = await loadCard();
+        setPlayer(card || { ...DEMO_PLAYER });
+        nav.replaceRoot('profile');
+      } else {
+        nav.push('whoFor');
+      }
+      return;
+    }
+
+    // local/offline mode (no backend configured)
     if (mode === 'login') {
-      // demo account lands straight in a populated profile
       setPlayer({ ...DEMO_PLAYER });
       nav.replaceRoot('profile');
     } else {
@@ -58,8 +79,8 @@ export default function AuthScreen() {
       }
       tabBar={
         <div style={{ padding: '12px 22px', borderTop: '1px solid var(--sq-border)', background: 'rgba(7,7,7,0.95)' }}>
-          <button className="sq-btn-gold serve-glow-soft" style={{ padding: '15px 18px', fontSize: 14.5, width: '100%' }} onClick={submit}>
-            {mode === 'signup' ? 'Create account →' : 'Log in →'}
+          <button className="sq-btn-gold serve-glow-soft" style={{ padding: '15px 18px', fontSize: 14.5, width: '100%' }} onClick={submit} disabled={busy}>
+            {busy ? 'Please wait…' : mode === 'signup' ? 'Create account →' : 'Log in →'}
           </button>
         </div>
       }

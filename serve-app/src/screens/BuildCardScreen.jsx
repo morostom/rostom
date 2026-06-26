@@ -8,6 +8,7 @@ import { Icons } from '../components/Icons';
 import SQLogo from '../components/SQLogo';
 import { MScreen, Pill } from '../components/mobile';
 import { useNav } from '../navigation/nav';
+import { saveCard } from '../lib/auth';
 import { ACADEMIES_LIST, FAV_PLAYERS, FAV_SHOTS, YEARS_OPTIONS, RACKETS, divisionForAge } from '../data';
 
 function PField({ label, value, onChange, placeholder, icon, mono, type = 'text' }) {
@@ -98,8 +99,10 @@ export default function BuildCardScreen() {
     if (!form.age) return setError('Add an age.');
     if (!form.club) return setError('Pick a club or academy.');
     setCreating(true);
+    const card = { ...form, division };
+    saveCard(card); // persists to the player's profile when a backend is configured
     setTimeout(() => {
-      setPlayer({ ...form, division });
+      setPlayer(card);
       nav.replaceRoot('profile', { justCreated: true });
     }, 450);
   }
