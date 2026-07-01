@@ -107,15 +107,41 @@ create table if not exists public.access_codes (
   when_label text
 );
 
+-- ── parent accounts: links + "transfer to parent" payment requests ───
+create table if not exists public.parent_links (
+  id uuid primary key default gen_random_uuid(),
+  parent_identifier text not null,   -- the parent's phone/email (their login)
+  parent_name text,
+  child_name text not null,
+  created_at timestamptz default now()
+);
+
+create table if not exists public.payment_requests (
+  id uuid primary key default gen_random_uuid(),
+  parent_identifier text not null,   -- who should approve & pay
+  child_name text,
+  item text,
+  venue text,
+  court text,
+  day text,
+  time text,
+  amount int,
+  status text default 'pending',     -- pending | paid | declined | expired
+  expires_at timestamptz,            -- the 10-minute court hold
+  created_at timestamptz default now()
+);
+
 -- ── Row Level Security ───────────────────────────────────────────────
-alter table public.profiles      enable row level security;
-alter table public.org_settings  enable row level security;
-alter table public.courts        enable row level security;
-alter table public.sessions      enable row level security;
-alter table public.bookings      enable row level security;
-alter table public.payments      enable row level security;
-alter table public.access_codes  enable row level security;
-alter table public.staff         enable row level security;
+alter table public.profiles         enable row level security;
+alter table public.org_settings     enable row level security;
+alter table public.courts           enable row level security;
+alter table public.sessions         enable row level security;
+alter table public.bookings         enable row level security;
+alter table public.payments         enable row level security;
+alter table public.access_codes     enable row level security;
+alter table public.staff            enable row level security;
+alter table public.parent_links     enable row level security;
+alter table public.payment_requests enable row level security;
 
 -- profiles: anyone can read (rosters), you manage your own
 drop policy if exists "profiles read" on public.profiles;
@@ -133,7 +159,7 @@ create policy "bookings own" on public.bookings for all
 do $$
 declare t text;
 begin
-  foreach t in array array['org_settings','courts','sessions','payments','access_codes','staff'] loop
+  foreach t in array array['org_settings','courts','sessions','payments','access_codes','staff','parent_links','payment_requests'] loop
     execute format('drop policy if exists "%s read" on public.%I;', t, t);
     execute format('create policy "%s read" on public.%I for select using (true);', t, t);
     execute format('drop policy if exists "%s write" on public.%I;', t, t);
@@ -147,3 +173,5 @@ alter publication supabase_realtime add table public.sessions;
 alter publication supabase_realtime add table public.org_settings;
 alter publication supabase_realtime add table public.bookings;
 alter publication supabase_realtime add table public.staff;
+alter publication supabase_realtime add table public.parent_links;
+alter publication supabase_realtime add table public.payment_requests;

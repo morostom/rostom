@@ -48,11 +48,17 @@ function Choice({ icon, title, sub, onClick }) {
 }
 
 export default function WhoForScreen() {
-  const { nav, setForChild } = useNav();
+  const { nav, setForChild, setAccountType } = useNav();
 
   function choose(forChild) {
+    setAccountType?.('player');
     setForChild(forChild);
     nav.push('compete');
+  }
+
+  function chooseParent() {
+    setAccountType?.('parent');
+    nav.push('parentLink');
   }
 
   return (
@@ -71,15 +77,16 @@ export default function WhoForScreen() {
           Step 1 of 3
         </div>
         <h1 className="sq-display" style={{ margin: '8px 0 0', fontSize: 27, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
-          Who is this<br /><span style={{ color: 'var(--sq-gold)' }}>card for?</span>
+          How will you<br /><span style={{ color: 'var(--sq-gold)' }}>use SERVE?</span>
         </h1>
         <p style={{ margin: '8px 0 22px', color: 'var(--sq-text-2)', fontSize: 13.5, lineHeight: 1.5 }}>
-          You can create a card for yourself, or set one up for your child as a parent.
+          Make a player card for yourself or your child, or set up a parent account to track and pay for your child.
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <Choice icon={<Icons.User size={24} />} title="For myself" sub="I play squash and want my own card." onClick={() => choose(false)} />
-          <Choice icon={<Icons.Users size={24} />} title="For my child" sub="I'm a parent setting up my child's card." onClick={() => choose(true)} />
+          <Choice icon={<Icons.Users size={24} />} title="For my child" sub="I'm setting up my child's player card." onClick={() => choose(true)} />
+          <Choice icon={<Icons.Heart size={24} />} title="Parent account" sub="No card — track my child's sessions, book courts, and pay their transfers." onClick={chooseParent} />
         </div>
       </div>
     </MScreen>

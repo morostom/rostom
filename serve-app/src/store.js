@@ -53,6 +53,8 @@ function seed() {
     staff: seedStaff(),
     bookings: [],
     payments: PAYMENTS,
+    parentLinks: [],        // { id, parent_identifier, parent_name, child_name }
+    paymentRequests: [],    // { id, parent_identifier, child_name, item, ..., status, expiresAt }
     images: {}, // { academyLogo, academyCover, clubCrest } → data URLs
   };
 }
@@ -175,6 +177,53 @@ export const store = {
   removeCourt: (court) => {
     commit({ ...state, courts: state.courts.filter((c) => c.court !== court) });
     if (hasBackend) backend.removeCourtRow(court);
+  },
+  // ── parent accounts ──
+  // link a parent (by their login identifier) to a child (by name)
+  linkChild: ({ parent_identifier, parent_name, child_name }) => {
+    const name = (child_name || '').trim();
+    if (!name || !parent_identifier) return;
+    const existing = state.parentLinks.find((l) => l.parent_identifier === parent_identifier && l.child_name.toLowerCase() === name.toLowerCase());
+    if (existing) return existing;
+    const row = { id: 'pl' + Date.now(), parent_identifier, parent_name: parent_name || '', child_name: name };
+    commit({ ...state, parentLinks: [...state.parentLinks, row] });
+    if (hasBackend) backend.addParentLink(row);
+    return row;
+  },
+  // child asks their parent to pay — creates a pending request with a 10-min hold
+  requestTransfer: (req) => {
+    const row = {
+      id: 'pr' + Date.now(),
+      status: 'pending',
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+      createdAt: new Date().toISOString(),
+      ...req,
+    };
+    commit({ ...state, paymentRequests: [...state.paymentRequests, row] });
+    if (hasBackend) backend.addPaymentRequest(row);
+    return row;
+  },
+  // parent approves & pays — confirms the booking under the child's name
+  payRequest: (id, method) => {
+    const r = state.paymentRequests.find((x) => x.id === id);
+    if (!r) return;
+    const booking = { id: 'bk' + Date.now(), court: r.court, title: r.item, venue: r.venue, type: 'Standard', day: r.day, time: r.time, price: r.amount, method: method || 'card', status: 'confirmed', forChild: r.child_name };
+    commit({
+      ...state,
+      paymentRequests: state.paymentRequests.map((x) => (x.id === id ? { ...x, status: 'paid' } : x)),
+      bookings: [...state.bookings, booking],
+    });
+    if (hasBackend) { backend.updatePaymentRequest(id, { status: 'paid' }); backend.addBooking(booking); }
+  },
+  declineRequest: (id) => {
+    commit({ ...state, paymentRequests: state.paymentRequests.map((x) => (x.id === id ? { ...x, status: 'declined' } : x)) });
+    if (hasBackend) backend.updatePaymentRequest(id, { status: 'declined' });
+  },
+  expireRequest: (id) => {
+    const r = state.paymentRequests.find((x) => x.id === id);
+    if (!r || r.status !== 'pending') return;
+    commit({ ...state, paymentRequests: state.paymentRequests.map((x) => (x.id === id ? { ...x, status: 'expired' } : x)) });
+    if (hasBackend) backend.updatePaymentRequest(id, { status: 'expired' });
   },
   reset: () => { commit(seed()); },
 };

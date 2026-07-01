@@ -12,17 +12,21 @@ const sessionFromRow = (r) => ({ id: r.id, day: r.day, time: r.time, type: r.typ
 const bookingFromRow = (r) => ({ id: r.id, court: r.court, title: r.title, venue: r.venue, type: r.type, day: r.day, time: r.time, endTime: r.end_time, price: r.price, method: r.method, status: r.status });
 const paymentFromRow = (r) => ({ id: r.id, player: r.player, item: r.item, amount: r.amount, status: r.status, method: r.method });
 const staffFromRow = (r) => ({ id: r.id, org_id: r.org_id, name: r.name, role: r.role, initials: r.initials, squads: r.squads });
+const parentLinkFromRow = (r) => ({ id: r.id, parent_identifier: r.parent_identifier, parent_name: r.parent_name, child_name: r.child_name });
+const requestFromRow = (r) => ({ id: r.id, parent_identifier: r.parent_identifier, child_name: r.child_name, item: r.item, venue: r.venue, court: r.court, day: r.day, time: r.time, amount: r.amount, status: r.status, expiresAt: r.expires_at, createdAt: r.created_at });
 
 // Build a store patch from the whole DB (simple + robust for demo volume).
 export async function hydrate() {
   if (!hasBackend) return {};
-  const [courts, sessions, bookings, payments, settings, staff] = await Promise.all([
+  const [courts, sessions, bookings, payments, settings, staff, links, requests] = await Promise.all([
     supabase.from('courts').select('*').eq('club_id', CLUB).order('court_no'),
     supabase.from('sessions').select('*').eq('club_id', CLUB),
     supabase.from('bookings').select('*').order('created_at', { ascending: true }),
     supabase.from('payments').select('*'),
     supabase.from('org_settings').select('*'),
     supabase.from('staff').select('*').order('created_at', { ascending: true }),
+    supabase.from('parent_links').select('*'),
+    supabase.from('payment_requests').select('*').order('created_at', { ascending: true }),
   ]);
   const patch = {};
   if (courts.data?.length) patch.courts = courts.data.map(courtFromRow);
@@ -30,6 +34,8 @@ export async function hydrate() {
   if (bookings.data) patch.bookings = bookings.data.map(bookingFromRow);
   if (payments.data?.length) patch.payments = payments.data.map(paymentFromRow);
   if (staff.data) patch.staff = staff.data.map(staffFromRow);
+  if (links.data) patch.parentLinks = links.data.map(parentLinkFromRow);
+  if (requests.data) patch.paymentRequests = requests.data.map(requestFromRow);
   if (settings.data) {
     const hel = settings.data.find((s) => s.id === CLUB);
     const aca = settings.data.find((s) => s.id === ACADEMY);
@@ -51,6 +57,8 @@ export function subscribe(onChange) {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'payments' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'staff' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'parent_links' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'payment_requests' }, onChange)
     .subscribe();
   return () => supabase.removeChannel(ch);
 }
@@ -88,6 +96,19 @@ export async function addStaff(s) {
 }
 export async function removeStaff(id) {
   await supabase.from('staff').delete().eq('id', id);
+}
+export async function addParentLink(l) {
+  await supabase.from('parent_links').insert({ parent_identifier: l.parent_identifier, parent_name: l.parent_name ?? null, child_name: l.child_name });
+}
+export async function addPaymentRequest(r) {
+  await supabase.from('payment_requests').insert({
+    parent_identifier: r.parent_identifier, child_name: r.child_name ?? null, item: r.item ?? null,
+    venue: r.venue ?? null, court: String(r.court ?? ''), day: r.day ?? null, time: r.time ?? null,
+    amount: r.amount ?? null, status: r.status || 'pending', expires_at: r.expiresAt ?? null,
+  });
+}
+export async function updatePaymentRequest(id, patch) {
+  await supabase.from('payment_requests').update(patch).eq('id', id);
 }
 export async function addCourtRow(c) {
   await supabase.from('courts').insert({ club_id: CLUB, court_no: c.court, type: c.type || 'Standard', status: c.status || 'free', next: c.next ?? null });

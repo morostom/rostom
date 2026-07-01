@@ -30,12 +30,15 @@ function CardForm() {
 }
 
 export default function PaymentScreen(params) {
-  const { nav } = useNav();
+  const { nav, player } = useNav();
   const state = useStore();
   const { courtNo, title, venue = 'Heliopolis SC', type = 'Standard', day = 'Today', time, endTime, price, secureCourt = false, guest = false } = params;
   const heading = title || `Court ${courtNo}`;
   const [method, setMethod] = useState('applepay');
   const [phase, setPhase] = useState('form');
+
+  // if this player is linked to a parent, they can send the bill to them instead
+  const parentLink = state.parentLinks.find((l) => player?.name && l.child_name.toLowerCase() === player.name.toLowerCase());
 
   function pay() {
     setPhase('processing');
@@ -45,6 +48,15 @@ export default function PaymentScreen(params) {
       else store.addBooking(booking);
       setPhase('done');
     }, 1000);
+  }
+
+  function transferToParent() {
+    store.requestTransfer({
+      parent_identifier: parentLink.parent_identifier,
+      child_name: player.name,
+      item: heading, venue, court: courtNo ?? '—', day, time, amount: price,
+    });
+    setPhase('sent');
   }
 
   return (
@@ -57,14 +69,39 @@ export default function PaymentScreen(params) {
           </div>
         ) : null}
         tabBar={phase === 'form' ? (
-          <div style={{ padding: '12px 20px', borderTop: '1px solid var(--sq-border)', background: 'rgba(7,7,7,0.95)' }}>
+          <div style={{ padding: '12px 20px', borderTop: '1px solid var(--sq-border)', background: 'rgba(7,7,7,0.95)', display: 'flex', flexDirection: 'column', gap: 10 }}>
             <button className="sq-btn-gold serve-glow-soft" style={{ width: '100%', padding: '15px', fontSize: 14.5 }} onClick={pay}>
               {method === 'applepay' ? <> Pay</> : `Pay EGP ${price}`}
             </button>
+            {parentLink && (
+              <button className="sq-btn-ghost" style={{ width: '100%', padding: '13px', fontSize: 13.5, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }} onClick={transferToParent}>
+                <Icons.Heart size={15} /> Transfer to parent
+              </button>
+            )}
           </div>
         ) : null}
       >
-        {phase === 'done' ? (
+        {phase === 'sent' ? (
+          <div className="sq-fade-up" style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0 32px', gap: 18 }}>
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 500, damping: 18 }}
+              style={{ width: 92, height: 92, borderRadius: '50%', background: 'color-mix(in srgb, var(--sq-gold) 16%, transparent)', border: '1px solid color-mix(in srgb, var(--sq-gold) 45%, transparent)', color: 'var(--sq-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Icons.Heart size={40} />
+            </motion.div>
+            <div>
+              <h1 className="sq-display" style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em' }}>Sent to your parent</h1>
+              <p style={{ margin: '8px 0 0', color: 'var(--sq-text-2)', fontSize: 14, lineHeight: 1.5 }}>They’ll get an alert on their phone to approve and pay. This court is held for <strong style={{ color: 'var(--sq-text)' }}>10 minutes</strong>.</p>
+            </div>
+            <div className="sq-card" style={{ width: '100%', padding: 16, display: 'flex', flexDirection: 'column', gap: 8, textAlign: 'left' }}>
+              {[['What', heading], ['Where', venue], ['When', `${day} · ${time}`], ['Amount', `EGP ${price}`]].map(([k, v]) => (
+                <div key={k} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                  <span className="sq-mono" style={{ color: 'var(--sq-text-3)', textTransform: 'uppercase', fontSize: 10.5, letterSpacing: '0.08em' }}>{k}</span>
+                  <span style={{ fontWeight: 500, textAlign: 'right' }}>{v}</span>
+                </div>
+              ))}
+            </div>
+            <button className="sq-btn-gold" style={{ width: '100%', padding: '13px', fontSize: 13.5 }} onClick={() => nav.switchTab('bookings')}>Done</button>
+          </div>
+        ) : phase === 'done' ? (
           <div className="sq-fade-up" style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0 32px', gap: 18 }}>
             <motion.div initial={{ scale: 0, rotate: -10 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', stiffness: 500, damping: 18 }}
               style={{ width: 92, height: 92, borderRadius: '50%', background: 'color-mix(in srgb, var(--sq-green) 18%, transparent)', border: '1px solid color-mix(in srgb, var(--sq-green) 45%, transparent)', color: 'var(--sq-green)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

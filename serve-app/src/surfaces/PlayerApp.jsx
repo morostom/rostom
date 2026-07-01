@@ -9,6 +9,8 @@ import { EMPTY_COMPETITIVE } from '../data';
 
 import AuthScreen from '../screens/AuthScreen';
 import WhoForScreen from '../screens/WhoForScreen';
+import ParentLinkScreen from '../screens/ParentLinkScreen';
+import ParentHomeScreen from '../screens/ParentHomeScreen';
 import CompeteScreen from '../screens/CompeteScreen';
 import BuildCardScreen from '../screens/BuildCardScreen';
 import ProfileHomeScreen from '../screens/ProfileHomeScreen';
@@ -31,17 +33,20 @@ export default function PlayerApp() {
   const [cardType, setCardType] = useState('competitive');
   const [player, setPlayer] = useState(EMPTY_COMPETITIVE);
   const [clubJoined, setClubJoined] = useState(false);
+  const [accountType, setAccountType] = useState('player'); // 'player' | 'parent'
+  const [child, setChild] = useState(null); // parent's linked child name
 
-  const app = { account, setAccount, forChild, setForChild, cardType, setCardType, player, setPlayer, clubJoined, setClubJoined };
+  const app = { account, setAccount, forChild, setForChild, cardType, setCardType, player, setPlayer, clubJoined, setClubJoined, accountType, setAccountType, child, setChild };
 
   function render(entry) {
     const { name, params } = entry;
     switch (name) {
       case 'auth': return <AuthScreen />;
       case 'whoFor': return <WhoForScreen />;
+      case 'parentLink': return <ParentLinkScreen />;
       case 'compete': return <CompeteScreen />;
       case 'build': return <BuildCardScreen />;
-      case 'profile': return <ProfileHomeScreen justCreated={params.justCreated} />;
+      case 'profile': return accountType === 'parent' ? <ParentHomeScreen /> : <ProfileHomeScreen justCreated={params.justCreated} />;
       case 'clubs': return clubJoined ? <MyClubScreen /> : <ClubsLockedScreen />;
       case 'clubSchedule': return <ClubScheduleScreen />;
       case 'book': return <BookCourtScreen court={params.court} />;
