@@ -6,6 +6,7 @@ import { MScreen, Pill } from '../components/mobile';
 import ThemeScope from '../components/ThemeScope';
 import ClubCrest from '../components/ClubCrest';
 import { useNav } from '../navigation/nav';
+import { useStore } from '../store';
 import { HELIOPOLIS_BIO } from '../data';
 
 function Section({ label, children }) {
@@ -19,9 +20,11 @@ function Section({ label, children }) {
 
 export default function ClubBioScreen() {
   const { nav } = useNav();
+  const state = useStore();
   const c = HELIOPOLIS_BIO;
+  const cover = state.images?.clubCover;
   return (
-    <ThemeScope accent={c.accent}>
+    <ThemeScope accent={state.clubTheme || c.accent}>
       <MScreen
         header={
           <div style={{ padding: '6px 16px 8px', display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -40,7 +43,9 @@ export default function ClubBioScreen() {
         {/* hero */}
         <div style={{ padding: '4px 22px 18px' }}>
           <div style={{ position: 'relative', borderRadius: 18, overflow: 'hidden', height: 150, border: '1px solid color-mix(in srgb, var(--sq-gold) 30%, transparent)', background: `linear-gradient(150deg, color-mix(in srgb, var(--sq-gold) 22%, #0d0d0d), #0d0d0d 70%)`, display: 'flex', alignItems: 'flex-end', padding: 16 }}>
-            <ClubCrest size={54} radius={14} />
+            {cover && <img src={cover} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
+            {cover && <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0.1))' }} />}
+            <div style={{ position: 'relative' }}><ClubCrest size={54} radius={14} /></div>
           </div>
           <h1 className="sq-display" style={{ margin: '14px 0 0', fontSize: 25, fontWeight: 700, letterSpacing: '-0.025em', lineHeight: 1.1 }}>{c.name}</h1>
           <div className="sq-mono" style={{ fontSize: 11.5, color: 'var(--sq-text-2)', marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>

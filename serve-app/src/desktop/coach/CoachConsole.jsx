@@ -387,26 +387,34 @@ function AccessCodes() {
   );
 }
 
-// ── Club profile (editable, incl. brand colour) ──────────────────────
+// ── Club profile (logo + cover + name + brand colour) ────────────────
 function ClubProfile() {
   const notify = useToast();
   const state = useStore();
   const [name, setName] = useState(CLUB.name);
   const fieldCss = { padding: '11px 13px', border: '1px solid var(--sq-border-2)', borderRadius: 9, background: 'rgba(255,255,255,0.02)', fontSize: 14, color: 'var(--sq-text)', outline: 'none', width: '100%', fontFamily: 'var(--sq-body)' };
+  const Label = ({ children }) => <label className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 6 }}>{children}</label>;
   return (
     <>
-      <Topbar title="Club profile" sub="Branding · identity" trailing={<button className="sq-btn-gold" style={{ padding: '9px 16px', fontSize: 12.5 }} onClick={() => notify('Profile saved')}>Save changes</button>} />
+      <Topbar title="Club profile" sub="Branding · public page" trailing={<button className="sq-btn-gold" style={{ padding: '9px 16px', fontSize: 12.5 }} onClick={() => notify('Profile saved')}>Save changes</button>} />
       <div style={{ padding: '24px 30px 40px', display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: 24, maxWidth: 1000 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
           <div className="sq-card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <h2 className="sq-display" style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Identity</h2>
-            <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-              <div style={{ width: 72, flexShrink: 0 }}><UploadSlot value={state.images.clubCrest} onChange={(d) => { store.setImage('clubCrest', d); notify('Crest updated'); }} label="Crest" height={72} radius={16} /></div>
-              <div style={{ flex: 1 }}>
-                <label className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 6 }}>Club name</label>
-                <input style={fieldCss} value={name} onChange={(e) => setName(e.target.value)} />
+            <h2 className="sq-display" style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Brand · crest & cover</h2>
+            <div style={{ display: 'flex', gap: 16 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', width: 110, flexShrink: 0 }}>
+                <Label>Crest / logo</Label>
+                <UploadSlot value={state.images.clubCrest} onChange={(d) => { store.setImage('clubCrest', d); notify('Crest updated'); }} label="Drop crest" height={110} radius={16} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                <Label>Cover photo</Label>
+                <UploadSlot value={state.images.clubCover} onChange={(d) => { store.setImage('clubCover', d); notify('Cover updated'); }} label="Drop a cover photo of your courts" height={110} radius={12} />
               </div>
             </div>
+          </div>
+          <div className="sq-card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <h2 className="sq-display" style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Details</h2>
+            <div><Label>Club name</Label><input style={fieldCss} value={name} onChange={(e) => setName(e.target.value)} /></div>
           </div>
           <div className="sq-card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div>
@@ -427,18 +435,23 @@ function ClubProfile() {
           </div>
         </div>
 
-        {/* live preview */}
+        {/* live preview — mirrors what members see on the app */}
         <div>
           <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>Members see this →</div>
-          <div className="sq-card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <Crest size={46} radius={12} />
-              <div><div className="sq-display" style={{ fontSize: 16, fontWeight: 700 }}>{name}</div><div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)' }}>Squash Section</div></div>
+          <div className="sq-card" style={{ padding: 0, overflow: 'hidden' }}>
+            <div style={{ position: 'relative', height: 150 }}>
+              {state.images.clubCover ? <img src={state.images.clubCover} alt="" style={{ width: '100%', height: 150, objectFit: 'cover' }} /> : <ImgPlaceholder label="cover" height={150} radius={0} hue="gold" style={{ borderRadius: 0, border: 0 }} />}
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(7,7,7,0.95) 100%)' }} />
+              <span className="sq-chip gold" style={{ position: 'absolute', top: 12, left: 12 }}><span className="sq-live-dot" /> Live courts</span>
             </div>
-            <button className="sq-btn-gold" style={{ padding: '12px', fontSize: 13.5 }}>Book a court</button>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <span className="sq-chip gold" style={{ fontSize: 11 }}>Live courts</span>
-              <span className="sq-chip" style={{ fontSize: 11 }}>{CLUB.courts} courts</span>
+            <div style={{ padding: '0 18px 18px', marginTop: -34, position: 'relative' }}>
+              <div style={{ width: 64, height: 64, borderRadius: 16, overflow: 'hidden', border: '2px solid var(--sq-bg)' }}><Crest size={64} radius={16} /></div>
+              <h2 className="sq-display" style={{ margin: '12px 0 2px', fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>{name}</h2>
+              <div style={{ color: 'var(--sq-text-2)', fontSize: 12.5, display: 'flex', alignItems: 'center', gap: 6 }}><Icons.Pin size={12} /> {CLUB.city}</div>
+              <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                <span className="sq-chip gold" style={{ fontSize: 11 }}>Members only</span>
+                <span className="sq-chip" style={{ fontSize: 11 }}>{state.courts.length} courts</span>
+              </div>
             </div>
           </div>
         </div>

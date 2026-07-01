@@ -107,6 +107,15 @@ export default function MyClubScreen() {
           </div>
         }
       >
+        {/* cover photo (from the club console) */}
+        {state.images?.clubCover && (
+          <div style={{ padding: '0 20px 14px' }}>
+            <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', height: 118, border: '1px solid var(--sq-border)' }}>
+              <img src={state.images.clubCover} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(7,7,7,0.85), rgba(0,0,0,0.05))' }} />
+            </div>
+          </div>
+        )}
         {/* live court tracker */}
         <div style={{ padding: '2px 20px 18px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 11 }}>

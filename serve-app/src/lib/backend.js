@@ -41,7 +41,7 @@ export async function hydrate() {
     const aca = settings.data.find((s) => s.id === ACADEMY);
     if (hel?.accent) patch.clubTheme = hel.accent;
     if (aca?.accent) patch.academyTheme = aca.accent;
-    patch.images = { clubCrest: hel?.crest || undefined, academyLogo: aca?.logo || undefined, academyCover: aca?.cover || undefined };
+    patch.images = { clubCrest: hel?.crest || undefined, clubCover: hel?.cover || undefined, academyLogo: aca?.logo || undefined, academyCover: aca?.cover || undefined };
   }
   return patch;
 }
@@ -117,7 +117,8 @@ export async function removeCourtRow(court) {
   await supabase.from('courts').delete().eq('club_id', CLUB).eq('court_no', court);
 }
 export async function setImage(key, dataURL) {
-  // key: academyLogo | academyCover | clubCrest
+  // key: academyLogo | academyCover | clubCrest | clubCover
   if (key === 'clubCrest') await supabase.from('org_settings').upsert({ id: CLUB, type: 'club', crest: dataURL });
+  else if (key === 'clubCover') await supabase.from('org_settings').upsert({ id: CLUB, type: 'club', cover: dataURL });
   else await supabase.from('org_settings').upsert({ id: ACADEMY, type: 'academy', [key === 'academyLogo' ? 'logo' : 'cover']: dataURL });
 }
