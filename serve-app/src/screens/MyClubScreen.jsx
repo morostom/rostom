@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import { Icons } from '../components/Icons';
 import { MScreen, MTabBar } from '../components/mobile';
 import ThemeScope from '../components/ThemeScope';
+import ClubCrest from '../components/ClubCrest';
 import { useNav } from '../navigation/nav';
 import { useStore } from '../store';
 import { CLUB } from '../data';
@@ -93,9 +94,7 @@ export default function MyClubScreen() {
           <div style={{ padding: '4px 20px 12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
-                <div style={{ width: 42, height: 42, borderRadius: 11, flexShrink: 0, background: 'color-mix(in srgb, var(--sq-gold) 16%, transparent)', border: '1px solid color-mix(in srgb, var(--sq-gold) 30%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--sq-gold)' }}>
-                  <Icons.Club size={22} />
-                </div>
+                <ClubCrest size={42} radius={11} />
                 <div>
                   <div className="sq-display" style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.1 }}>{CLUB.short}</div>
                   <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', marginTop: 2 }}>SQUASH SECTION</div>

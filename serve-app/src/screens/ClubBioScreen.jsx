@@ -4,6 +4,7 @@
 import { Icons } from '../components/Icons';
 import { MScreen, Pill } from '../components/mobile';
 import ThemeScope from '../components/ThemeScope';
+import ClubCrest from '../components/ClubCrest';
 import { useNav } from '../navigation/nav';
 import { HELIOPOLIS_BIO } from '../data';
 
@@ -39,9 +40,7 @@ export default function ClubBioScreen() {
         {/* hero */}
         <div style={{ padding: '4px 22px 18px' }}>
           <div style={{ position: 'relative', borderRadius: 18, overflow: 'hidden', height: 150, border: '1px solid color-mix(in srgb, var(--sq-gold) 30%, transparent)', background: `linear-gradient(150deg, color-mix(in srgb, var(--sq-gold) 22%, #0d0d0d), #0d0d0d 70%)`, display: 'flex', alignItems: 'flex-end', padding: 16 }}>
-            <div style={{ width: 54, height: 54, borderRadius: 14, background: 'color-mix(in srgb, var(--sq-gold) 18%, transparent)', border: '1px solid color-mix(in srgb, var(--sq-gold) 35%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--sq-gold)' }}>
-              <Icons.Club size={28} />
-            </div>
+            <ClubCrest size={54} radius={14} />
           </div>
           <h1 className="sq-display" style={{ margin: '14px 0 0', fontSize: 25, fontWeight: 700, letterSpacing: '-0.025em', lineHeight: 1.1 }}>{c.name}</h1>
           <div className="sq-mono" style={{ fontSize: 11.5, color: 'var(--sq-text-2)', marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>

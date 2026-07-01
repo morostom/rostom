@@ -10,6 +10,7 @@ import SQLogo from '../../components/SQLogo';
 import ThemeScope from '../../components/ThemeScope';
 import ImgPlaceholder from '../../components/ImgPlaceholder';
 import UploadSlot from '../../components/UploadSlot';
+import ClubCrest from '../../components/ClubCrest';
 import { ToastProvider, useToast } from '../../components/Toast';
 import { DUR_FAST } from '../../motion';
 import { useStore, store } from '../../store';
@@ -17,9 +18,8 @@ import { CLUB, ROSTER, CODES, randomCode, SESSION_TYPES, TIME_SLOTS, WEEK_DAYS, 
 
 const SIDEBAR_W = 240;
 
-function Crest({ size = 32, radius = 8 }) {
-  return <div style={{ width: size, height: size, borderRadius: radius, flexShrink: 0, background: 'color-mix(in srgb, var(--sq-gold) 14%, transparent)', border: '1px solid color-mix(in srgb, var(--sq-gold) 28%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--sq-gold)' }}><Icons.Club size={size * 0.55} /></div>;
-}
+// crest badge (shows the uploaded image from the store when present)
+const Crest = ClubCrest;
 
 function Sidebar({ active, onNav }) {
   const state = useStore();
