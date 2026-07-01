@@ -5,6 +5,7 @@
 
 import { memo } from 'react';
 import { Icons } from './Icons';
+import { TIERS } from '../data';
 
 function rankOf(p) {
   if (typeof p.rank === 'number') return String(p.rank);
@@ -63,14 +64,14 @@ function CardField({ icon, label, value, accent }) {
   );
 }
 
-function PlayerCard({ player, accent, variant = 'full' }) {
+function PlayerCard({ player, accent, variant = 'full', tier }) {
   const recreational = player.cardType === 'recreational';
   const ac = accent || player.accent || (recreational ? 'var(--sq-blue)' : 'var(--sq-gold)');
   const compact = variant === 'compact';
   const firstName = (player.name || 'Player').split(' ')[0];
   const rank = rankOf(player);
-  const record = player.wins != null ? `${player.wins}–${player.losses}` : '—';
   const tag = recreational ? 'Recreational' : player.division || 'Junior';
+  const tr = tier || TIERS.find((t) => t.key === player.tierKey) || TIERS[0];
 
   return (
     <div
@@ -142,8 +143,8 @@ function PlayerCard({ player, accent, variant = 'full' }) {
 
       {compact ? (
         <div style={{ padding: '9px 12px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-            {recreational ? player.yearsPlaying || '—' : record}
+          <span className="sq-mono" style={{ fontSize: 9.5, color: tr.color, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            {tr.label}
           </span>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10.5, color: 'var(--sq-text-2)' }}>
             <span style={{ color: ac, display: 'inline-flex' }}>
@@ -156,7 +157,7 @@ function PlayerCard({ player, accent, variant = 'full' }) {
         <div style={{ padding: '14px 15px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             <CardStat label="Playing for" value={player.yearsPlaying || '—'} accent={ac} />
-            <CardStat label="Level" value="Recreational" />
+            <CardStat label="Tier" value={tr.label} accent={tr.color} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1, borderTop: '1px solid var(--sq-border)', paddingTop: 12 }}>
             <CardField icon={<Icons.Pin size={13} />} label="Club" value={player.club} />
@@ -167,7 +168,7 @@ function PlayerCard({ player, accent, variant = 'full' }) {
         <div style={{ padding: '14px 15px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
             <CardStat label="Ranking" value={!rank ? '—' : player.rankVerified ? `#${rank}` : 'Pending'} accent={ac} />
-            <CardStat label="Record" value={record} />
+            <CardStat label="Tier" value={tr.label} accent={tr.color} />
             <CardStat label="Since" value={player.since || '—'} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1, borderTop: '1px solid var(--sq-border)', paddingTop: 12 }}>

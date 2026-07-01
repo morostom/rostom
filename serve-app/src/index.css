@@ -205,7 +205,8 @@ body {
   outline: 0;
   color: var(--sq-text);
   font-family: var(--sq-body);
-  font-size: 14.5px;
+  /* 16px keeps iOS Safari from auto-zooming the page when a field is focused */
+  font-size: 16px;
 }
 .sq-input::placeholder {
   color: var(--sq-text-3);

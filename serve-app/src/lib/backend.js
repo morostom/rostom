@@ -68,6 +68,9 @@ export async function addBooking(b) {
     type: b.type ?? null, day: b.day, time: b.time, end_time: b.endTime ?? null, price: b.price, method: b.method, status: b.status || 'confirmed',
   });
 }
+export async function removeBooking(id) {
+  await supabase.from('bookings').delete().eq('id', id);
+}
 export async function setPayment(id, patch) {
   await supabase.from('payments').update(patch).eq('id', id);
 }

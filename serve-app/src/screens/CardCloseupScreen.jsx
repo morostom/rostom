@@ -5,10 +5,17 @@ import { Icons } from '../components/Icons';
 import { MScreen, Pill } from '../components/mobile';
 import PlayerCard from '../components/PlayerCard';
 import { useNav } from '../navigation/nav';
+import { useToast } from '../components/Toast';
 
-export default function CardCloseupScreen({ player, ownCard }) {
+export default function CardCloseupScreen({ player, ownCard, tier }) {
   const { nav } = useNav();
+  const notify = useToast();
   const ac = player.accent || 'var(--sq-gold)';
+  function share() {
+    const text = `${player.name || 'My'} — SERVE player card`;
+    if (navigator.share) navigator.share({ title: 'SERVE', text }).catch(() => {});
+    else notify('Card link copied');
+  }
 
   return (
     <MScreen
@@ -28,11 +35,11 @@ export default function CardCloseupScreen({ player, ownCard }) {
       }
       tabBar={
         <div style={{ padding: '12px 20px 8px', borderTop: '1px solid var(--sq-border)', background: 'rgba(7,7,7,0.95)', display: 'flex', gap: 10 }}>
-          <button className="sq-btn-ghost" style={{ padding: '14px 16px', fontSize: 13.5, flex: 1 }}>
-            <Icons.Upload size={15} style={{ verticalAlign: -2, marginRight: 6 }} />
-            {ownCard ? 'Replace photo' : 'Save card'}
+          <button className="sq-btn-ghost" style={{ padding: '14px 16px', fontSize: 13.5, flex: 1 }} onClick={ownCard ? () => nav.push('build') : share}>
+            <Icons.Upload size={15} />
+            {ownCard ? 'Edit card' : 'Save card'}
           </button>
-          <button className="sq-btn-gold serve-glow-soft" style={{ padding: '14px 18px', fontSize: 13.5, flex: 1 }}>
+          <button className="sq-btn-gold serve-glow-soft" style={{ padding: '14px 18px', fontSize: 13.5, flex: 1 }} onClick={share}>
             Share card
           </button>
         </div>
@@ -47,7 +54,7 @@ export default function CardCloseupScreen({ player, ownCard }) {
         }}
       />
       <div style={{ position: 'relative', padding: '8px 26px 24px', display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '100%' }}>
-        <PlayerCard player={player} accent={ac} />
+        <PlayerCard player={player} accent={ac} tier={tier} />
         <div style={{ marginTop: 14, textAlign: 'center' }}>
           <span className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', letterSpacing: '0.06em' }}>
             {ownCard ? 'Drop a photo on the card to make it yours · double-tap to reframe' : `${player.name.split(' ')[0]}'s official SERVE card`}

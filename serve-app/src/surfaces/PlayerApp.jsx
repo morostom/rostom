@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { PhoneFrame } from '../components/mobile';
 import { Navigator } from '../navigation/nav';
+import { ToastProvider } from '../components/Toast';
 import { EMPTY_COMPETITIVE } from '../data';
 
 import AuthScreen from '../screens/AuthScreen';
@@ -22,6 +23,7 @@ import BookingsScreen from '../screens/BookingsScreen';
 import DiscoverScreen from '../screens/DiscoverScreen';
 import ClubBioScreen from '../screens/ClubBioScreen';
 import AcademyScreen from '../screens/AcademyScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 
 export default function PlayerApp() {
   const [account, setAccount] = useState(null);
@@ -50,13 +52,16 @@ export default function PlayerApp() {
       case 'academy': return <AcademyScreen academy={params.academy} />;
       case 'cardCloseup': return <CardCloseupScreen player={params.player} ownCard={params.player?.id === player.id} />;
       case 'joinClub': return <JoinClubScreen />;
+      case 'settings': return <SettingsScreen />;
       default: return <AuthScreen />;
     }
   }
 
   return (
     <PhoneFrame>
-      <Navigator initial="auth" render={render} app={app} />
+      <ToastProvider>
+        <Navigator initial="auth" render={render} app={app} />
+      </ToastProvider>
     </PhoneFrame>
   );
 }

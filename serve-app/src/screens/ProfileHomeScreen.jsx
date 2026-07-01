@@ -1,27 +1,36 @@
-// ProfileHomeScreen.jsx — the player's dashboard: their card, stats, next
-// session (live from the store), and quick actions (view / edit / share).
-// When reached straight from signup (justCreated) the card plays its flip.
+// ProfileHomeScreen.jsx — the player's dashboard: their card (with a Tier that
+// levels up as they play), next session, booking History, and quick actions.
 
 import { Icons } from '../components/Icons';
 import SQLogo from '../components/SQLogo';
-import { MScreen, MTabBar, Pill, StatTile } from '../components/mobile';
+import { MScreen, MTabBar, Pill } from '../components/mobile';
 import PlayerCard from '../components/PlayerCard';
 import FlipReveal from '../components/FlipReveal';
 import { useNav } from '../navigation/nav';
 import { useStore } from '../store';
-import { SEASON_STATS, REC_STATS } from '../data';
+import { useToast } from '../components/Toast';
+import { tierForActivity } from '../data';
 
 export default function ProfileHomeScreen({ justCreated }) {
   const { nav, player, setCardType } = useNav();
   const state = useStore();
+  const notify = useToast();
   const recreational = player.cardType === 'recreational';
-  const stats = recreational ? REC_STATS : SEASON_STATS;
   const accent = recreational ? 'var(--sq-blue)' : 'var(--sq-gold)';
-  const next = state.sessions.filter((s) => s.mine)[0];
+
+  const mine = state.sessions.filter((s) => s.mine || (player?.name && s.players?.includes(player.name)));
+  const next = mine[0];
+  // Tier levels up with activity (bookings + sessions the player is in).
+  const tier = tierForActivity(state.bookings.length + mine.length);
 
   function editCard() {
     setCardType(player.cardType);
     nav.push('build');
+  }
+  function share() {
+    const text = `${player.name || 'My'} — SERVE player card`;
+    if (navigator.share) navigator.share({ title: 'SERVE', text }).catch(() => {});
+    else notify('Card link copied');
   }
 
   return (
@@ -32,7 +41,7 @@ export default function ProfileHomeScreen({ justCreated }) {
           <SQLogo size={20} accent />
           <div style={{ display: 'flex', gap: 8 }}>
             <Pill onClick={editCard}><Icons.Edit size={15} /></Pill>
-            <Pill><Icons.Settings size={15} /></Pill>
+            <Pill onClick={() => nav.push('settings')}><Icons.Settings size={15} /></Pill>
           </div>
         </div>
       }
@@ -45,20 +54,10 @@ export default function ProfileHomeScreen({ justCreated }) {
 
       <div style={{ padding: '4px 20px 18px' }}>
         <FlipReveal play={!!justCreated}>
-          <div onClick={() => nav.push('cardCloseup', { player })} style={{ cursor: 'pointer' }}>
-            <PlayerCard player={player} accent={accent} />
+          <div onClick={() => nav.push('cardCloseup', { player, tier })} style={{ cursor: 'pointer' }}>
+            <PlayerCard player={player} accent={accent} tier={tier} />
           </div>
         </FlipReveal>
-      </div>
-
-      {/* stats */}
-      <div style={{ padding: '0 20px 18px' }}>
-        <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>
-          {recreational ? 'Your squash' : 'This season'}
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-          {stats.map((s) => <StatTile key={s.label} label={s.label} value={s.value} hint={s.hint} />)}
-        </div>
       </div>
 
       {/* up next — from the live schedule */}
@@ -79,15 +78,38 @@ export default function ProfileHomeScreen({ justCreated }) {
         </div>
       )}
 
+      {/* History — previous bookings */}
+      <div style={{ padding: '0 20px 18px' }}>
+        <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>History</div>
+        {state.bookings.length ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {[...state.bookings].reverse().map((b) => (
+              <div key={b.id} className="sq-card" style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--sq-surface-2)', color: 'var(--sq-text-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {b.title ? <Icons.Users size={17} /> : <Icons.Court size={17} />}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13.5, fontWeight: 500 }}>{b.title || `Court ${b.court}`}</div>
+                  <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)' }}>{b.venue} · {b.day} {b.time}</div>
+                </div>
+                <span className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-3)' }}>EGP {b.price}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="sq-card" style={{ padding: 18, textAlign: 'center', color: 'var(--sq-text-3)', fontSize: 12.5 }}>
+            No history yet — your past bookings will show here.
+          </div>
+        )}
+      </div>
+
       {/* actions */}
       <div style={{ padding: '0 20px 28px', display: 'flex', gap: 10 }}>
         <button className="sq-btn-ghost" style={{ padding: '13px 16px', fontSize: 13.5, flex: 1 }} onClick={editCard}>
-          <Icons.Edit size={14} style={{ verticalAlign: -2, marginRight: 6 }} />
-          Edit card
+          <Icons.Edit size={14} /> Edit card
         </button>
-        <button className="sq-btn-ghost" style={{ padding: '13px 16px', fontSize: 13.5, flex: 1 }} onClick={() => nav.push('cardCloseup', { player })}>
-          <Icons.Share size={14} style={{ verticalAlign: -2, marginRight: 6 }} />
-          Share
+        <button className="sq-btn-ghost" style={{ padding: '13px 16px', fontSize: 13.5, flex: 1 }} onClick={share}>
+          <Icons.Share size={14} /> Share
         </button>
       </div>
     </MScreen>

@@ -130,6 +130,18 @@ export const store = {
   },
   // book any other court (academy / guest pass) — just records the reservation
   addBooking: (booking) => { commit({ ...state, bookings: [...state.bookings, { id: 'bk' + Date.now(), ...booking }] }); if (hasBackend) backend.addBooking(booking); },
+  cancelBooking: (id) => {
+    const b = state.bookings.find((x) => x.id === id);
+    // if this was a Heliopolis live court we secured, free it back up
+    const freed = b && String(b.venue || '').includes('Heliopolis') && Number(b.court)
+      ? state.courts.map((c) => (c.court === Number(b.court) && c.status === 'booked' ? { court: c.court, type: c.type, status: 'free', who: null, coach: null, next: 'open' } : c))
+      : state.courts;
+    commit({ ...state, bookings: state.bookings.filter((x) => x.id !== id), courts: freed });
+    if (hasBackend) {
+      backend.removeBooking(id);
+      if (b && freed !== state.courts) backend.writeCourt(freed.find((c) => c.court === Number(b.court)));
+    }
+  },
   setPayment: (id, patch) => { commit({ ...state, payments: state.payments.map((p) => (p.id === id ? { ...p, ...patch } : p)) }); if (hasBackend) backend.setPayment(id, patch); },
   reset: () => { commit(seed()); },
 };
