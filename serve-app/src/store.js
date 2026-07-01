@@ -87,41 +87,49 @@ export function useStore() {
   return useSyncExternalStore(subscribe, () => state, () => state);
 }
 
-// In backend mode, mutations write to Supabase and realtime drives state; in
-// local mode they update the local store directly.
+// Every mutation updates the screen instantly (optimistic). In backend mode it
+// also writes to Supabase in the background; realtime then reconciles state
+// (hydrate replaces whole arrays, so the optimistic entry is cleanly replaced
+// by the canonical row — no duplicates). This keeps buttons responsive even if
+// the network/realtime is slow.
 export const store = {
   get: () => state,
-  setClubTheme: (hex) => (hasBackend ? backend.setTheme('club', hex) : commit({ ...state, clubTheme: hex })),
-  setAcademyTheme: (hex) => (hasBackend ? backend.setTheme('academy', hex) : commit({ ...state, academyTheme: hex })),
-  setImage: (key, dataURL) => (hasBackend ? backend.setImage(key, dataURL) : commit({ ...state, images: { ...state.images, [key]: dataURL } })),
+  setClubTheme: (hex) => { commit({ ...state, clubTheme: hex }); if (hasBackend) backend.setTheme('club', hex); },
+  setAcademyTheme: (hex) => { commit({ ...state, academyTheme: hex }); if (hasBackend) backend.setTheme('academy', hex); },
+  setImage: (key, dataURL) => { commit({ ...state, images: { ...state.images, [key]: dataURL } }); if (hasBackend) backend.setImage(key, dataURL); },
   setCourt: (court, patch) => {
     const next = state.courts.map((c) => (c.court === court ? { ...c, ...patch } : c));
+    commit({ ...state, courts: next });
     if (hasBackend) backend.writeCourt(next.find((c) => c.court === court));
-    else commit({ ...state, courts: next });
   },
   freeCourt: (court) => {
     const reset = state.courts.map((c) => (c.court === court ? { court: c.court, type: c.type, status: 'free', who: null, coach: null, next: 'open' } : c));
+    commit({ ...state, courts: reset });
     if (hasBackend) backend.writeCourt(reset.find((c) => c.court === court));
-    else commit({ ...state, courts: reset });
   },
-  addSession: (s) => (hasBackend ? backend.addSession(s) : commit({ ...state, sessions: [...state.sessions, { id: 'sess' + Date.now(), ...s }] })),
-  removeSession: (id) => (hasBackend ? backend.removeSession(id) : commit({ ...state, sessions: state.sessions.filter((s) => s.id !== id) })),
+  addSession: (s) => {
+    commit({ ...state, sessions: [...state.sessions, { id: 'sess' + Date.now(), players: [], mine: false, ...s }] });
+    if (hasBackend) backend.addSession(s);
+  },
+  removeSession: (id) => {
+    commit({ ...state, sessions: state.sessions.filter((s) => s.id !== id) });
+    if (hasBackend) backend.removeSession(id);
+  },
   // book a Heliopolis live court (marks it booked + records the reservation)
   bookCourt: (court, booking) => {
+    commit({
+      ...state,
+      courts: state.courts.map((c) => (c.court === court ? { ...c, status: 'booked', who: 'Your booking', coach: null, until: booking.endTime, left: 60 } : c)),
+      bookings: [...state.bookings, { id: 'bk' + Date.now(), ...booking }],
+    });
     if (hasBackend) {
       const c = state.courts.find((x) => x.court === court);
       if (c) backend.writeCourt({ ...c, status: 'booked', who: 'Your booking', coach: null, until: booking.endTime, left: 60 });
       backend.addBooking(booking);
-    } else {
-      commit({
-        ...state,
-        courts: state.courts.map((c) => (c.court === court ? { ...c, status: 'booked', who: 'Your booking', coach: null, until: booking.endTime, left: 60 } : c)),
-        bookings: [...state.bookings, { id: 'bk' + Date.now(), ...booking }],
-      });
     }
   },
   // book any other court (academy / guest pass) — just records the reservation
-  addBooking: (booking) => (hasBackend ? backend.addBooking(booking) : commit({ ...state, bookings: [...state.bookings, { id: 'bk' + Date.now(), ...booking }] })),
-  setPayment: (id, patch) => (hasBackend ? backend.setPayment(id, patch) : commit({ ...state, payments: state.payments.map((p) => (p.id === id ? { ...p, ...patch } : p)) })),
-  reset: () => commit(seed()),
+  addBooking: (booking) => { commit({ ...state, bookings: [...state.bookings, { id: 'bk' + Date.now(), ...booking }] }); if (hasBackend) backend.addBooking(booking); },
+  setPayment: (id, patch) => { commit({ ...state, payments: state.payments.map((p) => (p.id === id ? { ...p, ...patch } : p)) }); if (hasBackend) backend.setPayment(id, patch); },
+  reset: () => { commit(seed()); },
 };
