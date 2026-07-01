@@ -86,6 +86,17 @@ create table if not exists public.payments (
   method text                   -- cash | card
 );
 
+-- ── staff (coaches, editable from the consoles) ──────────────────────
+create table if not exists public.staff (
+  id uuid primary key default gen_random_uuid(),
+  org_id text not null,          -- 'heliopolis' | 'ramyashour'
+  name text not null,
+  role text,
+  initials text,
+  squads text,
+  created_at timestamptz default now()
+);
+
 -- ── access codes ─────────────────────────────────────────────────────
 create table if not exists public.access_codes (
   code text primary key,
@@ -104,6 +115,7 @@ alter table public.sessions      enable row level security;
 alter table public.bookings      enable row level security;
 alter table public.payments      enable row level security;
 alter table public.access_codes  enable row level security;
+alter table public.staff         enable row level security;
 
 -- profiles: anyone can read (rosters), you manage your own
 drop policy if exists "profiles read" on public.profiles;
@@ -121,7 +133,7 @@ create policy "bookings own" on public.bookings for all
 do $$
 declare t text;
 begin
-  foreach t in array array['org_settings','courts','sessions','payments','access_codes'] loop
+  foreach t in array array['org_settings','courts','sessions','payments','access_codes','staff'] loop
     execute format('drop policy if exists "%s read" on public.%I;', t, t);
     execute format('create policy "%s read" on public.%I for select using (true);', t, t);
     execute format('drop policy if exists "%s write" on public.%I;', t, t);
@@ -134,3 +146,4 @@ alter publication supabase_realtime add table public.courts;
 alter publication supabase_realtime add table public.sessions;
 alter publication supabase_realtime add table public.org_settings;
 alter publication supabase_realtime add table public.bookings;
+alter publication supabase_realtime add table public.staff;

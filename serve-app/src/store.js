@@ -3,11 +3,20 @@
 // mirrored across tabs of the same origin via the `storage` event.
 
 import { useSyncExternalStore } from 'react';
-import { PAYMENTS } from './data';
+import { PAYMENTS, COACHES } from './data';
 import { hasBackend } from './lib/supabase';
 import * as backend from './lib/backend';
 
-const KEY = 'serve_state_v4';
+const KEY = 'serve_state_v5';
+
+const initials = (name) => name.trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+
+// coaches, scoped per org (offline seed; DB-backed when connected)
+function seedStaff() {
+  const hel = COACHES.map((c, i) => ({ id: 'st-h' + i, org_id: 'heliopolis', ...c }));
+  const aca = COACHES.slice(0, 4).map((c, i) => ({ id: 'st-a' + i, org_id: 'ramyashour', ...c }));
+  return [...hel, ...aca];
+}
 
 // Heliopolis Sporting Club — 7 standard courts. status: lesson|playing|free|booked
 function seedCourts() {
@@ -41,6 +50,7 @@ function seed() {
     academyTheme: '#f5453b',
     courts: seedCourts(),
     sessions: seedSessions(),
+    staff: seedStaff(),
     bookings: [],
     payments: PAYMENTS,
     images: {}, // { academyLogo, academyCover, clubCrest } → data URLs
@@ -143,5 +153,28 @@ export const store = {
     }
   },
   setPayment: (id, patch) => { commit({ ...state, payments: state.payments.map((p) => (p.id === id ? { ...p, ...patch } : p)) }); if (hasBackend) backend.setPayment(id, patch); },
+  // ── staff / coaches (per org: 'heliopolis' club, 'ramyashour' academy) ──
+  addStaff: (org_id, { name, role, squads }) => {
+    const clean = (name || '').trim();
+    if (!clean) return;
+    const row = { id: 'st' + Date.now(), org_id, name: clean, role: role || 'Coach', initials: initials(clean), squads: squads || '' };
+    commit({ ...state, staff: [...state.staff, row] });
+    if (hasBackend) backend.addStaff(row);
+  },
+  removeStaff: (id) => {
+    commit({ ...state, staff: state.staff.filter((s) => s.id !== id) });
+    if (hasBackend) backend.removeStaff(id);
+  },
+  // ── courts (Heliopolis live board) ──
+  addCourt: () => {
+    const next = state.courts.reduce((m, c) => Math.max(m, c.court), 0) + 1;
+    const court = { court: next, type: 'Standard', status: 'free', who: null, coach: null, next: 'open' };
+    commit({ ...state, courts: [...state.courts, court] });
+    if (hasBackend) backend.addCourtRow(court);
+  },
+  removeCourt: (court) => {
+    commit({ ...state, courts: state.courts.filter((c) => c.court !== court) });
+    if (hasBackend) backend.removeCourtRow(court);
+  },
   reset: () => { commit(seed()); },
 };

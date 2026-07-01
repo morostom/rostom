@@ -13,7 +13,7 @@ import UploadSlot from '../../components/UploadSlot';
 import { ToastProvider, useToast } from '../../components/Toast';
 import { DUR_FAST } from '../../motion';
 import { useStore, store } from '../../store';
-import { CLUB, COACHES, ROSTER, CODES, randomCode, SESSION_TYPES, TIME_SLOTS, WEEK_DAYS, BRAND_COLORS } from '../../data';
+import { CLUB, ROSTER, CODES, randomCode, SESSION_TYPES, TIME_SLOTS, WEEK_DAYS, BRAND_COLORS } from '../../data';
 
 const SIDEBAR_W = 240;
 
@@ -22,15 +22,17 @@ function Crest({ size = 32, radius = 8 }) {
 }
 
 function Sidebar({ active, onNav }) {
+  const state = useStore();
+  const coachCount = state.staff.filter((s) => s.org_id === 'heliopolis').length;
   const items = [
     { id: 'board', icon: <Icons.Activity size={16} />, label: 'Live courts' },
     { id: 'schedule', icon: <Icons.Calendar size={16} />, label: 'Schedule builder' },
     { id: 'members', icon: <Icons.Users size={16} />, label: 'Members', badge: String(ROSTER.length) },
-    { id: 'coaches', icon: <Icons.Trophy size={16} />, label: 'Coaches', badge: String(COACHES.length) },
+    { id: 'coaches', icon: <Icons.Trophy size={16} />, label: 'Coaches', badge: String(coachCount) },
     { id: 'codes', icon: <Icons.Ticket size={16} />, label: 'Access codes' },
     { id: 'profile', icon: <Icons.Settings size={16} />, label: 'Club profile' },
   ];
-  const inUse = store.get().courts.filter((c) => c.status !== 'free').length;
+  const inUse = state.courts.filter((c) => c.status !== 'free').length;
   return (
     <div style={{ width: SIDEBAR_W, flexShrink: 0, height: '100%', background: '#0a0a0a', borderRight: '1px solid var(--sq-border)', display: 'flex', flexDirection: 'column', padding: '18px 12px' }}>
       <div style={{ padding: '4px 8px 16px' }}><SQLogo size={20} accent /></div>
@@ -55,7 +57,7 @@ function Sidebar({ active, onNav }) {
       <div style={{ flex: 1 }} />
       <div className="sq-card" style={{ padding: 12, background: 'linear-gradient(135deg, color-mix(in srgb, var(--sq-gold) 10%, transparent), transparent)', borderColor: 'color-mix(in srgb, var(--sq-gold) 20%, transparent)' }}>
         <div className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-gold)', letterSpacing: '0.1em' }}>COURTS IN USE</div>
-        <div className="sq-display" style={{ fontSize: 20, fontWeight: 700, marginTop: 4 }}>{inUse} of {CLUB.courts}</div>
+        <div className="sq-display" style={{ fontSize: 20, fontWeight: 700, marginTop: 4 }}>{inUse} of {state.courts.length}</div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 8px 2px' }}>
         <div style={{ width: 28, height: 28, borderRadius: 14, background: 'linear-gradient(135deg, #2a2a2a, #1a1a1a)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600 }}>MR</div>
@@ -118,7 +120,10 @@ function CourtCard({ c }) {
         )}
       </div>
       {free ? (
-        <button className="sq-btn-ghost" style={{ padding: '8px', fontSize: 12 }} onClick={() => { store.setCourt(c.court, { status: 'playing', who: 'Members match', coach: null, until: '—', left: 45 }); notify(`Court ${c.court} marked busy`); }}>Mark busy</button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="sq-btn-ghost" style={{ flex: 1, padding: '8px', fontSize: 12 }} onClick={() => { store.setCourt(c.court, { status: 'playing', who: 'Members match', coach: null, until: '—', left: 45 }); notify(`Court ${c.court} marked busy`); }}>Mark busy</button>
+          <button className="sq-btn-ghost" title="Remove court" style={{ padding: '8px 11px', fontSize: 13, color: 'var(--sq-text-3)' }} onClick={() => { store.removeCourt(c.court); notify(`Court ${c.court} removed`); }}>×</button>
+        </div>
       ) : (
         <button className="sq-btn-ghost" style={{ padding: '8px', fontSize: 12 }} onClick={() => { store.freeCourt(c.court); notify(`Court ${c.court} freed`); }}>Free up</button>
       )}
@@ -135,12 +140,13 @@ function LiveCourts() {
       <Topbar title="Live courts" sub="Wednesday · 14 May 2026 · 16:33" trailing={
         <>
           <span style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, color: 'var(--sq-text-3)' }}><span className="sq-live-dot" /> Live · syncs to the app</span>
+          <button className="sq-btn-ghost" style={{ padding: '9px 14px', fontSize: 12.5 }} onClick={() => { store.addCourt(); notify('Court added'); }}><Icons.Plus size={13} style={{ marginRight: 6, verticalAlign: -2 }} /> Add court</button>
           <button className="sq-btn-ghost" style={{ padding: '9px 14px', fontSize: 12.5 }} onClick={() => { store.reset(); notify('Board reset'); }}>Reset board</button>
         </>
       } />
       <div style={{ padding: '22px 30px 36px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, fontSize: 12.5, color: 'var(--sq-text-2)' }}>
-          <span className="sq-mono" style={{ color: 'var(--sq-gold)' }}>{inUse} of {CLUB.courts} courts in use</span>
+          <span className="sq-mono" style={{ color: 'var(--sq-gold)' }}>{inUse} of {state.courts.length} courts in use</span>
           <span style={{ color: 'var(--sq-text-3)' }}>· toggle a court and watch it update live in the player app</span>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
@@ -155,7 +161,8 @@ function LiveCourts() {
 function ScheduleBuilder() {
   const notify = useToast();
   const state = useStore();
-  const [coach, setCoach] = useState(COACHES[0].name);
+  const coaches = state.staff.filter((s) => s.org_id === 'heliopolis');
+  const [coach, setCoach] = useState(coaches[0]?.name || '');
   const [court, setCourt] = useState(1);
   const [day, setDay] = useState('Wed');
   const [time, setTime] = useState('17:00');
@@ -189,8 +196,8 @@ function ScheduleBuilder() {
             <div><Label>Title</Label><input style={fieldCss} value={title} onChange={(e) => setTitle(e.target.value)} /></div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-            <div><Label>Coach</Label><select style={fieldCss} value={coach} onChange={(e) => setCoach(e.target.value)}>{COACHES.map((c) => <option key={c.name}>{c.name}</option>)}</select></div>
-            <div><Label>Court</Label><select style={fieldCss} value={court} onChange={(e) => setCourt(Number(e.target.value))}>{Array.from({ length: CLUB.courts }, (_, i) => i + 1).map((n) => <option key={n} value={n}>Court {n}</option>)}</select></div>
+            <div><Label>Coach</Label><select style={fieldCss} value={coach} onChange={(e) => setCoach(e.target.value)}>{coaches.map((c) => <option key={c.id}>{c.name}</option>)}</select></div>
+            <div><Label>Court</Label><select style={fieldCss} value={court} onChange={(e) => setCourt(Number(e.target.value))}>{state.courts.map((c) => <option key={c.court} value={c.court}>Court {c.court}</option>)}</select></div>
             <div><Label>Day</Label><select style={fieldCss} value={day} onChange={(e) => setDay(e.target.value)}>{WEEK_DAYS.map((d) => <option key={d[0]}>{d[0]}</option>)}</select></div>
           </div>
           <div><Label>Time</Label>
@@ -269,26 +276,62 @@ function Members() {
   );
 }
 
-// ── Coaches (no ratings) ─────────────────────────────────────────────
+// ── Coaches (add / remove → persists to Supabase) ────────────────────
 function CoachesTab() {
   const notify = useToast();
+  const state = useStore();
+  const coaches = state.staff.filter((s) => s.org_id === 'heliopolis');
+  const [adding, setAdding] = useState(false);
+  const [name, setName] = useState('');
+  const [role, setRole] = useState('Coach');
+  const [squads, setSquads] = useState('');
+  const fieldCss = { padding: '10px 12px', border: '1px solid var(--sq-border-2)', borderRadius: 8, background: 'rgba(255,255,255,0.02)', fontSize: 13.5, color: 'var(--sq-text)', outline: 'none', width: '100%', fontFamily: 'var(--sq-body)' };
+  const Label = ({ children }) => <label className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 6 }}>{children}</label>;
+
+  function submit() {
+    if (!name.trim()) return notify('Enter a name');
+    store.addStaff('heliopolis', { name, role, squads });
+    notify(`Added ${name.trim()}`);
+    setName(''); setRole('Coach'); setSquads(''); setAdding(false);
+  }
   return (
     <>
-      <Topbar title="Coaches" sub="Squash section staff" trailing={<button className="sq-btn-gold" style={{ padding: '9px 16px', fontSize: 12.5 }} onClick={() => notify('Add coach')}><Icons.Plus size={14} style={{ marginRight: 6, verticalAlign: -3 }} /> Add coach</button>} />
-      <div style={{ padding: '24px 30px 40px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
-        {COACHES.map((c) => (
-          <div key={c.name} className="sq-card" style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 22, background: 'linear-gradient(135deg, #2a2a2a, #161616)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 600 }}>{c.initials}</div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="sq-display" style={{ fontSize: 15, fontWeight: 600 }}>{c.name}</div>
-                <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-gold)' }}>{c.role}</div>
+      <Topbar title="Coaches" sub="Squash section staff" trailing={<button className="sq-btn-gold" style={{ padding: '9px 16px', fontSize: 12.5 }} onClick={() => setAdding((v) => !v)}><Icons.Plus size={14} style={{ marginRight: 6, verticalAlign: -3 }} /> Add coach</button>} />
+      <div style={{ padding: '24px 30px 40px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+        <AnimatePresence>
+          {adding && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: DUR_FAST }} style={{ overflow: 'hidden' }}>
+              <div className="sq-card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 640 }}>
+                <h2 className="sq-display" style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>New coach</h2>
+                <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 12 }}>
+                  <div><Label>Name</Label><input autoFocus style={fieldCss} value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()} placeholder="Coach name" /></div>
+                  <div><Label>Role</Label><input style={fieldCss} value={role} onChange={(e) => setRole(e.target.value)} placeholder="Head Coach" /></div>
+                </div>
+                <div><Label>Squads</Label><input style={fieldCss} value={squads} onChange={(e) => setSquads(e.target.value)} placeholder="e.g. U15 · U17" /></div>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button className="sq-btn-gold" style={{ padding: '10px 18px', fontSize: 13 }} onClick={submit}>Add coach</button>
+                  <button className="sq-btn-ghost" style={{ padding: '10px 16px', fontSize: 13 }} onClick={() => setAdding(false)}>Cancel</button>
+                </div>
               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+          {coaches.map((c) => (
+            <div key={c.id} className="sq-card" style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 22, background: 'linear-gradient(135deg, #2a2a2a, #161616)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 600 }}>{c.initials}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="sq-display" style={{ fontSize: 15, fontWeight: 600 }}>{c.name}</div>
+                  <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-gold)' }}>{c.role}</div>
+                </div>
+              </div>
+              {c.squads && <div style={{ fontSize: 11.5, color: 'var(--sq-text-2)', paddingTop: 10, borderTop: '1px solid var(--sq-border)' }}>{c.squads}</div>}
+              <button className="sq-btn-ghost" style={{ padding: '8px', fontSize: 12, color: 'var(--sq-text-3)' }} onClick={() => { store.removeStaff(c.id); notify(`Removed ${c.name}`); }}>Remove coach</button>
             </div>
-            <div style={{ fontSize: 11.5, color: 'var(--sq-text-2)', paddingTop: 10, borderTop: '1px solid var(--sq-border)' }}>{c.squads}</div>
-            <button className="sq-btn-ghost" style={{ padding: '8px', fontSize: 12 }} onClick={() => notify(`${c.name.split(' ')[0]}'s schedule`)}>View schedule</button>
-          </div>
-        ))}
+          ))}
+          {!coaches.length && <div className="sq-mono" style={{ fontSize: 12.5, color: 'var(--sq-text-3)' }}>No coaches yet — add one above.</div>}
+        </div>
       </div>
     </>
   );

@@ -11,22 +11,25 @@ const courtFromRow = (r) => ({ court: r.court_no, type: r.type, status: r.status
 const sessionFromRow = (r) => ({ id: r.id, day: r.day, time: r.time, type: r.type, title: r.title, coach: r.coach, court: r.court, players: r.players || [], mine: false });
 const bookingFromRow = (r) => ({ id: r.id, court: r.court, title: r.title, venue: r.venue, type: r.type, day: r.day, time: r.time, endTime: r.end_time, price: r.price, method: r.method, status: r.status });
 const paymentFromRow = (r) => ({ id: r.id, player: r.player, item: r.item, amount: r.amount, status: r.status, method: r.method });
+const staffFromRow = (r) => ({ id: r.id, org_id: r.org_id, name: r.name, role: r.role, initials: r.initials, squads: r.squads });
 
 // Build a store patch from the whole DB (simple + robust for demo volume).
 export async function hydrate() {
   if (!hasBackend) return {};
-  const [courts, sessions, bookings, payments, settings] = await Promise.all([
+  const [courts, sessions, bookings, payments, settings, staff] = await Promise.all([
     supabase.from('courts').select('*').eq('club_id', CLUB).order('court_no'),
     supabase.from('sessions').select('*').eq('club_id', CLUB),
     supabase.from('bookings').select('*').order('created_at', { ascending: true }),
     supabase.from('payments').select('*'),
     supabase.from('org_settings').select('*'),
+    supabase.from('staff').select('*').order('created_at', { ascending: true }),
   ]);
   const patch = {};
   if (courts.data?.length) patch.courts = courts.data.map(courtFromRow);
   if (sessions.data) patch.sessions = sessions.data.map(sessionFromRow);
   if (bookings.data) patch.bookings = bookings.data.map(bookingFromRow);
   if (payments.data?.length) patch.payments = payments.data.map(paymentFromRow);
+  if (staff.data) patch.staff = staff.data.map(staffFromRow);
   if (settings.data) {
     const hel = settings.data.find((s) => s.id === CLUB);
     const aca = settings.data.find((s) => s.id === ACADEMY);
@@ -47,6 +50,7 @@ export function subscribe(onChange) {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'org_settings' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'payments' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'staff' }, onChange)
     .subscribe();
   return () => supabase.removeChannel(ch);
 }
@@ -77,6 +81,19 @@ export async function setPayment(id, patch) {
 export async function setTheme(which, hex) {
   const id = which === 'club' ? CLUB : ACADEMY;
   await supabase.from('org_settings').upsert({ id, type: which, accent: hex, updated_at: new Date().toISOString() });
+}
+export async function addStaff(s) {
+  // let the DB mint the uuid; realtime hydrate reconciles the optimistic row
+  await supabase.from('staff').insert({ org_id: s.org_id, name: s.name, role: s.role ?? null, initials: s.initials ?? null, squads: s.squads ?? null });
+}
+export async function removeStaff(id) {
+  await supabase.from('staff').delete().eq('id', id);
+}
+export async function addCourtRow(c) {
+  await supabase.from('courts').insert({ club_id: CLUB, court_no: c.court, type: c.type || 'Standard', status: c.status || 'free', next: c.next ?? null });
+}
+export async function removeCourtRow(court) {
+  await supabase.from('courts').delete().eq('club_id', CLUB).eq('court_no', court);
 }
 export async function setImage(key, dataURL) {
   // key: academyLogo | academyCover | clubCrest

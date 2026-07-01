@@ -38,6 +38,22 @@ insert into public.payments (player, item, amount, status, method) values
   ('Salman Adel',    'Fitness block · 8 sessions', 960, 'unpaid', null)
 on conflict do nothing;
 
+-- staff / coaches
+insert into public.staff (org_id, name, role, initials, squads)
+select * from (values
+  ('heliopolis','Ali Ashmawy','Head Coach','AA','Elite · U19'),
+  ('heliopolis','Abdel Rahman ElSergany','Head Coach','AE','U15 · U17'),
+  ('heliopolis','Mohamed Reda','Performance Coach','MR','U13 · U15'),
+  ('heliopolis','Bassem Tarek','Fitness & Conditioning','BT','All squads'),
+  ('heliopolis','Adham Nabil','Junior Development','AN','U11 · U13'),
+  ('heliopolis','Ismail Sherif','Private Coach','IS','Privates'),
+  ('ramyashour','Ali Ashmawy','Head Coach','AA','Elite · U19'),
+  ('ramyashour','Mohamed Reda','Performance Coach','MR','U13 · U15'),
+  ('ramyashour','Bassem Tarek','Fitness & Conditioning','BT','All squads'),
+  ('ramyashour','Adham Nabil','Junior Development','AN','U11 · U13')
+) as v(org_id, name, role, initials, squads)
+where not exists (select 1 from public.staff);
+
 -- access codes
 insert into public.access_codes (code, assigned_to, status, via, when_label) values
   ('9F4K2A', 'Mohamed Rostom', 'redeemed', 'WhatsApp', 'Redeemed 12 May'),
