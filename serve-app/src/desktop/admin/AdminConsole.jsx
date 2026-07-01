@@ -42,7 +42,7 @@ function Sidebar({ active, onNav }) {
       </div>
       <div className="sq-card" style={{ padding: '10px 12px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{ width: 30, height: 30, borderRadius: 8, overflow: 'hidden', flexShrink: 0, background: 'color-mix(in srgb, var(--sq-gold) 14%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--sq-gold)' }}>
-          {store.get().images.academyLogo ? <img src={store.get().images.academyLogo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Icons.Trophy size={16} />}
+          {state.images?.academyLogo ? <img src={state.images.academyLogo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Icons.Trophy size={16} />}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="sq-display" style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.1 }}>{ACADEMY.short}</div>

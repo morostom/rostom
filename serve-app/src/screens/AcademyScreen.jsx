@@ -4,7 +4,9 @@
 
 import { Icons } from '../components/Icons';
 import { MScreen, Pill } from '../components/mobile';
+import ThemeScope from '../components/ThemeScope';
 import { useNav } from '../navigation/nav';
+import { useStore } from '../store';
 import { academyCourts, OPEN_SESSIONS } from '../data';
 
 function endOf(time) {
@@ -15,10 +17,19 @@ function endOf(time) {
 
 export default function AcademyScreen({ academy }) {
   const { nav } = useNav();
+  const state = useStore();
   const courts = academyCourts(academy);
   const sessions = OPEN_SESSIONS.filter((s) => s.venueId === academy.id);
 
+  // the Ramy Ashour academy is the one backed by the admin console, so it
+  // reflects the owner's uploaded logo/cover + brand colour live.
+  const backed = academy.id === 'ramyashour';
+  const cover = backed ? state.images?.academyCover : null;
+  const logo = backed ? state.images?.academyLogo : null;
+  const accent = (backed && state.academyTheme) || academy.accent || '#f5453b';
+
   return (
+    <ThemeScope accent={accent}>
     <MScreen
       header={
         <div style={{ padding: '6px 16px 8px', display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -30,8 +41,10 @@ export default function AcademyScreen({ academy }) {
       <div style={{ padding: '4px 20px 26px' }}>
         {/* hero */}
         <div style={{ position: 'relative', borderRadius: 18, overflow: 'hidden', height: 130, border: '1px solid color-mix(in srgb, var(--sq-gold) 30%, transparent)', background: 'linear-gradient(150deg, color-mix(in srgb, var(--sq-gold) 20%, #0d0d0d), #0d0d0d 70%)', display: 'flex', alignItems: 'flex-end', padding: 16 }}>
-          <div style={{ width: 50, height: 50, borderRadius: 13, background: 'color-mix(in srgb, var(--sq-gold) 18%, transparent)', border: '1px solid color-mix(in srgb, var(--sq-gold) 35%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--sq-gold)' }}>
-            <Icons.Trophy size={24} />
+          {cover && <img src={cover} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
+          {cover && <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.1))' }} />}
+          <div style={{ position: 'relative', width: 50, height: 50, borderRadius: 13, overflow: 'hidden', background: 'color-mix(in srgb, var(--sq-gold) 18%, transparent)', border: '1px solid color-mix(in srgb, var(--sq-gold) 35%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--sq-gold)' }}>
+            {logo ? <img src={logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Icons.Trophy size={24} />}
           </div>
         </div>
         <h1 className="sq-display" style={{ margin: '14px 0 0', fontSize: 24, fontWeight: 700, letterSpacing: '-0.025em', lineHeight: 1.1 }}>{academy.name}</h1>
@@ -89,5 +102,6 @@ export default function AcademyScreen({ academy }) {
         )}
       </div>
     </MScreen>
+    </ThemeScope>
   );
 }

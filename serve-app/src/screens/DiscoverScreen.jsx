@@ -6,6 +6,7 @@ import { Icons } from '../components/Icons';
 import SQLogo from '../components/SQLogo';
 import { MScreen, MTabBar } from '../components/mobile';
 import { useNav } from '../navigation/nav';
+import { useStore } from '../store';
 import { OPEN_COURTS, OPEN_SESSIONS, ACADEMIES_DIR, CLUBS_DIR } from '../data';
 
 function endOf(time) {
@@ -16,6 +17,7 @@ function endOf(time) {
 
 export default function DiscoverScreen() {
   const { nav } = useNav();
+  const state = useStore();
 
   function openCourt(c) {
     nav.push('payment', { courtNo: c.court, type: c.type, venue: c.venue, day: 'Today', time: c.time, endTime: endOf(c.time), price: c.price, guest: c.guest });
@@ -95,7 +97,9 @@ export default function DiscoverScreen() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {ACADEMIES_DIR.map((a) => (
                 <button key={a.id} onClick={() => openAcademy(a)} className="sq-card" style={{ textAlign: 'left', cursor: 'pointer', padding: 12, display: 'flex', flexDirection: 'column', gap: 5 }}>
-                  <div style={{ width: 34, height: 34, borderRadius: 9, background: 'color-mix(in srgb, var(--sq-gold) 14%, transparent)', border: '1px solid color-mix(in srgb, var(--sq-gold) 28%, transparent)', color: 'var(--sq-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icons.Trophy size={17} /></div>
+                  <div style={{ width: 34, height: 34, borderRadius: 9, overflow: 'hidden', background: 'color-mix(in srgb, var(--sq-gold) 14%, transparent)', border: '1px solid color-mix(in srgb, var(--sq-gold) 28%, transparent)', color: 'var(--sq-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {a.id === 'ramyashour' && state.images?.academyLogo ? <img src={state.images.academyLogo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Icons.Trophy size={17} />}
+                  </div>
                   <div className="sq-display" style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.2 }}>{a.short}</div>
                   <div className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)' }}>{a.courts} courts · book</div>
                 </button>
@@ -107,7 +111,9 @@ export default function DiscoverScreen() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {CLUBS_DIR.map((c) => (
                 <button key={c.id} onClick={() => openClub(c)} className="sq-card" style={{ textAlign: 'left', cursor: 'pointer', padding: 12, display: 'flex', flexDirection: 'column', gap: 5 }}>
-                  <div style={{ width: 34, height: 34, borderRadius: 9, background: `color-mix(in srgb, ${c.accent} 16%, transparent)`, border: `1px solid color-mix(in srgb, ${c.accent} 30%, transparent)`, color: c.accent, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icons.Club size={17} /></div>
+                  <div style={{ width: 34, height: 34, borderRadius: 9, overflow: 'hidden', background: `color-mix(in srgb, ${c.accent} 16%, transparent)`, border: `1px solid color-mix(in srgb, ${c.accent} 30%, transparent)`, color: c.accent, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {c.id === 'heliopolis' && state.images?.clubCrest ? <img src={state.images.clubCrest} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Icons.Club size={17} />}
+                  </div>
                   <div className="sq-display" style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.2 }}>{c.short}</div>
                   <div className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)', display: 'flex', alignItems: 'center', gap: 4 }}>
                     {c.guestPass ? 'Guest passes' : <><Icons.Lock size={9} /> members</>}
