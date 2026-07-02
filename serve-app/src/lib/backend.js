@@ -50,9 +50,12 @@ export async function hydrate() {
 
 // Re-hydrate on login/logout — with tightened RLS, what a client can see
 // depends on who they are, so the pre-login snapshot goes stale on sign-in.
+// IMPORTANT: the callback must not touch supabase synchronously — sign-in
+// holds an internal auth lock until all subscribers return, and a query here
+// waits on that same lock (deadlock: sign-in never resolves). Defer instead.
 export function onAuth(cb) {
   if (!hasBackend) return () => {};
-  const { data } = supabase.auth.onAuthStateChange(() => cb());
+  const { data } = supabase.auth.onAuthStateChange(() => { setTimeout(cb, 0); });
   return () => data?.subscription?.unsubscribe();
 }
 
