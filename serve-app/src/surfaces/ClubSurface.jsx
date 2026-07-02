@@ -1,12 +1,8 @@
-// ClubSurface.jsx — the club-coordinator (coach) desktop console, full width.
+// ClubSurface.jsx — desktop console entry. Now gated by the unified admin
+// login/signup + onboarding (club or academy), which then opens the console.
 
-import DesktopFrame from '../desktop/DesktopFrame';
-import CoachConsole from '../desktop/coach/CoachConsole';
+import ConsoleSurface from './ConsoleSurface';
 
 export default function ClubSurface() {
-  return (
-    <DesktopFrame>
-      <CoachConsole />
-    </DesktopFrame>
-  );
+  return <ConsoleSurface />;
 }

@@ -96,7 +96,7 @@ export default function MyClubScreen() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
                 <ClubCrest size={42} radius={11} />
                 <div>
-                  <div className="sq-display" style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.1 }}>{CLUB.short}</div>
+                  <div className="sq-display" style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.1 }}>{state.clubName || CLUB.short}</div>
                   <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', marginTop: 2 }}>SQUASH SECTION</div>
                 </div>
               </div>

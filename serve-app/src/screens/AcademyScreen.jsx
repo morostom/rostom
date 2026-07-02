@@ -47,7 +47,7 @@ export default function AcademyScreen({ academy }) {
             {logo ? <img src={logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Icons.Trophy size={24} />}
           </div>
         </div>
-        <h1 className="sq-display" style={{ margin: '14px 0 0', fontSize: 24, fontWeight: 700, letterSpacing: '-0.025em', lineHeight: 1.1 }}>{academy.name}</h1>
+        <h1 className="sq-display" style={{ margin: '14px 0 0', fontSize: 24, fontWeight: 700, letterSpacing: '-0.025em', lineHeight: 1.1 }}>{(backed && state.academyName) || academy.name}</h1>
         <div className="sq-mono" style={{ fontSize: 11.5, color: 'var(--sq-text-2)', marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
           <Icons.Pin size={12} /> {academy.city} · {academy.courts} courts · open booking
         </div>

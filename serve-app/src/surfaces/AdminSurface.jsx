@@ -1,12 +1,8 @@
-// AdminSurface.jsx — the academy-owner desktop console, full width.
+// AdminSurface.jsx — desktop console entry. Now gated by the unified admin
+// login/signup + onboarding (club or academy), which then opens the console.
 
-import DesktopFrame from '../desktop/DesktopFrame';
-import AdminConsole from '../desktop/admin/AdminConsole';
+import ConsoleSurface from './ConsoleSurface';
 
 export default function AdminSurface() {
-  return (
-    <DesktopFrame>
-      <AdminConsole />
-    </DesktopFrame>
-  );
+  return <ConsoleSurface />;
 }

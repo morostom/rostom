@@ -39,7 +39,7 @@ function Sidebar({ active, onNav }) {
       <div className="sq-card" style={{ padding: '10px 12px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
         <Crest size={32} radius={8} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="sq-display" style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.1 }}>{CLUB.short}</div>
+          <div className="sq-display" style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.1 }}>{state.clubName || CLUB.short}</div>
           <div className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)', letterSpacing: '0.04em' }}>Squash · Cairo</div>
         </div>
         <Icons.Chevron size={12} dir="down" />
@@ -391,12 +391,13 @@ function AccessCodes() {
 function ClubProfile() {
   const notify = useToast();
   const state = useStore();
-  const [name, setName] = useState(CLUB.name);
+  const [name, setName] = useState(state.clubName || CLUB.name);
   const fieldCss = { padding: '11px 13px', border: '1px solid var(--sq-border-2)', borderRadius: 9, background: 'rgba(255,255,255,0.02)', fontSize: 14, color: 'var(--sq-text)', outline: 'none', width: '100%', fontFamily: 'var(--sq-body)' };
   const Label = ({ children }) => <label className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 6 }}>{children}</label>;
+  function save() { store.setOrgName('club', name); notify('Profile saved'); }
   return (
     <>
-      <Topbar title="Club profile" sub="Branding · public page" trailing={<button className="sq-btn-gold" style={{ padding: '9px 16px', fontSize: 12.5 }} onClick={() => notify('Profile saved')}>Save changes</button>} />
+      <Topbar title="Club profile" sub="Branding · public page" trailing={<button className="sq-btn-gold" style={{ padding: '9px 16px', fontSize: 12.5 }} onClick={save}>Save changes</button>} />
       <div style={{ padding: '24px 30px 40px', display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: 24, maxWidth: 1000 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
           <div className="sq-card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>

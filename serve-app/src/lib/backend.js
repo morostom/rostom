@@ -41,6 +41,8 @@ export async function hydrate() {
     const aca = settings.data.find((s) => s.id === ACADEMY);
     if (hel?.accent) patch.clubTheme = hel.accent;
     if (aca?.accent) patch.academyTheme = aca.accent;
+    if (hel?.name) patch.clubName = hel.name;
+    if (aca?.name) patch.academyName = aca.name;
     patch.images = { clubCrest: hel?.crest || undefined, clubCover: hel?.cover || undefined, academyLogo: aca?.logo || undefined, academyCover: aca?.cover || undefined };
   }
   return patch;
@@ -89,6 +91,10 @@ export async function setPayment(id, patch) {
 export async function setTheme(which, hex) {
   const id = which === 'club' ? CLUB : ACADEMY;
   await supabase.from('org_settings').upsert({ id, type: which, accent: hex, updated_at: new Date().toISOString() });
+}
+export async function setName(which, name) {
+  const id = which === 'club' ? CLUB : ACADEMY;
+  await supabase.from('org_settings').upsert({ id, type: which, name, updated_at: new Date().toISOString() });
 }
 export async function addStaff(s) {
   // let the DB mint the uuid; realtime hydrate reconciles the optimistic row

@@ -54,3 +54,21 @@ export async function loadCard() {
   const { data } = await supabase.from('profiles').select('card').eq('id', u.user.id).single();
   return data?.card || null;
 }
+
+// ── admin (club/academy owner) profile ───────────────────────────────
+// Stored in the same profiles.card jsonb, tagged kind:'admin', so we know
+// which console to open on login without a schema change.
+export async function saveAdmin({ adminName, orgType, orgName }) {
+  if (!hasBackend) return;
+  const { data } = await supabase.auth.getUser();
+  if (data?.user) await supabase.from('profiles').upsert({ id: data.user.id, name: adminName || null, card: { kind: 'admin', orgType, orgName, adminName } });
+}
+export async function loadAdmin() {
+  if (!hasBackend) return null;
+  const { data: u } = await supabase.auth.getUser();
+  if (!u?.user) return null;
+  const { data } = await supabase.from('profiles').select('card, name').eq('id', u.user.id).single();
+  const card = data?.card;
+  if (card?.kind === 'admin') return { ...card, adminName: card.adminName || data?.name };
+  return null;
+}

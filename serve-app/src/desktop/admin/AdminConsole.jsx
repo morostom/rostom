@@ -45,7 +45,7 @@ function Sidebar({ active, onNav }) {
           {state.images?.academyLogo ? <img src={state.images.academyLogo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Icons.Trophy size={16} />}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="sq-display" style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.1 }}>{ACADEMY.short}</div>
+          <div className="sq-display" style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.1 }}>{state.academyName || ACADEMY.short}</div>
           <div className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)', letterSpacing: '0.05em' }}>Admin · {ACADEMY.district}</div>
         </div>
         <Icons.Chevron size={12} dir="down" />
@@ -576,12 +576,14 @@ function PreviewStat({ label, value }) {
 function AcademyProfile() {
   const notify = useToast();
   const state = useStore();
+  const [name, setName] = useState(state.academyName || ACADEMY.name);
+  function save() { store.setOrgName('academy', name); notify('Changes saved'); }
   return (
     <>
       <Topbar title="Academy profile" sub="Branding · public page" trailing={
         <>
           <button className="sq-btn-ghost" style={{ padding: '9px 14px', fontSize: 12.5 }} onClick={() => notify('Opening public page')}>Preview public page</button>
-          <button className="sq-btn-gold" style={{ padding: '9px 16px', fontSize: 12.5 }} onClick={() => notify('Changes saved')}>Save changes</button>
+          <button className="sq-btn-gold" style={{ padding: '9px 16px', fontSize: 12.5 }} onClick={save}>Save changes</button>
         </>
       } />
       <div style={{ padding: '24px 32px 40px', display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 24 }}>
@@ -599,7 +601,10 @@ function AcademyProfile() {
             </div>
           </FormCard>
           <FormCard title="Details" step="Public info">
-            <Field label="Academy name" value={ACADEMY.name} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <label style={{ fontSize: 11, color: 'var(--sq-text-3)', fontFamily: 'var(--sq-mono)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Academy name</label>
+              <input value={name} onChange={(e) => setName(e.target.value)} style={{ padding: '10px 12px', border: '1px solid var(--sq-border-2)', borderRadius: 8, background: 'rgba(255,255,255,0.02)', fontFamily: 'var(--sq-body)', fontSize: 13.5, color: 'var(--sq-text)', outline: 'none' }} />
+            </div>
             <Field label="Tagline" value={ACADEMY.tagline} />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
               <Field label="City" value="Cairo" />

@@ -3,7 +3,7 @@
 // mirrored across tabs of the same origin via the `storage` event.
 
 import { useSyncExternalStore } from 'react';
-import { PAYMENTS, COACHES } from './data';
+import { PAYMENTS, COACHES, CLUB, ACADEMY } from './data';
 import { hasBackend } from './lib/supabase';
 import * as backend from './lib/backend';
 
@@ -48,6 +48,8 @@ function seed() {
   return {
     clubTheme: '#4ea8ff', // Heliopolis ships blue
     academyTheme: '#f5453b',
+    clubName: CLUB.name,
+    academyName: ACADEMY.name,
     courts: seedCourts(),
     sessions: seedSessions(),
     staff: seedStaff(),
@@ -108,6 +110,12 @@ export const store = {
   get: () => state,
   setClubTheme: (hex) => { commit({ ...state, clubTheme: hex }); if (hasBackend) backend.setTheme('club', hex); },
   setAcademyTheme: (hex) => { commit({ ...state, academyTheme: hex }); if (hasBackend) backend.setTheme('academy', hex); },
+  setOrgName: (which, name) => {
+    const clean = (name || '').trim();
+    if (!clean) return;
+    commit({ ...state, [which === 'club' ? 'clubName' : 'academyName']: clean });
+    if (hasBackend) backend.setName(which, clean);
+  },
   setImage: (key, dataURL) => { commit({ ...state, images: { ...state.images, [key]: dataURL } }); if (hasBackend) backend.setImage(key, dataURL); },
   setCourt: (court, patch) => {
     const next = state.courts.map((c) => (c.court === court ? { ...c, ...patch } : c));
