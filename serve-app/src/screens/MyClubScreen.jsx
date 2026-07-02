@@ -11,6 +11,7 @@ import ThemeScope from '../components/ThemeScope';
 import ClubCrest from '../components/ClubCrest';
 import { useNav } from '../navigation/nav';
 import { useStore } from '../store';
+import { useT } from '../i18n';
 import { CLUB } from '../data';
 
 const STATUS = {
@@ -83,6 +84,7 @@ function MySessionRow({ s }) {
 export default function MyClubScreen() {
   const { nav, player } = useNav();
   const state = useStore();
+  const t = useT();
   const free = state.courts.filter((c) => c.status === 'free').length;
   const mine = state.sessions.filter((s) => s.mine || (player?.name && s.players?.includes(player.name)));
 
@@ -97,11 +99,11 @@ export default function MyClubScreen() {
                 <ClubCrest size={42} radius={11} />
                 <div>
                   <div className="sq-display" style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.1 }}>{state.clubName || CLUB.short}</div>
-                  <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', marginTop: 2 }}>SQUASH SECTION</div>
+                  <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', marginTop: 2 }}>{t('SQUASH SECTION')}</div>
                 </div>
               </div>
               <span className="sq-chip" style={{ fontSize: 10.5, color: 'var(--sq-green)', borderColor: 'rgba(74,222,128,0.25)', background: 'rgba(74,222,128,0.1)' }}>
-                <Icons.Check size={11} /> Member
+                <Icons.Check size={11} /> {t('Member')}
               </span>
             </div>
           </div>
@@ -121,24 +123,24 @@ export default function MyClubScreen() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 11 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span className="sq-live-dot" />
-              <span className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-2)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Courts right now</span>
+              <span className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-2)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{t('Courts right now')}</span>
             </div>
-            <span className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-green)' }}>{free} open</span>
+            <span className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-green)' }}>{free} {t('open')}</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             {state.courts.map((c) => <CourtTile key={c.court} c={c} onBook={(court) => nav.push('book', { court })} />)}
           </div>
           <button className="sq-btn-gold serve-glow-soft" style={{ width: '100%', padding: '14px', fontSize: 14, marginTop: 12 }} onClick={() => nav.push('book')}>
-            <Icons.Plus size={15} style={{ verticalAlign: -3, marginRight: 6 }} /> Book a court
+            <Icons.Plus size={15} style={{ verticalAlign: -3, marginRight: 6 }} /> {t('Book a court')}
           </button>
         </div>
 
         {/* your schedule */}
         <div style={{ padding: '0 20px 24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <span className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Your schedule</span>
+            <span className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>{t('Your schedule')}</span>
             <button onClick={() => nav.push('clubSchedule')} style={{ background: 'none', border: 0, color: 'var(--sq-gold)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--sq-body)' }}>
-              Full club schedule →
+              {t('Full club schedule →')}
             </button>
           </div>
           {mine.length ? (
@@ -147,7 +149,7 @@ export default function MyClubScreen() {
             </div>
           ) : (
             <div className="sq-card" style={{ padding: 20, textAlign: 'center', color: 'var(--sq-text-3)', fontSize: 13 }}>
-              No sessions yet. Your coach's lessons & training will appear here.
+              {t("No sessions yet. Your coach's lessons & training will appear here.")}
             </div>
           )}
         </div>

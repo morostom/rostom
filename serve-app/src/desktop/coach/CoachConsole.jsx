@@ -14,6 +14,7 @@ import ClubCrest from '../../components/ClubCrest';
 import { ToastProvider, useToast } from '../../components/Toast';
 import { DUR_FAST } from '../../motion';
 import { useStore, store } from '../../store';
+import { useT } from '../../i18n';
 import { CLUB, ROSTER, CODES, randomCode, SESSION_TYPES, TIME_SLOTS, WEEK_DAYS, BRAND_COLORS } from '../../data';
 
 const SIDEBAR_W = 240;
@@ -23,6 +24,7 @@ const Crest = ClubCrest;
 
 function Sidebar({ active, onNav }) {
   const state = useStore();
+  const t = useT();
   const coachCount = state.staff.filter((s) => s.org_id === 'heliopolis').length;
   const items = [
     { id: 'board', icon: <Icons.Activity size={16} />, label: 'Live courts' },
@@ -44,12 +46,12 @@ function Sidebar({ active, onNav }) {
         </div>
         <Icons.Chevron size={12} dir="down" />
       </div>
-      <div className="sq-mono" style={{ padding: '8px 10px 6px', fontSize: 9.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Section</div>
+      <div className="sq-mono" style={{ padding: '8px 10px 6px', fontSize: 9.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>{t('Section')}</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {items.map((it) => (
           <button key={it.id} onClick={() => onNav(it.id)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 8, background: it.id === active ? 'color-mix(in srgb, var(--sq-gold) 8%, transparent)' : 'transparent', color: it.id === active ? 'var(--sq-gold)' : 'var(--sq-text-2)', fontSize: 13, fontWeight: it.id === active ? 500 : 400, position: 'relative', border: 0, cursor: 'pointer', textAlign: 'left', fontFamily: 'var(--sq-body)' }}>
             {it.id === active && <span style={{ position: 'absolute', left: -12, top: 8, bottom: 8, width: 2, borderRadius: 1, background: 'var(--sq-gold)' }} />}
-            {it.icon}<span style={{ flex: 1 }}>{it.label}</span>
+            {it.icon}<span style={{ flex: 1 }}>{t(it.label)}</span>
             {it.badge && <span className="sq-mono" style={{ fontSize: 10, color: it.id === active ? 'var(--sq-gold)' : 'var(--sq-text-3)' }}>{it.badge}</span>}
           </button>
         ))}

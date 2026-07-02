@@ -10,11 +10,13 @@ import { useNav } from '../navigation/nav';
 import { useStore } from '../store';
 import { useToast } from '../components/Toast';
 import { tierForActivity } from '../data';
+import { useT } from '../i18n';
 
 export default function ProfileHomeScreen({ justCreated }) {
   const { nav, player, setCardType } = useNav();
   const state = useStore();
   const notify = useToast();
+  const t = useT();
   const recreational = player.cardType === 'recreational';
   const accent = recreational ? 'var(--sq-blue)' : 'var(--sq-gold)';
 
@@ -30,7 +32,7 @@ export default function ProfileHomeScreen({ justCreated }) {
   function share() {
     const text = `${player.name || 'My'} — SERVE player card`;
     if (navigator.share) navigator.share({ title: 'SERVE', text }).catch(() => {});
-    else notify('Card link copied');
+    else notify(t('Card link copied'));
   }
 
   return (
@@ -48,7 +50,7 @@ export default function ProfileHomeScreen({ justCreated }) {
     >
       <div style={{ padding: '6px 20px 8px' }}>
         <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.14em' }}>
-          {justCreated ? 'Welcome to SERVE' : 'My player card'}
+          {justCreated ? t('Welcome to SERVE') : t('My player card')}
         </div>
       </div>
 
@@ -63,7 +65,7 @@ export default function ProfileHomeScreen({ justCreated }) {
       {/* up next — from the live schedule */}
       {next && (
         <div style={{ padding: '0 20px 16px' }}>
-          <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8 }}>Up next</div>
+          <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8 }}>{t('Up next')}</div>
           <button onClick={() => nav.switchTab('clubs')} style={{ width: '100%', textAlign: 'left', cursor: 'pointer', padding: 15, borderRadius: 14, display: 'flex', alignItems: 'center', gap: 14, background: 'linear-gradient(135deg, color-mix(in srgb, var(--sq-gold) 14%, transparent) 0%, color-mix(in srgb, var(--sq-gold) 3%, transparent) 50%, var(--sq-surface) 100%)', border: '1px solid color-mix(in srgb, var(--sq-gold) 25%, transparent)' }}>
             <div style={{ width: 50, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 0', borderRadius: 10, background: 'rgba(7,7,7,0.4)', border: '1px solid color-mix(in srgb, var(--sq-gold) 20%, transparent)' }}>
               <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-gold)', letterSpacing: '0.1em' }}>{next.day.toUpperCase()}</div>
@@ -80,7 +82,7 @@ export default function ProfileHomeScreen({ justCreated }) {
 
       {/* History — previous bookings */}
       <div style={{ padding: '0 20px 18px' }}>
-        <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>History</div>
+        <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>{t('History')}</div>
         {state.bookings.length ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {[...state.bookings].reverse().map((b) => (
@@ -98,7 +100,7 @@ export default function ProfileHomeScreen({ justCreated }) {
           </div>
         ) : (
           <div className="sq-card" style={{ padding: 18, textAlign: 'center', color: 'var(--sq-text-3)', fontSize: 12.5 }}>
-            No history yet — your past bookings will show here.
+            {t('No history yet — your past bookings will show here.')}
           </div>
         )}
       </div>
@@ -106,10 +108,10 @@ export default function ProfileHomeScreen({ justCreated }) {
       {/* actions */}
       <div style={{ padding: '0 20px 28px', display: 'flex', gap: 10 }}>
         <button className="sq-btn-ghost" style={{ padding: '13px 16px', fontSize: 13.5, flex: 1 }} onClick={editCard}>
-          <Icons.Edit size={14} /> Edit card
+          <Icons.Edit size={14} /> {t('Edit card')}
         </button>
         <button className="sq-btn-ghost" style={{ padding: '13px 16px', fontSize: 13.5, flex: 1 }} onClick={share}>
-          <Icons.Share size={14} /> Share
+          <Icons.Share size={14} /> {t('Share')}
         </button>
       </div>
     </MScreen>

@@ -12,6 +12,7 @@ import { DUR_FAST } from '../../motion';
 import { useStore, store } from '../../store';
 import { hasBackend } from '../../lib/supabase';
 import { signUp, signIn, saveAdmin, loadAdmin } from '../../lib/auth';
+import { useT } from '../../i18n';
 import { BRAND_COLORS } from '../../data';
 
 const fieldCss = { padding: '12px 14px', border: '1px solid var(--sq-border-2)', borderRadius: 10, background: 'rgba(255,255,255,0.02)', fontSize: 14, color: 'var(--sq-text)', outline: 'none', width: '100%', fontFamily: 'var(--sq-body)' };
@@ -33,6 +34,7 @@ function Shell({ children, sub }) {
 
 export default function AdminAuth({ onLive }) {
   const state = useStore();
+  const t = useT();
   const [stage, setStage] = useState('auth'); // auth | choose | details
   const [mode, setMode] = useState('signup'); // signup | login
   const [method, setMethod] = useState('email');
@@ -50,9 +52,9 @@ export default function AdminAuth({ onLive }) {
 
   async function submitAuth() {
     setErr('');
-    if (method === 'phone' && phone.replace(/\D/g, '').length < 7) return setErr('Enter a valid phone number.');
-    if (method === 'email' && !/\S+@\S+\.\S+/.test(email)) return setErr('Enter a valid email address.');
-    if (pw.length < 4) return setErr('Password must be at least 4 characters.');
+    if (method === 'phone' && phone.replace(/\D/g, '').length < 7) return setErr(t('Enter a valid phone number.'));
+    if (method === 'email' && !/\S+@\S+\.\S+/.test(email)) return setErr(t('Enter a valid email address.'));
+    if (pw.length < 4) return setErr(t('Password must be at least 4 characters.'));
 
     setBusy(true);
     const res = mode === 'login'
@@ -78,8 +80,8 @@ export default function AdminAuth({ onLive }) {
 
   async function goLive() {
     setErr('');
-    if (adminName.trim().length < 2) return setErr('Enter your name.');
-    if (orgName.trim().length < 2) return setErr(`Enter your ${orgType} name.`);
+    if (adminName.trim().length < 2) return setErr(t('Enter your name.'));
+    if (orgName.trim().length < 2) return setErr(t('Enter your name.'));
     store.setOrgName(orgType, orgName);
     await saveAdmin({ adminName, orgType, orgName });
     onLive(orgType);
@@ -94,27 +96,27 @@ export default function AdminAuth({ onLive }) {
     <AnimatePresence mode="wait">
       {stage === 'auth' && (
         <motion.div key="auth" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: DUR_FAST }}>
-          <Shell sub="The management console for your club or academy.">
+          <Shell sub={t('The management console for your club or academy.')}>
             <div className="sq-card" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ display: 'flex', background: 'var(--sq-bg)', borderRadius: 12, padding: 4, border: '1px solid var(--sq-border)' }}>
                 {[['signup', 'Create account'], ['login', 'Log in']].map(([id, label]) => (
-                  <button key={id} onClick={() => { setMode(id); setErr(''); }} style={{ flex: 1, padding: '11px', borderRadius: 9, border: 0, cursor: 'pointer', fontFamily: 'var(--sq-display)', fontWeight: 600, fontSize: 13.5, background: mode === id ? 'var(--sq-gold)' : 'transparent', color: mode === id ? '#0a0a0a' : 'var(--sq-text-2)' }}>{label}</button>
+                  <button key={id} onClick={() => { setMode(id); setErr(''); }} style={{ flex: 1, padding: '11px', borderRadius: 9, border: 0, cursor: 'pointer', fontFamily: 'var(--sq-display)', fontWeight: 600, fontSize: 13.5, background: mode === id ? 'var(--sq-gold)' : 'transparent', color: mode === id ? '#0a0a0a' : 'var(--sq-text-2)' }}>{t(label)}</button>
                 ))}
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 {[['email', 'Email'], ['phone', 'Phone']].map(([id, label]) => (
-                  <button key={id} onClick={() => { setMethod(id); setErr(''); }} className={'sq-chip' + (method === id ? ' gold' : '')} style={{ flex: 1, justifyContent: 'center', padding: '10px', fontSize: 12.5, cursor: 'pointer' }}>{label}</button>
+                  <button key={id} onClick={() => { setMethod(id); setErr(''); }} className={'sq-chip' + (method === id ? ' gold' : '')} style={{ flex: 1, justifyContent: 'center', padding: '10px', fontSize: 12.5, cursor: 'pointer' }}>{t(label)}</button>
                 ))}
               </div>
               {method === 'email' ? (
-                <div><Label>Work email</Label><input style={fieldCss} type="email" value={email} placeholder="you@club.com" onChange={(e) => setEmail(e.target.value)} /></div>
+                <div><Label>{t('Work email')}</Label><input style={fieldCss} type="email" value={email} placeholder="you@club.com" onChange={(e) => setEmail(e.target.value)} /></div>
               ) : (
-                <div><Label>Phone number</Label><input style={fieldCss} type="tel" value={phone} placeholder="+20 10 1234 5678" onChange={(e) => setPhone(e.target.value)} /></div>
+                <div><Label>{t('Phone number')}</Label><input style={fieldCss} type="tel" value={phone} placeholder="+20 10 1234 5678" onChange={(e) => setPhone(e.target.value)} /></div>
               )}
-              <div><Label>Password</Label><input style={fieldCss} type="password" value={pw} placeholder="At least 4 characters" onChange={(e) => setPw(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submitAuth()} /></div>
+              <div><Label>{t('Password')}</Label><input style={fieldCss} type="password" value={pw} placeholder={t('At least 4 characters')} onChange={(e) => setPw(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submitAuth()} /></div>
               {err && <div style={{ fontFamily: 'var(--sq-mono)', fontSize: 12, color: 'var(--sq-danger)', background: 'color-mix(in srgb, var(--sq-danger) 12%, transparent)', border: '1px solid color-mix(in srgb, var(--sq-danger) 35%, transparent)', borderRadius: 10, padding: '10px 12px' }}>{err}</div>}
               <button className="sq-btn-gold serve-glow-soft" style={{ padding: '14px', fontSize: 14.5 }} onClick={submitAuth} disabled={busy}>
-                {busy ? 'Please wait…' : mode === 'signup' ? 'Continue →' : 'Log in →'}
+                {busy ? t('Please wait…') : mode === 'signup' ? t('Continue →') : t('Log in →')}
               </button>
               <p style={{ margin: 0, textAlign: 'center', fontSize: 11.5, color: 'var(--sq-text-3)', lineHeight: 1.5 }}>
                 {mode === 'signup' ? "Next you'll pick whether you run a club or an academy." : 'Log in to open your console.'}
@@ -126,7 +128,7 @@ export default function AdminAuth({ onLive }) {
 
       {stage === 'choose' && (
         <motion.div key="choose" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: DUR_FAST }}>
-          <Shell sub="What are you setting up?">
+          <Shell sub={t('What are you setting up?')}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
               {[
                 { t: 'club', icon: <Icons.Club size={30} />, title: 'Club', sub: 'Members-only. Live court board, schedule, access codes.' },
@@ -134,10 +136,10 @@ export default function AdminAuth({ onLive }) {
               ].map((o) => (
                 <button key={o.t} onClick={() => chooseType(o.t)} className="sq-card" style={{ textAlign: 'left', cursor: 'pointer', padding: 22, display: 'flex', flexDirection: 'column', gap: 12, minHeight: 190 }}>
                   <div style={{ width: 56, height: 56, borderRadius: 15, background: 'color-mix(in srgb, var(--sq-gold) 14%, transparent)', border: '1px solid color-mix(in srgb, var(--sq-gold) 30%, transparent)', color: 'var(--sq-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{o.icon}</div>
-                  <div className="sq-display" style={{ fontSize: 19, fontWeight: 700 }}>{o.title}</div>
-                  <div style={{ fontSize: 12.5, color: 'var(--sq-text-2)', lineHeight: 1.5 }}>{o.sub}</div>
+                  <div className="sq-display" style={{ fontSize: 19, fontWeight: 700 }}>{t(o.title)}</div>
+                  <div style={{ fontSize: 12.5, color: 'var(--sq-text-2)', lineHeight: 1.5 }}>{t(o.sub)}</div>
                   <div style={{ flex: 1 }} />
-                  <span className="sq-mono" style={{ fontSize: 11.5, color: 'var(--sq-gold)', display: 'flex', alignItems: 'center', gap: 6 }}>Set up <Icons.ArrowRight size={13} /></span>
+                  <span className="sq-mono" style={{ fontSize: 11.5, color: 'var(--sq-gold)', display: 'flex', alignItems: 'center', gap: 6 }}>{t('Set up')} <Icons.ArrowRight size={13} /></span>
                 </button>
               ))}
             </div>
@@ -147,22 +149,22 @@ export default function AdminAuth({ onLive }) {
 
       {stage === 'details' && (
         <motion.div key="details" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: DUR_FAST }}>
-          <Shell sub={`Set up your ${orgType}. This is what players will see.`}>
+          <Shell sub={t('Set up your club. This is what players will see.')}>
             <div className="sq-card" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 18 }}>
-              <div><Label>Your name</Label><input style={fieldCss} value={adminName} placeholder="e.g. Ahmed Hassan" onChange={(e) => setAdminName(e.target.value)} /></div>
-              <div><Label>{orgType === 'club' ? 'Club' : 'Academy'} name</Label><input style={fieldCss} value={orgName} placeholder={orgType === 'club' ? 'e.g. Heliopolis Sporting Club' : 'e.g. Ramy Ashour Squash Academy'} onChange={(e) => setOrgName(e.target.value)} /></div>
+              <div><Label>{t('Your name')}</Label><input style={fieldCss} value={adminName} placeholder="e.g. Ahmed Hassan" onChange={(e) => setAdminName(e.target.value)} /></div>
+              <div><Label>{orgType === 'club' ? t('Club name') : t('Academy name')}</Label><input style={fieldCss} value={orgName} placeholder={orgType === 'club' ? 'e.g. Heliopolis Sporting Club' : 'e.g. Ramy Ashour Squash Academy'} onChange={(e) => setOrgName(e.target.value)} /></div>
               <div style={{ display: 'flex', gap: 16 }}>
                 <div style={{ width: 120, flexShrink: 0 }}>
-                  <Label>{orgType === 'club' ? 'Crest' : 'Logo'}</Label>
+                  <Label>{orgType === 'club' ? t('Crest') : t('Logo')}</Label>
                   <UploadSlot value={state.images[logoKey]} onChange={(d) => store.setImage(logoKey, d)} label="Drop image" height={120} radius={16} />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <Label>Cover photo</Label>
+                  <Label>{t('Cover photo')}</Label>
                   <UploadSlot value={state.images[coverKey]} onChange={(d) => store.setImage(coverKey, d)} label="Drop a cover photo of your courts" height={120} radius={12} />
                 </div>
               </div>
               <div>
-                <Label>Brand colour</Label>
+                <Label>{t('Brand colour')}</Label>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                   {BRAND_COLORS.map((c) => {
                     const on = (theme || '').toLowerCase() === c.hex.toLowerCase();
@@ -172,8 +174,8 @@ export default function AdminAuth({ onLive }) {
               </div>
               {err && <div style={{ fontFamily: 'var(--sq-mono)', fontSize: 12, color: 'var(--sq-danger)', background: 'color-mix(in srgb, var(--sq-danger) 12%, transparent)', border: '1px solid color-mix(in srgb, var(--sq-danger) 35%, transparent)', borderRadius: 10, padding: '10px 12px' }}>{err}</div>}
               <div style={{ display: 'flex', gap: 10 }}>
-                <button className="sq-btn-ghost" style={{ padding: '13px 18px', fontSize: 13.5 }} onClick={() => setStage('choose')}>Back</button>
-                <button className="sq-btn-gold serve-glow-soft" style={{ flex: 1, padding: '14px', fontSize: 14.5 }} onClick={goLive}>Go live →</button>
+                <button className="sq-btn-ghost" style={{ padding: '13px 18px', fontSize: 13.5 }} onClick={() => setStage('choose')}>{t('Back')}</button>
+                <button className="sq-btn-gold serve-glow-soft" style={{ flex: 1, padding: '14px', fontSize: 14.5 }} onClick={goLive}>{t('Go live →')}</button>
               </div>
             </div>
           </Shell>

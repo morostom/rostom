@@ -10,6 +10,7 @@ import { MScreen, Pill } from '../components/mobile';
 import ThemeScope from '../components/ThemeScope';
 import { useNav } from '../navigation/nav';
 import { useStore, store } from '../store';
+import { useT } from '../i18n';
 
 const METHODS = [
   { id: 'applepay', label: 'Apple Pay', sub: 'One tap with Face ID' },
@@ -32,6 +33,7 @@ function CardForm() {
 export default function PaymentScreen(params) {
   const { nav, player } = useNav();
   const state = useStore();
+  const t = useT();
   const { courtNo, title, venue = 'Heliopolis SC', type = 'Standard', day = 'Today', time, endTime, price, secureCourt = false, guest = false } = params;
   const heading = title || `Court ${courtNo}`;
   const [method, setMethod] = useState('applepay');
@@ -65,17 +67,17 @@ export default function PaymentScreen(params) {
         header={phase === 'form' ? (
           <div style={{ padding: '6px 16px 10px', display: 'flex', alignItems: 'center', gap: 12 }}>
             <Pill onClick={() => nav.pop()}><Icons.Chevron dir="left" size={16} /></Pill>
-            <span className="sq-display" style={{ fontSize: 17, fontWeight: 700 }}>Checkout</span>
+            <span className="sq-display" style={{ fontSize: 17, fontWeight: 700 }}>{t('Checkout')}</span>
           </div>
         ) : null}
         tabBar={phase === 'form' ? (
           <div style={{ padding: '12px 20px', borderTop: '1px solid var(--sq-border)', background: 'rgba(7,7,7,0.95)', display: 'flex', flexDirection: 'column', gap: 10 }}>
             <button className="sq-btn-gold serve-glow-soft" style={{ width: '100%', padding: '15px', fontSize: 14.5 }} onClick={pay}>
-              {method === 'applepay' ? <> Pay</> : `Pay EGP ${price}`}
+              {method === 'applepay' ? <> Pay</> : `${t('Pay EGP')} ${price}`}
             </button>
             {parentLink && (
               <button className="sq-btn-ghost" style={{ width: '100%', padding: '13px', fontSize: 13.5, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }} onClick={transferToParent}>
-                <Icons.Heart size={15} /> Transfer to parent
+                <Icons.Heart size={15} /> {t('Transfer to parent')}
               </button>
             )}
           </div>
@@ -88,18 +90,18 @@ export default function PaymentScreen(params) {
               <Icons.Heart size={40} />
             </motion.div>
             <div>
-              <h1 className="sq-display" style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em' }}>Sent to your parent</h1>
-              <p style={{ margin: '8px 0 0', color: 'var(--sq-text-2)', fontSize: 14, lineHeight: 1.5 }}>They’ll get an alert on their phone to approve and pay. This court is held for <strong style={{ color: 'var(--sq-text)' }}>10 minutes</strong>.</p>
+              <h1 className="sq-display" style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em' }}>{t('Sent to your parent')}</h1>
+              <p style={{ margin: '8px 0 0', color: 'var(--sq-text-2)', fontSize: 14, lineHeight: 1.5 }}>{t('They’ll get an alert on their phone to approve and pay. This court is held for 10 minutes.')}</p>
             </div>
             <div className="sq-card" style={{ width: '100%', padding: 16, display: 'flex', flexDirection: 'column', gap: 8, textAlign: 'left' }}>
               {[['What', heading], ['Where', venue], ['When', `${day} · ${time}`], ['Amount', `EGP ${price}`]].map(([k, v]) => (
                 <div key={k} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                  <span className="sq-mono" style={{ color: 'var(--sq-text-3)', textTransform: 'uppercase', fontSize: 10.5, letterSpacing: '0.08em' }}>{k}</span>
+                  <span className="sq-mono" style={{ color: 'var(--sq-text-3)', textTransform: 'uppercase', fontSize: 10.5, letterSpacing: '0.08em' }}>{t(k)}</span>
                   <span style={{ fontWeight: 500, textAlign: 'right' }}>{v}</span>
                 </div>
               ))}
             </div>
-            <button className="sq-btn-gold" style={{ width: '100%', padding: '13px', fontSize: 13.5 }} onClick={() => nav.switchTab('bookings')}>Done</button>
+            <button className="sq-btn-gold" style={{ width: '100%', padding: '13px', fontSize: 13.5 }} onClick={() => nav.switchTab('bookings')}>{t('Done')}</button>
           </div>
         ) : phase === 'done' ? (
           <div className="sq-fade-up" style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0 32px', gap: 18 }}>
@@ -108,26 +110,26 @@ export default function PaymentScreen(params) {
               <Icons.Check size={44} />
             </motion.div>
             <div>
-              <h1 className="sq-display" style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em' }}>{secureCourt ? 'Court secured' : 'Booked!'}</h1>
+              <h1 className="sq-display" style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em' }}>{secureCourt ? t('Court secured') : t('Booked!')}</h1>
               <p style={{ margin: '8px 0 0', color: 'var(--sq-text-2)', fontSize: 14 }}>{heading} · {venue} · {time}{endTime ? `–${endTime}` : ''}</p>
             </div>
             <div className="sq-card" style={{ width: '100%', padding: 16, display: 'flex', flexDirection: 'column', gap: 8, textAlign: 'left' }}>
               {[['What', heading], ['Where', venue], ['When', `${day} · ${time}`], ['Paid', `EGP ${price}`], ['Method', METHODS.find((m) => m.id === method)?.label]].map(([k, v]) => (
                 <div key={k} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                  <span className="sq-mono" style={{ color: 'var(--sq-text-3)', textTransform: 'uppercase', fontSize: 10.5, letterSpacing: '0.08em' }}>{k}</span>
+                  <span className="sq-mono" style={{ color: 'var(--sq-text-3)', textTransform: 'uppercase', fontSize: 10.5, letterSpacing: '0.08em' }}>{t(k)}</span>
                   <span style={{ fontWeight: 500, textAlign: 'right' }}>{v}</span>
                 </div>
               ))}
             </div>
             <div style={{ display: 'flex', gap: 10, width: '100%' }}>
-              <button className="sq-btn-ghost" style={{ flex: 1, padding: '13px', fontSize: 13.5 }} onClick={() => nav.switchTab('bookings')}>My bookings</button>
-              <button className="sq-btn-gold" style={{ flex: 1, padding: '13px', fontSize: 13.5 }} onClick={() => nav.switchTab('discover')}>Done</button>
+              <button className="sq-btn-ghost" style={{ flex: 1, padding: '13px', fontSize: 13.5 }} onClick={() => nav.switchTab('bookings')}>{t('My bookings')}</button>
+              <button className="sq-btn-gold" style={{ flex: 1, padding: '13px', fontSize: 13.5 }} onClick={() => nav.switchTab('discover')}>{t('Done')}</button>
             </div>
           </div>
         ) : phase === 'processing' ? (
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, color: 'var(--sq-text-2)' }}>
             <motion.div animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }} style={{ width: 40, height: 40, borderRadius: '50%', border: '3px solid var(--sq-border-2)', borderTopColor: 'var(--sq-gold)' }} />
-            <span style={{ fontSize: 14 }}>Processing payment…</span>
+            <span style={{ fontSize: 14 }}>{t('Processing payment…')}</span>
           </div>
         ) : (
           <div style={{ padding: '8px 20px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -147,7 +149,7 @@ export default function PaymentScreen(params) {
               </div>
             )}
             <div>
-              <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>Payment method</div>
+              <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>{t('Payment method')}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {METHODS.map((m) => {
                   const on = m.id === method;
@@ -157,8 +159,8 @@ export default function PaymentScreen(params) {
                         {m.id === 'applepay' ? <span style={{ fontWeight: 600, fontSize: 15, fontFamily: 'system-ui' }}> Pay</span> : m.id === 'telda' ? <span style={{ fontFamily: 'var(--sq-display)', fontWeight: 700, fontSize: 13 }}>telda</span> : <Icons.Wallet size={20} />}
                       </span>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 14, fontWeight: 600 }}>{m.label}</div>
-                        <div style={{ fontSize: 11.5, color: 'var(--sq-text-3)', marginTop: 1 }}>{m.sub}</div>
+                        <div style={{ fontSize: 14, fontWeight: 600 }}>{t(m.label)}</div>
+                        <div style={{ fontSize: 11.5, color: 'var(--sq-text-3)', marginTop: 1 }}>{t(m.sub)}</div>
                       </div>
                       <span style={{ width: 20, height: 20, borderRadius: 10, border: '2px solid ' + (on ? 'var(--sq-gold)' : 'var(--sq-border-2)'), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         {on && <span style={{ width: 9, height: 9, borderRadius: 5, background: 'var(--sq-gold)' }} />}

@@ -7,6 +7,7 @@ import { MScreen, Pill } from '../components/mobile';
 import ThemeScope from '../components/ThemeScope';
 import { useNav } from '../navigation/nav';
 import { useStore } from '../store';
+import { useT } from '../i18n';
 import { academyCourts, OPEN_SESSIONS } from '../data';
 
 function endOf(time) {
@@ -18,6 +19,7 @@ function endOf(time) {
 export default function AcademyScreen({ academy }) {
   const { nav } = useNav();
   const state = useStore();
+  const t = useT();
   const courts = academyCourts(academy);
   const sessions = OPEN_SESSIONS.filter((s) => s.venueId === academy.id);
 
@@ -34,7 +36,7 @@ export default function AcademyScreen({ academy }) {
       header={
         <div style={{ padding: '6px 16px 8px', display: 'flex', alignItems: 'center', gap: 12 }}>
           <Pill onClick={() => nav.pop()}><Icons.Chevron dir="left" size={16} /></Pill>
-          <span className="sq-display" style={{ fontSize: 16, fontWeight: 700 }}>Academy</span>
+          <span className="sq-display" style={{ fontSize: 16, fontWeight: 700 }}>{t('Academy')}</span>
         </div>
       }
     >
@@ -49,12 +51,12 @@ export default function AcademyScreen({ academy }) {
         </div>
         <h1 className="sq-display" style={{ margin: '14px 0 0', fontSize: 24, fontWeight: 700, letterSpacing: '-0.025em', lineHeight: 1.1 }}>{(backed && state.academyName) || academy.name}</h1>
         <div className="sq-mono" style={{ fontSize: 11.5, color: 'var(--sq-text-2)', marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Icons.Pin size={12} /> {academy.city} · {academy.courts} courts · open booking
+          <Icons.Pin size={12} /> {academy.city} · {academy.courts} courts · {t('open booking')}
         </div>
 
         {/* available courts */}
         <div style={{ marginTop: 22 }}>
-          <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-gold)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>Available courts · today</div>
+          <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-gold)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>{t('Available courts · today')}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {courts.map((c) => (
               <div key={c.court} className="sq-card" style={{ padding: 14, display: 'flex', alignItems: 'center', gap: 13 }}>
@@ -69,7 +71,7 @@ export default function AcademyScreen({ academy }) {
                   <div className="sq-mono" style={{ fontSize: 13, color: 'var(--sq-gold)', marginBottom: 6 }}>EGP {c.price}</div>
                   <button className="sq-btn-gold" style={{ padding: '7px 14px', fontSize: 12 }}
                     onClick={() => nav.push('payment', { courtNo: c.court, type: c.type, venue: academy.name, day: 'Today', time: c.time, endTime: endOf(c.time), price: c.price })}>
-                    Book
+                    {t('Book')}
                   </button>
                 </div>
               </div>
@@ -80,7 +82,7 @@ export default function AcademyScreen({ academy }) {
         {/* open sessions */}
         {sessions.length > 0 && (
           <div style={{ marginTop: 22 }}>
-            <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-gold)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>Group sessions</div>
+            <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-gold)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>{t('Group sessions')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {sessions.map((s) => (
                 <div key={s.id} className="sq-card" style={{ padding: 14, display: 'flex', alignItems: 'center', gap: 13 }}>
@@ -93,7 +95,7 @@ export default function AcademyScreen({ academy }) {
                   </div>
                   <button className="sq-btn-gold" style={{ padding: '7px 14px', fontSize: 12 }}
                     onClick={() => nav.push('payment', { title: s.title, venue: academy.name, day: s.time, time: s.time, price: s.price })}>
-                    Join
+                    {t('Join')}
                   </button>
                 </div>
               ))}

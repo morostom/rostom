@@ -7,6 +7,7 @@ import ThemeScope from '../components/ThemeScope';
 import ClubCrest from '../components/ClubCrest';
 import { useNav } from '../navigation/nav';
 import { useStore } from '../store';
+import { useT } from '../i18n';
 import { HELIOPOLIS_BIO } from '../data';
 
 function Section({ label, children }) {
@@ -21,6 +22,7 @@ function Section({ label, children }) {
 export default function ClubBioScreen() {
   const { nav } = useNav();
   const state = useStore();
+  const t = useT();
   const c = HELIOPOLIS_BIO;
   const cover = state.images?.clubCover;
   return (
@@ -29,13 +31,13 @@ export default function ClubBioScreen() {
         header={
           <div style={{ padding: '6px 16px 8px', display: 'flex', alignItems: 'center', gap: 12 }}>
             <Pill onClick={() => nav.pop()}><Icons.Chevron dir="left" size={16} /></Pill>
-            <span className="sq-display" style={{ fontSize: 16, fontWeight: 700 }}>Club</span>
+            <span className="sq-display" style={{ fontSize: 16, fontWeight: 700 }}>{t('Club')}</span>
           </div>
         }
         tabBar={
           <div style={{ padding: '12px 20px', borderTop: '1px solid var(--sq-border)', background: 'rgba(7,7,7,0.95)' }}>
             <button className="sq-btn-gold serve-glow-soft" style={{ width: '100%', padding: '15px', fontSize: 14.5 }} onClick={() => nav.push('joinClub')}>
-              <Icons.Ticket size={16} /> Enter access code
+              <Icons.Ticket size={16} /> {t('Enter access code')}
             </button>
           </div>
         }
@@ -54,22 +56,22 @@ export default function ClubBioScreen() {
         </div>
 
         <div style={{ padding: '0 22px 26px', display: 'flex', flexDirection: 'column', gap: 22 }}>
-          <Section label="About">
+          <Section label={t('About')}>
             <p style={{ margin: 0, fontSize: 14, color: 'var(--sq-text-2)', lineHeight: 1.6 }}>{c.about}</p>
           </Section>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div className="sq-card" style={{ padding: 14 }}>
-              <div className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Courts</div>
+              <div className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{t('Courts')}</div>
               <div className="sq-display" style={{ fontSize: 26, fontWeight: 700, marginTop: 3, color: 'var(--sq-gold)' }}>{c.courts}</div>
             </div>
             <div className="sq-card" style={{ padding: 14 }}>
-              <div className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Established</div>
+              <div className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{t('Established')}</div>
               <div className="sq-display" style={{ fontSize: 26, fontWeight: 700, marginTop: 3 }}>{c.established.split(', ')[1]}</div>
             </div>
           </div>
 
-          <Section label="Former champions">
+          <Section label={t('Former champions')}>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {c.formerChampions.map((p) => (
                 <span key={p} className="sq-chip" style={{ fontSize: 12, padding: '6px 12px' }}><Icons.Trophy size={12} /> {p}</span>
@@ -77,14 +79,14 @@ export default function ClubBioScreen() {
             </div>
           </Section>
 
-          <Section label="Head coaches">
+          <Section label={t('Head coaches')}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
               {c.headCoaches.map((co) => (
                 <div key={co} className="sq-card" style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ width: 38, height: 38, borderRadius: 19, background: 'linear-gradient(135deg, #2a2a2a, #161616)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600 }}>{co.split(' ').map((w) => w[0]).slice(0, 2).join('')}</div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 14, fontWeight: 600 }}>{co}</div>
-                    <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-gold)' }}>Head Coach</div>
+                    <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-gold)' }}>{t('Head Coach')}</div>
                   </div>
                 </div>
               ))}

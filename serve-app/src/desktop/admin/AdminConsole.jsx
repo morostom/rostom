@@ -13,6 +13,7 @@ import { ToastProvider, useToast } from '../../components/Toast';
 import ThemeScope from '../../components/ThemeScope';
 import { DUR_FAST } from '../../motion';
 import { useStore, store } from '../../store';
+import { useT } from '../../i18n';
 import {
   ACADEMY, ADMIN_COURTS, ADMIN_COACHES, ADMIN_PLAYERS,
   REVENUE_7D, REVENUE_DAYS, SETUP_STEPS, OPERATING_HOURS, REVENUE_BREAKDOWN, BRAND_COLORS,
@@ -23,6 +24,7 @@ const SIDEBAR_W = 232;
 // ── sidebar ──────────────────────────────────────────────────────────
 function Sidebar({ active, onNav }) {
   const state = useStore();
+  const t = useT();
   const coachCount = state.staff.filter((s) => s.org_id === 'ramyashour').length;
   const items = [
     { id: 'dashboard', icon: <Icons.Home size={16} />, label: 'Dashboard' },
@@ -50,13 +52,13 @@ function Sidebar({ active, onNav }) {
         </div>
         <Icons.Chevron size={12} dir="down" />
       </div>
-      <div className="sq-mono" style={{ padding: '8px 10px 6px', fontSize: 9.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Manage</div>
+      <div className="sq-mono" style={{ padding: '8px 10px 6px', fontSize: 9.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>{t('Manage')}</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {items.map((it) => (
           <button key={it.id} onClick={() => onNav(it.id)} style={navBtn(it.id === active)}>
             {it.id === active && <span style={activeBar} />}
             {it.icon}
-            <span style={{ flex: 1 }}>{it.label}</span>
+            <span style={{ flex: 1 }}>{t(it.label)}</span>
             {it.badge && <span className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)' }}>{it.badge}</span>}
           </button>
         ))}
