@@ -24,6 +24,13 @@
   --sq-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
 
+/* Arabic / RTL: use Cairo for all three families so glyphs render cleanly */
+[dir='rtl'] {
+  --sq-display: 'Cairo', 'Space Grotesk', system-ui, sans-serif;
+  --sq-body: 'Cairo', 'Geist', system-ui, sans-serif;
+  --sq-mono: 'Cairo', 'JetBrains Mono', ui-monospace, monospace;
+}
+
 @theme inline {
   --color-bg: var(--sq-bg);
   --color-surface: var(--sq-surface);

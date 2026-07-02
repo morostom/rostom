@@ -7,6 +7,7 @@ import SQLogo from '../components/SQLogo';
 import { MScreen, MTabBar } from '../components/mobile';
 import { useNav } from '../navigation/nav';
 import { useStore } from '../store';
+import { useT } from '../i18n';
 import { OPEN_COURTS, OPEN_SESSIONS, ACADEMIES_DIR, CLUBS_DIR } from '../data';
 
 function endOf(time) {
@@ -18,6 +19,7 @@ function endOf(time) {
 export default function DiscoverScreen() {
   const { nav } = useNav();
   const state = useStore();
+  const t = useT();
 
   function openCourt(c) {
     nav.push('payment', { courtNo: c.court, type: c.type, venue: c.venue, day: 'Today', time: c.time, endTime: endOf(c.time), price: c.price, guest: c.guest });
@@ -39,8 +41,8 @@ export default function DiscoverScreen() {
       header={
         <div style={{ padding: '4px 20px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <h1 className="sq-display" style={{ margin: 0, fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em' }}>Discover</h1>
-            <div style={{ fontSize: 12.5, color: 'var(--sq-text-2)', marginTop: 2 }}>Book a court anywhere in Egypt</div>
+            <h1 className="sq-display" style={{ margin: 0, fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em' }}>{t('Discover')}</h1>
+            <div style={{ fontSize: 12.5, color: 'var(--sq-text-2)', marginTop: 2 }}>{t('Book a court anywhere in Egypt')}</div>
           </div>
           <SQLogo size={18} accent />
         </div>
@@ -50,7 +52,7 @@ export default function DiscoverScreen() {
       <div style={{ padding: '12px 0 18px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 20px', marginBottom: 10 }}>
           <span className="sq-live-dot" />
-          <span className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-2)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Available now</span>
+          <span className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-2)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{t('Available now')}</span>
         </div>
         <div style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '0 20px' }}>
           {OPEN_COURTS.map((c) => (
@@ -63,7 +65,7 @@ export default function DiscoverScreen() {
               <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-2)' }}>Today {c.time} · {c.type}</div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
                 <span className="sq-mono" style={{ fontSize: 13, color: 'var(--sq-gold)' }}>EGP {c.price}</span>
-                <button className="sq-btn-gold" style={{ padding: '7px 14px', fontSize: 12 }} onClick={() => openCourt(c)}>Book</button>
+                <button className="sq-btn-gold" style={{ padding: '7px 14px', fontSize: 12 }} onClick={() => openCourt(c)}>{t('Book')}</button>
               </div>
             </div>
           ))}
@@ -93,7 +95,7 @@ export default function DiscoverScreen() {
       <div style={{ padding: '0 20px 28px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
           <div>
-            <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-gold)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Academies</div>
+            <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-gold)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>{t('Academies')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {ACADEMIES_DIR.map((a) => (
                 <button key={a.id} onClick={() => openAcademy(a)} className="sq-card" style={{ textAlign: 'left', cursor: 'pointer', padding: 12, display: 'flex', flexDirection: 'column', gap: 5 }}>
@@ -107,7 +109,7 @@ export default function DiscoverScreen() {
             </div>
           </div>
           <div>
-            <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-blue)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Clubs</div>
+            <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-blue)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>{t('Clubs')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {CLUBS_DIR.map((c) => (
                 <button key={c.id} onClick={() => openClub(c)} className="sq-card" style={{ textAlign: 'left', cursor: 'pointer', padding: 12, display: 'flex', flexDirection: 'column', gap: 5 }}>

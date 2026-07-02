@@ -3,6 +3,7 @@
 // MScreen:    the per-screen column (safe areas + header + scroll + tab bar).
 
 import { Icons } from './Icons';
+import { useT } from '../i18n';
 
 export const STATUS_TOP = 58;
 export const HOME_BOTTOM = 26;
@@ -51,6 +52,7 @@ const TABS = [
 ];
 
 export function MTabBar({ active = 'profile', onTab }) {
+  const t = useT();
   return (
     <div
       style={{
@@ -63,13 +65,13 @@ export function MTabBar({ active = 'profile', onTab }) {
         padding: '10px 4px 6px',
       }}
     >
-      {TABS.map((t) => {
-        const Icon = t.icon;
-        const on = t.id === active;
+      {TABS.map((tab) => {
+        const Icon = tab.icon;
+        const on = tab.id === active;
         return (
           <button
-            key={t.id}
-            onClick={() => onTab?.(t.id)}
+            key={tab.id}
+            onClick={() => onTab?.(tab.id)}
             style={{
               display: 'flex',
               flexDirection: 'column',
@@ -86,7 +88,7 @@ export function MTabBar({ active = 'profile', onTab }) {
             }}
           >
             <Icon size={21} />
-            <span style={{ fontSize: 9.5, fontWeight: 500, fontFamily: 'var(--sq-display)' }}>{t.label}</span>
+            <span style={{ fontSize: 9.5, fontWeight: 500, fontFamily: 'var(--sq-display)' }}>{t(tab.label)}</span>
           </button>
         );
       })}

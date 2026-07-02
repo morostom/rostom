@@ -10,6 +10,7 @@ import { useNav } from '../navigation/nav';
 import { DEMO_PLAYER } from '../data';
 import { hasBackend } from '../lib/supabase';
 import { signUp, signIn, loadCard } from '../lib/auth';
+import { useT } from '../i18n';
 
 function Field({ label, type, value, onChange, placeholder, icon, prefix }) {
   return (
@@ -26,6 +27,7 @@ function Field({ label, type, value, onChange, placeholder, icon, prefix }) {
 
 export default function AuthScreen() {
   const { nav, setAccount, setPlayer } = useNav();
+  const t = useT();
   const [mode, setMode] = useState('signup'); // 'signup' | 'login'
   const [method, setMethod] = useState('phone'); // 'phone' | 'email'
   const [phone, setPhone] = useState('');
@@ -38,9 +40,9 @@ export default function AuthScreen() {
 
   async function submit() {
     setErr('');
-    if (method === 'phone' && phone.replace(/\D/g, '').length < 7) return setErr('Enter a valid phone number.');
-    if (method === 'email' && !/\S+@\S+\.\S+/.test(email)) return setErr('Enter a valid email address.');
-    if (pw.length < 4) return setErr('Password must be at least 4 characters.');
+    if (method === 'phone' && phone.replace(/\D/g, '').length < 7) return setErr(t('Enter a valid phone number.'));
+    if (method === 'email' && !/\S+@\S+\.\S+/.test(email)) return setErr(t('Enter a valid email address.'));
+    if (pw.length < 4) return setErr(t('Password must be at least 4 characters.'));
 
     setAccount({ method, identifier });
 
@@ -80,7 +82,7 @@ export default function AuthScreen() {
       tabBar={
         <div style={{ padding: '12px 22px', borderTop: '1px solid var(--sq-border)', background: 'rgba(7,7,7,0.95)' }}>
           <button className="sq-btn-gold serve-glow-soft" style={{ padding: '15px 18px', fontSize: 14.5, width: '100%' }} onClick={submit} disabled={busy}>
-            {busy ? 'Please wait…' : mode === 'signup' ? 'Create account →' : 'Log in →'}
+            {busy ? t('Please wait…') : mode === 'signup' ? t('Create account →') : t('Log in →')}
           </button>
         </div>
       }
@@ -89,20 +91,20 @@ export default function AuthScreen() {
         <h1 className="sq-display" style={{ margin: 0, fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05 }}>
           {mode === 'signup' ? (
             <>
-              Egypt's squash
+              {t("Egypt's squash")}
               <br />
-              <span style={{ color: 'var(--sq-gold)' }}>home court.</span>
+              <span style={{ color: 'var(--sq-gold)' }}>{t('home court.')}</span>
             </>
           ) : (
             <>
-              Welcome
+              {t('Welcome')}
               <br />
-              <span style={{ color: 'var(--sq-gold)' }}>back.</span>
+              <span style={{ color: 'var(--sq-gold)' }}>{t('back.')}</span>
             </>
           )}
         </h1>
         <p style={{ margin: '8px 0 0', color: 'var(--sq-text-2)', fontSize: 13.5 }}>
-          {mode === 'signup' ? 'Create your account to build your player card.' : 'Log in to your SERVE account.'}
+          {mode === 'signup' ? t('Create your account to build your player card.') : t('Log in to your SERVE account.')}
         </p>
       </div>
 
@@ -121,7 +123,7 @@ export default function AuthScreen() {
                 transition: 'background 0.15s, color 0.15s',
               }}
             >
-              {label}
+              {t(label)}
             </button>
           ))}
         </div>
@@ -135,17 +137,17 @@ export default function AuthScreen() {
               className={'sq-chip' + (method === id ? ' gold' : '')}
               style={{ flex: 1, justifyContent: 'center', padding: '9px', fontSize: 12.5, cursor: 'pointer' }}
             >
-              {label}
+              {t(label)}
             </button>
           ))}
         </div>
 
         {method === 'phone' ? (
-          <Field label="Phone number" type="tel" value={phone} onChange={setPhone} placeholder="10 1234 5678" prefix="+20" />
+          <Field label={t('Phone number')} type="tel" value={phone} onChange={setPhone} placeholder="10 1234 5678" prefix="+20" />
         ) : (
-          <Field label="Email address" type="email" value={email} onChange={setEmail} placeholder="you@example.com" />
+          <Field label={t('Email address')} type="email" value={email} onChange={setEmail} placeholder="you@example.com" />
         )}
-        <Field label="Password" type="password" value={pw} onChange={setPw} placeholder="At least 4 characters" icon={<Icons.Lock size={15} />} />
+        <Field label={t('Password')} type="password" value={pw} onChange={setPw} placeholder={t('At least 4 characters')} icon={<Icons.Lock size={15} />} />
 
         {err && (
           <div style={{ fontFamily: 'var(--sq-mono)', fontSize: 12, color: 'var(--sq-danger)', background: 'color-mix(in srgb, var(--sq-danger) 12%, transparent)', border: '1px solid color-mix(in srgb, var(--sq-danger) 35%, transparent)', borderRadius: 10, padding: '10px 12px' }}>
@@ -155,8 +157,8 @@ export default function AuthScreen() {
 
         <p style={{ margin: 0, textAlign: 'center', fontSize: 12, color: 'var(--sq-text-3)', lineHeight: 1.5 }}>
           {mode === 'signup'
-            ? 'By continuing you agree to SERVE’s terms. We’ll only use your number to secure your account.'
-            : 'Tip: tap Log in to jump straight into a demo profile.'}
+            ? t('By continuing you agree to SERVE’s terms. We’ll only use your number to secure your account.')
+            : t('Tip: tap Log in to jump straight into a demo profile.')}
         </p>
       </div>
     </MScreen>

@@ -5,6 +5,7 @@ import SQLogo from '../components/SQLogo';
 import { Icons } from '../components/Icons';
 import { MScreen, Pill } from '../components/mobile';
 import { useNav } from '../navigation/nav';
+import { useT } from '../i18n';
 
 function Choice({ icon, title, sub, onClick }) {
   return (
@@ -49,6 +50,7 @@ function Choice({ icon, title, sub, onClick }) {
 
 export default function WhoForScreen() {
   const { nav, setForChild, setAccountType } = useNav();
+  const t = useT();
 
   function choose(forChild) {
     setAccountType?.('player');
@@ -74,19 +76,19 @@ export default function WhoForScreen() {
     >
       <div style={{ padding: '18px 22px 24px' }}>
         <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.14em' }}>
-          Step 1 of 3
+          {t('Step 1 of 3')}
         </div>
         <h1 className="sq-display" style={{ margin: '8px 0 0', fontSize: 27, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
-          How will you<br /><span style={{ color: 'var(--sq-gold)' }}>use SERVE?</span>
+          {t('How will you')}<br /><span style={{ color: 'var(--sq-gold)' }}>{t('use SERVE?')}</span>
         </h1>
         <p style={{ margin: '8px 0 22px', color: 'var(--sq-text-2)', fontSize: 13.5, lineHeight: 1.5 }}>
-          Make a player card for yourself or your child, or set up a parent account to track and pay for your child.
+          {t('Make a player card for yourself or your child, or set up a parent account to track and pay for your child.')}
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <Choice icon={<Icons.User size={24} />} title="For myself" sub="I play squash and want my own card." onClick={() => choose(false)} />
-          <Choice icon={<Icons.Users size={24} />} title="For my child" sub="I'm setting up my child's player card." onClick={() => choose(true)} />
-          <Choice icon={<Icons.Heart size={24} />} title="Parent account" sub="No card — track my child's sessions, book courts, and pay their transfers." onClick={chooseParent} />
+          <Choice icon={<Icons.User size={24} />} title={t('For myself')} sub={t('I play squash and want my own card.')} onClick={() => choose(false)} />
+          <Choice icon={<Icons.Users size={24} />} title={t('For my child')} sub={t("I'm setting up my child's player card.")} onClick={() => choose(true)} />
+          <Choice icon={<Icons.Heart size={24} />} title={t('Parent account')} sub={t("No card — track my child's sessions, book courts, and pay their transfers.")} onClick={chooseParent} />
         </div>
       </div>
     </MScreen>

@@ -7,6 +7,7 @@ import { MScreen, MTabBar } from '../components/mobile';
 import { useNav } from '../navigation/nav';
 import { useStore, store } from '../store';
 import { useToast } from '../components/Toast';
+import { useT } from '../i18n';
 
 const TYPE_ICON = { Lesson: Icons.Medal, 'Group training': Icons.Users, Fitness: Icons.Bolt };
 
@@ -14,12 +15,13 @@ export default function BookingsScreen() {
   const { nav, player } = useNav();
   const state = useStore();
   const notify = useToast();
+  const t = useT();
   const mine = state.sessions.filter((s) => s.mine || (player?.name && s.players?.includes(player.name)));
   const empty = !state.bookings.length && !mine.length;
 
   function cancelBooking(b) {
     store.cancelBooking(b.id);
-    notify('Booking cancelled');
+    notify(t('Booking cancelled'));
   }
   function cancelSession(s) {
     store.removeSession(s.id);
@@ -31,7 +33,7 @@ export default function BookingsScreen() {
       tabBar={<MTabBar active="bookings" onTab={nav.switchTab} />}
       header={
         <div style={{ padding: '4px 20px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h1 className="sq-display" style={{ margin: 0, fontSize: 30, fontWeight: 700, letterSpacing: '-0.03em' }}>Bookings</h1>
+          <h1 className="sq-display" style={{ margin: 0, fontSize: 30, fontWeight: 700, letterSpacing: '-0.03em' }}>{t('Bookings')}</h1>
           <SQLogo size={18} accent />
         </div>
       }
@@ -40,15 +42,15 @@ export default function BookingsScreen() {
         {empty && (
           <div className="sq-card" style={{ padding: 26, textAlign: 'center', color: 'var(--sq-text-3)' }}>
             <Icons.Calendar size={30} />
-            <div className="sq-display" style={{ fontSize: 16, fontWeight: 700, color: 'var(--sq-text)', marginTop: 10 }}>Nothing booked yet</div>
-            <p style={{ fontSize: 13, marginTop: 6, lineHeight: 1.5 }}>Find a court or session to reserve.</p>
-            <button className="sq-btn-gold" style={{ padding: '11px 18px', fontSize: 13, marginTop: 14 }} onClick={() => nav.switchTab('discover')}>Book a court</button>
+            <div className="sq-display" style={{ fontSize: 16, fontWeight: 700, color: 'var(--sq-text)', marginTop: 10 }}>{t('Nothing booked yet')}</div>
+            <p style={{ fontSize: 13, marginTop: 6, lineHeight: 1.5 }}>{t('Find a court or session to reserve.')}</p>
+            <button className="sq-btn-gold" style={{ padding: '11px 18px', fontSize: 13, marginTop: 14 }} onClick={() => nav.switchTab('discover')}>{t('Book a court')}</button>
           </div>
         )}
 
         {state.bookings.length > 0 && (
           <div>
-            <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>Reservations</div>
+            <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>{t('Reservations')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {state.bookings.map((b) => (
                 <div key={b.id} className="sq-card serve-glow-soft" style={{ padding: 15, display: 'flex', alignItems: 'center', gap: 13 }}>
@@ -59,7 +61,7 @@ export default function BookingsScreen() {
                     <div className="sq-display" style={{ fontSize: 14.5, fontWeight: 600 }}>{b.title || `Court ${b.court}`}</div>
                     <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-2)', marginTop: 2 }}>{b.venue} · {b.day} · {b.time}{b.endTime ? ` – ${b.endTime}` : ''} · EGP {b.price}</div>
                   </div>
-                  <button className="sq-btn-ghost" style={{ padding: '8px 12px', fontSize: 11.5, color: 'var(--sq-text-2)' }} onClick={() => cancelBooking(b)}>Cancel</button>
+                  <button className="sq-btn-ghost" style={{ padding: '8px 12px', fontSize: 11.5, color: 'var(--sq-text-2)' }} onClick={() => cancelBooking(b)}>{t('Cancel')}</button>
                 </div>
               ))}
             </div>
@@ -68,7 +70,7 @@ export default function BookingsScreen() {
 
         {mine.length > 0 && (
           <div>
-            <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>Club sessions</div>
+            <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>{t('Club sessions')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {mine.map((s) => {
                 const Ic = TYPE_ICON[s.type] || Icons.Calendar;
@@ -81,7 +83,7 @@ export default function BookingsScreen() {
                       <div className="sq-display" style={{ fontSize: 14, fontWeight: 600 }}>{s.title}</div>
                       <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-2)', marginTop: 2 }}>{s.day} · {s.time} · {s.coach} · Court {s.court}</div>
                     </div>
-                    <button className="sq-btn-ghost" style={{ padding: '8px 12px', fontSize: 11.5, color: 'var(--sq-text-2)' }} onClick={() => cancelSession(s)}>Cancel</button>
+                    <button className="sq-btn-ghost" style={{ padding: '8px 12px', fontSize: 11.5, color: 'var(--sq-text-2)' }} onClick={() => cancelSession(s)}>{t('Cancel')}</button>
                   </div>
                 );
               })}
