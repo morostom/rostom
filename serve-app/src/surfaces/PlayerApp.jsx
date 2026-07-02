@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { PhoneFrame } from '../components/mobile';
 import { Navigator } from '../navigation/nav';
 import { ToastProvider } from '../components/Toast';
+import UndoBar from '../components/UndoBar';
 import { EMPTY_COMPETITIVE } from '../data';
 
 import AuthScreen from '../screens/AuthScreen';
@@ -47,7 +48,9 @@ export default function PlayerApp() {
       case 'compete': return <CompeteScreen />;
       case 'build': return <BuildCardScreen />;
       case 'profile': return accountType === 'parent' ? <ParentHomeScreen /> : <ProfileHomeScreen justCreated={params.justCreated} />;
-      case 'clubs': return clubJoined ? <MyClubScreen /> : <ClubsLockedScreen />;
+      // a parent's child is the member — show the club (with the child's
+      // schedule) directly, no access code needed.
+      case 'clubs': return (clubJoined || (accountType === 'parent' && child)) ? <MyClubScreen /> : <ClubsLockedScreen />;
       case 'clubSchedule': return <ClubScheduleScreen />;
       case 'book': return <BookCourtScreen court={params.court} />;
       case 'payment': return <PaymentScreen {...params} />;
@@ -66,6 +69,7 @@ export default function PlayerApp() {
     <PhoneFrame>
       <ToastProvider>
         <Navigator initial="auth" render={render} app={app} />
+        <UndoBar />
       </ToastProvider>
     </PhoneFrame>
   );

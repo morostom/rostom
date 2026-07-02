@@ -132,6 +132,9 @@ export async function addCancellation(c) {
 export async function updateCancellation(id, patch) {
   await supabase.from('cancellations').update(patch).eq('id', id);
 }
+export async function removeCancellation(id) {
+  await supabase.from('cancellations').delete().eq('id', id);
+}
 export async function addStaff(s) {
   // let the DB mint the uuid; realtime hydrate reconciles the optimistic row
   await supabase.from('staff').insert({ org_id: s.org_id, name: s.name, role: s.role ?? null, initials: s.initials ?? null, squads: s.squads ?? null });

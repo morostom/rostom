@@ -6,6 +6,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Icons } from '../components/Icons';
 import SQLogo from '../components/SQLogo';
+import PlayerCard from '../components/PlayerCard';
 import { MScreen, MTabBar } from '../components/mobile';
 import { useNav } from '../navigation/nav';
 import { useStore, store } from '../store';
@@ -13,6 +14,7 @@ import { useToast } from '../components/Toast';
 import { ensureNotifyPermission, notifyPermission, phoneAlert } from '../lib/notify';
 import { useT } from '../i18n';
 import { normId } from '../lib/auth';
+import { tierForActivity } from '../data';
 
 function fmtLeft(ms) {
   if (ms <= 0) return '0:00';
@@ -21,11 +23,18 @@ function fmtLeft(ms) {
 }
 
 export default function ParentHomeScreen() {
-  const { nav, account, child } = useNav();
+  const { nav, account, child, player, setForChild, setCardType } = useNav();
   const state = useStore();
   const notify = useToast();
   const t = useT();
   const me = normId(account?.identifier) || 'parent';
+  const hasOwnCard = !!player?.name; // a parent who also built their own card
+
+  function makeOwnCard() {
+    setForChild?.(false);
+    setCardType?.('competitive');
+    nav.push('compete');
+  }
 
   const [, setTick] = useState(0);
   const [perm, setPerm] = useState(notifyPermission());
@@ -141,6 +150,25 @@ export default function ParentHomeScreen() {
             </div>
           )}
         </div>
+
+        {/* the parent's own player card (optional) */}
+        {hasOwnCard ? (
+          <div>
+            <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>{t('Your card')}</div>
+            <div onClick={() => nav.push('cardCloseup', { player, tier: tierForActivity(state.bookings.length) })} style={{ cursor: 'pointer' }}>
+              <PlayerCard player={player} accent="var(--sq-gold)" tier={tierForActivity(state.bookings.length)} variant="compact" />
+            </div>
+          </div>
+        ) : (
+          <button onClick={makeOwnCard} className="sq-card serve-glow-soft" style={{ textAlign: 'left', cursor: 'pointer', padding: 16, display: 'flex', alignItems: 'center', gap: 13, borderColor: 'color-mix(in srgb, var(--sq-gold) 28%, transparent)' }}>
+            <div style={{ width: 42, height: 42, borderRadius: 11, background: 'color-mix(in srgb, var(--sq-gold) 14%, transparent)', color: 'var(--sq-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icons.Racket size={20} /></div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="sq-display" style={{ fontSize: 14.5, fontWeight: 600 }}>{t('Feeling groovy?')}</div>
+              <div style={{ fontSize: 12, color: 'var(--sq-text-2)', marginTop: 2, lineHeight: 1.4 }}>{t('Make your own card and challenge your fellow parents to a heated squash match.')}</div>
+            </div>
+            <Icons.Chevron size={16} />
+          </button>
+        )}
 
         {/* cancellation requests (under-16 child wants to cancel a session) */}
         {cancelReqs.length > 0 && (

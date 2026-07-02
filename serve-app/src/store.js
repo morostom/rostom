@@ -63,6 +63,7 @@ function seed() {
       heliopolis: { owner: '', coach: '' },
       ramyashour: { owner: '', coach: '' },
     },
+    undo: null,             // { kind, label, expiresAt, ...snapshot } — one-slot undo
     images: {}, // { academyLogo, academyCover, clubCrest } → data URLs
   };
 }
@@ -160,13 +161,19 @@ export const store = {
   cancelBooking: (id) => {
     const b = state.bookings.find((x) => x.id === id);
     // if this was a Heliopolis live court we secured, free it back up
-    const freed = b && String(b.venue || '').includes('Heliopolis') && Number(b.court)
-      ? state.courts.map((c) => (c.court === Number(b.court) && c.status === 'booked' ? { court: c.court, type: c.type, status: 'free', who: null, coach: null, next: 'open' } : c))
+    const freedCourt = b && String(b.venue || '').includes('Heliopolis') && Number(b.court) ? Number(b.court) : null;
+    const freed = freedCourt
+      ? state.courts.map((c) => (c.court === freedCourt && c.status === 'booked' ? { court: c.court, type: c.type, status: 'free', who: null, coach: null, next: 'open' } : c))
       : state.courts;
-    commit({ ...state, bookings: state.bookings.filter((x) => x.id !== id), courts: freed });
+    commit({
+      ...state,
+      bookings: state.bookings.filter((x) => x.id !== id),
+      courts: freed,
+      undo: b ? { kind: 'booking', label: 'Booking cancelled', booking: b, courtNo: freedCourt, expiresAt: Date.now() + 60 * 1000 } : state.undo,
+    });
     if (hasBackend) {
       backend.removeBooking(id);
-      if (b && freed !== state.courts) backend.writeCourt(freed.find((c) => c.court === Number(b.court)));
+      if (freedCourt) backend.writeCourt(freed.find((c) => c.court === freedCourt));
     }
   },
   setPayment: (id, patch) => { commit({ ...state, payments: state.payments.map((p) => (p.id === id ? { ...p, ...patch } : p)) }); if (hasBackend) backend.setPayment(id, patch); },
@@ -271,12 +278,39 @@ export const store = {
   },
   // ── session cancellations ──
   // Direct cancel (16+ or no parent): remove the session + notify the club.
+  // A 15-minute undo can restore it (and drop the cancellation notice).
   cancelSessionDirect: (session, reason) => {
     const alert = { id: 'cx' + Date.now(), session_id: session.id, session_title: session.title, club_id: 'heliopolis', coach: session.coach, player: session.players?.[0] || '', reason: reason || '', status: 'cancelled' };
-    commit({ ...state, sessions: state.sessions.filter((s) => s.id !== session.id), cancellations: [...state.cancellations, alert] });
+    commit({
+      ...state,
+      sessions: state.sessions.filter((s) => s.id !== session.id),
+      cancellations: [...state.cancellations, alert],
+      undo: { kind: 'session', label: 'Session cancelled', session, cancellationId: alert.id, expiresAt: Date.now() + 15 * 60 * 1000 },
+    });
     if (hasBackend) { backend.removeSession(session.id); backend.addCancellation(alert); }
     return alert;
   },
+  // restore whatever the last cancel removed (if still within its window)
+  performUndo: () => {
+    const u = state.undo;
+    if (!u || (u.expiresAt && u.expiresAt <= Date.now())) { commit({ ...state, undo: null }); return; }
+    if (u.kind === 'session') {
+      commit({
+        ...state,
+        sessions: [...state.sessions, u.session],
+        cancellations: state.cancellations.filter((c) => c.id !== u.cancellationId),
+        undo: null,
+      });
+      if (hasBackend) { backend.addSession(u.session); backend.removeCancellation(u.cancellationId); }
+    } else if (u.kind === 'booking') {
+      const courts = u.courtNo
+        ? state.courts.map((c) => (c.court === u.courtNo ? { ...c, status: 'booked', who: 'Your booking', coach: null, until: u.booking.endTime, left: 60 } : c))
+        : state.courts;
+      commit({ ...state, bookings: [...state.bookings, u.booking], courts, undo: null });
+      if (hasBackend) { backend.addBooking(u.booking); if (u.courtNo) backend.writeCourt(courts.find((c) => c.court === u.courtNo)); }
+    }
+  },
+  clearUndo: () => { if (state.undo) commit({ ...state, undo: null }); },
   // Under-16: create a pending cancellation the parent must approve.
   requestCancellation: (session, reason, parent_identifier) => {
     const row = { id: 'cx' + Date.now(), session_id: session.id, session_title: session.title, club_id: 'heliopolis', coach: session.coach, player: session.players?.[0] || '', parent_identifier, reason: reason || '', status: 'pending' };

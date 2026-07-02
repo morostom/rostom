@@ -83,11 +83,14 @@ function MySessionRow({ s }) {
 }
 
 export default function MyClubScreen() {
-  const { nav, player } = useNav();
+  const { nav, player, accountType, child } = useNav();
   const state = useStore();
   const t = useT();
   const free = state.courts.filter((c) => c.status === 'free').length;
-  const mine = state.sessions.filter((s) => s.mine || (player?.name && s.players?.includes(player.name)));
+  // a parent views their child's schedule; a player views their own
+  const isParent = accountType === 'parent';
+  const who = isParent ? child : player?.name;
+  const mine = state.sessions.filter((s) => (isParent ? who && s.players?.includes(who) : (s.mine || (who && s.players?.includes(who)))));
 
   return (
     <ThemeScope accent={state.clubTheme}>

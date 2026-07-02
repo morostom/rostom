@@ -72,9 +72,9 @@ export default function AdminAuth({ onLive }) {
     }
   }
 
-  function chooseType(t) {
-    setOrgType(t);
-    setOrgName(state[t === 'club' ? 'clubName' : 'academyName'] || '');
+  function chooseType(type) {
+    setOrgType(type);
+    setOrgName(''); // a fresh signup starts blank — no prefilled demo name
     setStage('details');
   }
 

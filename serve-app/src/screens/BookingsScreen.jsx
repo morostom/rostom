@@ -31,16 +31,14 @@ export default function BookingsScreen() {
   const needsParent = under16 && !!parentLink;
 
   function cancelBooking(b) {
-    store.cancelBooking(b.id);
-    notify(t('Booking cancelled'));
+    store.cancelBooking(b.id); // UndoBar shows the 60-second undo
   }
   function confirmCancel(s) {
     if (needsParent) {
       store.requestCancellation(s, reason, normId(parentLink.parent_identifier));
       notify(t('Sent to your parent to approve'));
     } else {
-      store.cancelSessionDirect(s, reason);
-      notify(t('Session cancelled — club notified'));
+      store.cancelSessionDirect(s, reason); // UndoBar shows the 15-minute undo
     }
     setCancelId(null); setReason('');
   }

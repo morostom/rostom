@@ -278,6 +278,12 @@ const AR = {
   'Approve cancel': 'الموافقة على الإلغاء',
   'Kept the session': 'تم إبقاء الحصة',
   'Cancellation approved': 'تمت الموافقة على الإلغاء',
+  'Undo': 'تراجع',
+  'Booking cancelled': 'أُلغي الحجز',
+  'Session cancelled': 'أُلغيت الحصة',
+  'Your card': 'بطاقتك',
+  'Feeling groovy?': 'في مزاج للعب؟',
+  'Make your own card and challenge your fellow parents to a heated squash match.': 'أنشئ بطاقتك وتحدَّ زملاءك أولياء الأمور في مباراة إسكواش حامية.',
 
   // ── joining a club ──
   'Members only': 'للأعضاء فقط',
