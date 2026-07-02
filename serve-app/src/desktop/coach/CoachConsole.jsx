@@ -137,6 +137,7 @@ function LiveCourts() {
   const notify = useToast();
   const state = useStore();
   const inUse = state.courts.filter((c) => c.status !== 'free').length;
+  const cancels = state.cancellations.filter((c) => c.status === 'cancelled').slice(-4).reverse();
   return (
     <>
       <Topbar title="Live courts" sub="Wednesday · 14 May 2026 · 16:33" trailing={
@@ -147,6 +148,19 @@ function LiveCourts() {
         </>
       } />
       <div style={{ padding: '22px 30px 36px' }}>
+        {cancels.length > 0 && (
+          <div className="sq-card" style={{ padding: '12px 16px', marginBottom: 16, borderColor: 'color-mix(in srgb, var(--sq-danger) 30%, transparent)', background: 'color-mix(in srgb, var(--sq-danger) 6%, var(--sq-surface))' }}>
+            <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-danger)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 7 }}><Icons.Calendar size={13} /> Session cancellations</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {cancels.map((c) => (
+                <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 12.5 }}>
+                  <span style={{ fontWeight: 600 }}>{c.session_title}</span>
+                  <span className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-3)' }}>{c.player}{c.coach ? ` · ${c.coach}` : ''}{c.reason ? ` · "${c.reason}"` : ''}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, fontSize: 12.5, color: 'var(--sq-text-2)' }}>
           <span className="sq-mono" style={{ color: 'var(--sq-gold)' }}>{inUse} of {state.courts.length} courts in use</span>
           <span style={{ color: 'var(--sq-text-3)' }}>· toggle a court and watch it update live in the player app</span>
@@ -394,9 +408,12 @@ function ClubProfile() {
   const notify = useToast();
   const state = useStore();
   const [name, setName] = useState(state.clubName || CLUB.name);
+  const cc = state.contacts?.heliopolis || {};
+  const [ownerPhone, setOwnerPhone] = useState(cc.owner || '');
+  const [coachPhone, setCoachPhone] = useState(cc.coach || '');
   const fieldCss = { padding: '11px 13px', border: '1px solid var(--sq-border-2)', borderRadius: 9, background: 'rgba(255,255,255,0.02)', fontSize: 14, color: 'var(--sq-text)', outline: 'none', width: '100%', fontFamily: 'var(--sq-body)' };
   const Label = ({ children }) => <label className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 6 }}>{children}</label>;
-  function save() { store.setOrgName('club', name); notify('Profile saved'); }
+  function save() { store.setOrgName('club', name); store.setContact('heliopolis', { owner: ownerPhone, coach: coachPhone }); notify('Profile saved'); }
   return (
     <>
       <Topbar title="Club profile" sub="Branding · public page" trailing={<button className="sq-btn-gold" style={{ padding: '9px 16px', fontSize: 12.5 }} onClick={save}>Save changes</button>} />
@@ -418,6 +435,11 @@ function ClubProfile() {
           <div className="sq-card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
             <h2 className="sq-display" style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Details</h2>
             <div><Label>Club name</Label><input style={fieldCss} value={name} onChange={(e) => setName(e.target.value)} /></div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div><Label>Admin WhatsApp</Label><input style={fieldCss} value={ownerPhone} onChange={(e) => setOwnerPhone(e.target.value)} placeholder="+20 100 585 1199" /></div>
+              <div><Label>Head coach WhatsApp</Label><input style={fieldCss} value={coachPhone} onChange={(e) => setCoachPhone(e.target.value)} placeholder="+20 10 1234 5678" /></div>
+            </div>
+            <p style={{ margin: 0, fontSize: 11.5, color: 'var(--sq-text-3)', lineHeight: 1.5 }}>Members can message you here, and you'll be notified when a session is cancelled.</p>
           </div>
           <div className="sq-card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div>

@@ -55,8 +55,14 @@ function seed() {
     staff: seedStaff(),
     bookings: [],
     payments: PAYMENTS,
-    parentLinks: [],        // { id, parent_identifier, parent_name, child_name }
+    parentLinks: [],        // { id, parent_identifier, parent_name, child_name, status }
     paymentRequests: [],    // { id, parent_identifier, child_name, item, ..., status, expiresAt }
+    reviews: [],            // { id, venue_id, venue_name, player, rating, comment }
+    cancellations: [],      // { id, session_id, session_title, player, parent_identifier, reason, status }
+    contacts: {             // WhatsApp numbers per org (owner + head coach)
+      heliopolis: { owner: '', coach: '' },
+      ramyashour: { owner: '', coach: '' },
+    },
     images: {}, // { academyLogo, academyCover, clubCrest } → data URLs
   };
 }
@@ -248,6 +254,49 @@ export const store = {
     if (!r || r.status !== 'pending') return;
     commit({ ...state, paymentRequests: state.paymentRequests.map((x) => (x.id === id ? { ...x, status: 'expired' } : x)) });
     if (hasBackend) backend.updatePaymentRequest(id, { status: 'expired' });
+  },
+  // ── reviews ──
+  addReview: ({ venue_id, venue_name, player, rating, comment }) => {
+    const row = { id: 'rv' + Date.now(), venue_id, venue_name: venue_name || '', player: player || 'Anonymous', rating: Number(rating) || 5, comment: comment || '' };
+    commit({ ...state, reviews: [...state.reviews, row] });
+    if (hasBackend) backend.addReview(row);
+    return row;
+  },
+  // ── org contact numbers (WhatsApp) ──
+  setContact: (org, patch) => {
+    const cur = state.contacts[org] || { owner: '', coach: '' };
+    const next = { ...cur, ...patch };
+    commit({ ...state, contacts: { ...state.contacts, [org]: next } });
+    if (hasBackend) backend.setContacts(org, next);
+  },
+  // ── session cancellations ──
+  // Direct cancel (16+ or no parent): remove the session + notify the club.
+  cancelSessionDirect: (session, reason) => {
+    const alert = { id: 'cx' + Date.now(), session_id: session.id, session_title: session.title, club_id: 'heliopolis', coach: session.coach, player: session.players?.[0] || '', reason: reason || '', status: 'cancelled' };
+    commit({ ...state, sessions: state.sessions.filter((s) => s.id !== session.id), cancellations: [...state.cancellations, alert] });
+    if (hasBackend) { backend.removeSession(session.id); backend.addCancellation(alert); }
+    return alert;
+  },
+  // Under-16: create a pending cancellation the parent must approve.
+  requestCancellation: (session, reason, parent_identifier) => {
+    const row = { id: 'cx' + Date.now(), session_id: session.id, session_title: session.title, club_id: 'heliopolis', coach: session.coach, player: session.players?.[0] || '', parent_identifier, reason: reason || '', status: 'pending' };
+    commit({ ...state, cancellations: [...state.cancellations, row] });
+    if (hasBackend) backend.addCancellation(row);
+    return row;
+  },
+  approveCancellation: (id) => {
+    const c = state.cancellations.find((x) => x.id === id);
+    if (!c) return;
+    commit({
+      ...state,
+      sessions: state.sessions.filter((s) => s.id !== c.session_id),
+      cancellations: state.cancellations.map((x) => (x.id === id ? { ...x, status: 'cancelled' } : x)),
+    });
+    if (hasBackend) { backend.removeSession(c.session_id); backend.updateCancellation(id, { status: 'cancelled' }); }
+  },
+  declineCancellation: (id) => {
+    commit({ ...state, cancellations: state.cancellations.map((x) => (x.id === id ? { ...x, status: 'declined' } : x)) });
+    if (hasBackend) backend.updateCancellation(id, { status: 'declined' });
   },
   reset: () => { commit(seed()); },
 };

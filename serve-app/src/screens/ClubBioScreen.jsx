@@ -49,7 +49,7 @@ export default function ClubBioScreen() {
             {cover && <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0.1))' }} />}
             <div style={{ position: 'relative' }}><ClubCrest size={54} radius={14} /></div>
           </div>
-          <h1 className="sq-display" style={{ margin: '14px 0 0', fontSize: 25, fontWeight: 700, letterSpacing: '-0.025em', lineHeight: 1.1 }}>{state.clubName || c.name}</h1>
+          <h1 className="sq-display" style={{ margin: '14px 0 0', fontSize: 25, fontWeight: 700, letterSpacing: '-0.025em', lineHeight: 1.1 }}>{t(state.clubName || c.name)}</h1>
           <div className="sq-mono" style={{ fontSize: 11.5, color: 'var(--sq-text-2)', marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
             <Icons.Pin size={12} /> Heliopolis · Cairo · Est. {c.established.split(', ')[1]}
           </div>

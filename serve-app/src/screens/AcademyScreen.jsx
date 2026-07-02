@@ -2,12 +2,16 @@
 // membership), so this lists available courts you can book right now plus any
 // open group sessions.
 
+import { useState } from 'react';
 import { Icons } from '../components/Icons';
 import { MScreen, Pill } from '../components/mobile';
 import ThemeScope from '../components/ThemeScope';
+import Stars, { StarPicker, venueRating } from '../components/Stars';
 import { useNav } from '../navigation/nav';
-import { useStore } from '../store';
+import { useStore, store } from '../store';
+import { useToast } from '../components/Toast';
 import { useT } from '../i18n';
+import { waLink } from '../lib/contact';
 import { academyCourts, OPEN_SESSIONS } from '../data';
 
 function endOf(time) {
@@ -17,8 +21,9 @@ function endOf(time) {
 }
 
 export default function AcademyScreen({ academy }) {
-  const { nav } = useNav();
+  const { nav, player } = useNav();
   const state = useStore();
+  const notify = useToast();
   const t = useT();
   const courts = academyCourts(academy);
   const sessions = OPEN_SESSIONS.filter((s) => s.venueId === academy.id);
@@ -29,6 +34,21 @@ export default function AcademyScreen({ academy }) {
   const cover = backed ? state.images?.academyCover : null;
   const logo = backed ? state.images?.academyLogo : null;
   const accent = (backed && state.academyTheme) || academy.accent || '#f5453b';
+
+  const { avg, count } = venueRating(state.reviews, academy.id);
+  const reviews = state.reviews.filter((r) => r.venue_id === academy.id).slice().reverse();
+  const contact = state.contacts?.[academy.id] || {};
+  const ownerWa = waLink(contact.owner, `Hi, I'm reaching out about ${academy.name} on SERVE.`);
+  const coachWa = waLink(contact.coach, `Hi Coach, a question about training at ${academy.name}.`);
+
+  const [writing, setWriting] = useState(false);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  function submitReview() {
+    store.addReview({ venue_id: academy.id, venue_name: academy.name, player: player?.name, rating, comment });
+    notify(t('Thanks for your review'));
+    setWriting(false); setComment(''); setRating(5);
+  }
 
   return (
     <ThemeScope accent={accent}>
@@ -49,10 +69,21 @@ export default function AcademyScreen({ academy }) {
             {logo ? <img src={logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Icons.Trophy size={24} />}
           </div>
         </div>
-        <h1 className="sq-display" style={{ margin: '14px 0 0', fontSize: 24, fontWeight: 700, letterSpacing: '-0.025em', lineHeight: 1.1 }}>{(backed && state.academyName) || academy.name}</h1>
+        <h1 className="sq-display" style={{ margin: '14px 0 0', fontSize: 24, fontWeight: 700, letterSpacing: '-0.025em', lineHeight: 1.1 }}>{(backed && state.academyName) || t(academy.name)}</h1>
         <div className="sq-mono" style={{ fontSize: 11.5, color: 'var(--sq-text-2)', marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
           <Icons.Pin size={12} /> {academy.city} · {academy.courts} courts · {t('open booking')}
         </div>
+        <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+          {count > 0 ? <Stars value={avg} size={15} count={count} showValue /> : <span className="sq-mono" style={{ fontSize: 11.5, color: 'var(--sq-text-3)' }}>{t('No reviews yet')}</span>}
+        </div>
+
+        {/* contact (WhatsApp) */}
+        {(ownerWa || coachWa) && (
+          <div style={{ marginTop: 16, display: 'flex', gap: 10 }}>
+            {ownerWa && <a href={ownerWa} target="_blank" rel="noreferrer" className="sq-btn-ghost" style={{ flex: 1, padding: '11px', fontSize: 12.5, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, textDecoration: 'none', color: 'var(--sq-text)' }}><Icons.Chat size={15} /> {t('Message owner')}</a>}
+            {coachWa && <a href={coachWa} target="_blank" rel="noreferrer" className="sq-btn-ghost" style={{ flex: 1, padding: '11px', fontSize: 12.5, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, textDecoration: 'none', color: 'var(--sq-text)' }}><Icons.Chat size={15} /> {t('Message coach')}</a>}
+          </div>
+        )}
 
         {/* available courts */}
         <div style={{ marginTop: 22 }}>
@@ -102,6 +133,39 @@ export default function AcademyScreen({ academy }) {
             </div>
           </div>
         )}
+
+        {/* ratings & reviews */}
+        <div style={{ marginTop: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-gold)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>{t('Ratings & reviews')}</div>
+            <button className="sq-btn-ghost" style={{ padding: '7px 12px', fontSize: 12 }} onClick={() => setWriting((v) => !v)}>{t('Leave a review')}</button>
+          </div>
+
+          {writing && (
+            <div className="sq-card" style={{ padding: 16, marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <StarPicker value={rating} onChange={setRating} />
+              <textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder={t('How was your experience?')} rows={3}
+                style={{ resize: 'none', padding: '11px 13px', borderRadius: 10, border: '1px solid var(--sq-border-2)', background: 'rgba(255,255,255,0.02)', color: 'var(--sq-text)', fontFamily: 'var(--sq-body)', fontSize: 13.5, outline: 'none' }} />
+              <button className="sq-btn-gold" style={{ padding: '11px', fontSize: 13.5 }} onClick={submitReview}>{t('Submit review')}</button>
+            </div>
+          )}
+
+          {reviews.length ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {reviews.map((r) => (
+                <div key={r.id} className="sq-card" style={{ padding: 14 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 600 }}>{r.player || t('Anonymous')}</div>
+                    <Stars value={r.rating} size={13} />
+                  </div>
+                  {r.comment && <p style={{ margin: '7px 0 0', fontSize: 13, color: 'var(--sq-text-2)', lineHeight: 1.5 }}>{r.comment}</p>}
+                </div>
+              ))}
+            </div>
+          ) : !writing && (
+            <div className="sq-card" style={{ padding: 18, textAlign: 'center', color: 'var(--sq-text-3)', fontSize: 12.5 }}>{t('Be the first to review this academy.')}</div>
+          )}
+        </div>
       </div>
     </MScreen>
     </ThemeScope>

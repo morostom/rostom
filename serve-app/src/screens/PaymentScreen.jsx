@@ -77,7 +77,7 @@ export default function PaymentScreen(params) {
             </button>
             {parentLink && (
               <button className="sq-btn-ghost" style={{ width: '100%', padding: '13px', fontSize: 13.5, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }} onClick={transferToParent}>
-                <Icons.Heart size={15} /> {t('Transfer to parent')}
+                <Icons.ParentChild size={16} /> {t('Transfer to parent')}
               </button>
             )}
           </div>
@@ -87,7 +87,7 @@ export default function PaymentScreen(params) {
           <div className="sq-fade-up" style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0 32px', gap: 18 }}>
             <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 500, damping: 18 }}
               style={{ width: 92, height: 92, borderRadius: '50%', background: 'color-mix(in srgb, var(--sq-gold) 16%, transparent)', border: '1px solid color-mix(in srgb, var(--sq-gold) 45%, transparent)', color: 'var(--sq-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Icons.Heart size={40} />
+              <Icons.ParentChild size={42} />
             </motion.div>
             <div>
               <h1 className="sq-display" style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em' }}>{t('Sent to your parent')}</h1>

@@ -66,6 +66,7 @@ function CourtTile({ c, onBook }) {
 const TYPE_ICON = { Lesson: Icons.Medal, 'Group training': Icons.Users, Fitness: Icons.Bolt };
 
 function MySessionRow({ s }) {
+  const t = useT();
   const Ic = TYPE_ICON[s.type] || Icons.Calendar;
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '13px 14px', borderRadius: 13, background: 'linear-gradient(120deg, color-mix(in srgb, var(--sq-gold) 12%, var(--sq-surface)), var(--sq-surface) 78%)', border: '1px solid color-mix(in srgb, var(--sq-gold) 30%, transparent)' }}>
@@ -73,10 +74,10 @@ function MySessionRow({ s }) {
         <Ic size={18} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div className="sq-display" style={{ fontSize: 14.5, fontWeight: 600 }}>{s.title}</div>
+        <div className="sq-display" style={{ fontSize: 14.5, fontWeight: 600 }}>{t(s.title)}</div>
         <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-2)', marginTop: 2 }}>{s.day} · {s.time} · {s.coach} · Court {s.court}</div>
       </div>
-      <span className="sq-chip gold" style={{ fontSize: 9.5, padding: '2px 8px' }}>{s.type}</span>
+      <span className="sq-chip gold" style={{ fontSize: 9.5, padding: '2px 8px' }}>{t(s.type)}</span>
     </div>
   );
 }
@@ -98,7 +99,7 @@ export default function MyClubScreen() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
                 <ClubCrest size={42} radius={11} />
                 <div>
-                  <div className="sq-display" style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.1 }}>{state.clubName || CLUB.short}</div>
+                  <div className="sq-display" style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.1 }}>{t(state.clubName || CLUB.short)}</div>
                   <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', marginTop: 2 }}>{t('SQUASH SECTION')}</div>
                 </div>
               </div>

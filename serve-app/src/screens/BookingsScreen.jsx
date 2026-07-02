@@ -1,6 +1,7 @@
 // BookingsScreen.jsx — the player's upcoming court reservations (from the store)
 // plus their club sessions, each cancellable.
 
+import { useState } from 'react';
 import { Icons } from '../components/Icons';
 import SQLogo from '../components/SQLogo';
 import { MScreen, MTabBar } from '../components/mobile';
@@ -8,6 +9,7 @@ import { useNav } from '../navigation/nav';
 import { useStore, store } from '../store';
 import { useToast } from '../components/Toast';
 import { useT } from '../i18n';
+import { normId } from '../lib/auth';
 
 const TYPE_ICON = { Lesson: Icons.Medal, 'Group training': Icons.Users, Fitness: Icons.Bolt };
 
@@ -19,13 +21,28 @@ export default function BookingsScreen() {
   const mine = state.sessions.filter((s) => s.mine || (player?.name && s.players?.includes(player.name)));
   const empty = !state.bookings.length && !mine.length;
 
+  const [cancelId, setCancelId] = useState(null);
+  const [reason, setReason] = useState('');
+
+  // an under-16 player with an approved parent must get parent sign-off
+  const age = parseInt(player?.age, 10);
+  const under16 = age > 0 && age < 16;
+  const parentLink = state.parentLinks.find((l) => l.status === 'approved' && player?.name && l.child_name.toLowerCase() === player.name.toLowerCase());
+  const needsParent = under16 && !!parentLink;
+
   function cancelBooking(b) {
     store.cancelBooking(b.id);
     notify(t('Booking cancelled'));
   }
-  function cancelSession(s) {
-    store.removeSession(s.id);
-    notify('Cancelled ' + s.title);
+  function confirmCancel(s) {
+    if (needsParent) {
+      store.requestCancellation(s, reason, normId(parentLink.parent_identifier));
+      notify(t('Sent to your parent to approve'));
+    } else {
+      store.cancelSessionDirect(s, reason);
+      notify(t('Session cancelled — club notified'));
+    }
+    setCancelId(null); setReason('');
   }
 
   return (
@@ -74,16 +91,30 @@ export default function BookingsScreen() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {mine.map((s) => {
                 const Ic = TYPE_ICON[s.type] || Icons.Calendar;
+                const open = cancelId === s.id;
                 return (
-                  <div key={s.id} className="sq-card" style={{ padding: 15, display: 'flex', alignItems: 'center', gap: 13 }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--sq-surface-2)', color: 'var(--sq-text-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <Ic size={19} />
+                  <div key={s.id} className="sq-card" style={{ padding: 15 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 13 }}>
+                      <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--sq-surface-2)', color: 'var(--sq-text-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Ic size={19} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div className="sq-display" style={{ fontSize: 14, fontWeight: 600 }}>{t(s.title)}</div>
+                        <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-2)', marginTop: 2 }}>{s.day} · {s.time} · {t(s.coach)} · Court {s.court}</div>
+                      </div>
+                      {!open && <button className="sq-btn-ghost" style={{ padding: '8px 12px', fontSize: 11.5, color: 'var(--sq-text-2)' }} onClick={() => { setCancelId(s.id); setReason(''); }}>{t('Cancel')}</button>}
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="sq-display" style={{ fontSize: 14, fontWeight: 600 }}>{s.title}</div>
-                      <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-2)', marginTop: 2 }}>{s.day} · {s.time} · {s.coach} · Court {s.court}</div>
-                    </div>
-                    <button className="sq-btn-ghost" style={{ padding: '8px 12px', fontSize: 11.5, color: 'var(--sq-text-2)' }} onClick={() => cancelSession(s)}>{t('Cancel')}</button>
+                    {open && (
+                      <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t('Reason (e.g. not feeling well)')}
+                          style={{ padding: '10px 12px', borderRadius: 9, border: '1px solid var(--sq-border-2)', background: 'rgba(255,255,255,0.02)', color: 'var(--sq-text)', fontFamily: 'var(--sq-body)', fontSize: 13, outline: 'none' }} />
+                        {needsParent && <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-gold)' }}>{t('Under 16 — your parent must approve this cancellation.')}</div>}
+                        <div style={{ display: 'flex', gap: 10 }}>
+                          <button className="sq-btn-ghost" style={{ padding: '10px', fontSize: 12.5, flex: 1 }} onClick={() => setCancelId(null)}>{t('Keep session')}</button>
+                          <button className="sq-btn-gold" style={{ padding: '10px', fontSize: 12.5, flex: 1 }} onClick={() => confirmCancel(s)}>{needsParent ? t('Request cancel') : t('Confirm cancel')}</button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}

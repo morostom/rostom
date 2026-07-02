@@ -46,6 +46,9 @@ export default function ParentHomeScreen() {
   const pending = myRequests.filter((r) => r.status === 'pending');
   const settled = myRequests.filter((r) => r.status !== 'pending').slice(-4).reverse();
 
+  const cancelReqs = state.cancellations.filter((c) => normId(c.parent_identifier) === me && c.status === 'pending');
+  const seenCx = useRef(null);
+
   // auto-expire anything past its hold
   useEffect(() => {
     const now = Date.now();
@@ -63,6 +66,16 @@ export default function ParentHomeScreen() {
       notify(`New request from ${r.child_name}`);
     });
   }, [pending, notify]);
+
+  // alert on new cancellation requests from an under-16 child
+  useEffect(() => {
+    if (seenCx.current === null) { seenCx.current = new Set(cancelReqs.map((c) => c.id)); return; }
+    cancelReqs.filter((c) => !seenCx.current.has(c.id)).forEach((c) => {
+      seenCx.current.add(c.id);
+      phoneAlert(`${c.player} wants to cancel a session`, `${c.session_title}${c.reason ? ' — ' + c.reason : ''}`);
+      notify(`Cancellation request from ${c.player}`);
+    });
+  }, [cancelReqs, notify]);
 
   // the child's data only unlocks once they've approved the link
   const childSessions = approved ? state.sessions.filter((s) => primaryChild && s.players?.includes(primaryChild)) : [];
@@ -129,6 +142,30 @@ export default function ParentHomeScreen() {
           )}
         </div>
 
+        {/* cancellation requests (under-16 child wants to cancel a session) */}
+        {cancelReqs.length > 0 && (
+          <div>
+            <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-gold)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>{t('Cancellation requests')}</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {cancelReqs.map((c) => (
+                <div key={c.id} className="sq-card serve-glow-soft" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12, borderColor: 'color-mix(in srgb, var(--sq-gold) 32%, transparent)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ width: 42, height: 42, borderRadius: 11, background: 'color-mix(in srgb, var(--sq-gold) 14%, transparent)', color: 'var(--sq-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icons.Calendar size={19} /></div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="sq-display" style={{ fontSize: 14.5, fontWeight: 600 }}>{c.session_title}</div>
+                      <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-2)', marginTop: 2 }}>{c.player}{c.reason ? ` · ${c.reason}` : ''}</div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <button className="sq-btn-ghost" style={{ padding: '11px', fontSize: 13, flex: 1, color: 'var(--sq-text-2)' }} onClick={() => { store.declineCancellation(c.id); notify(t('Kept the session')); }}>{t('Keep it')}</button>
+                    <button className="sq-btn-gold" style={{ padding: '11px', fontSize: 13.5, flex: 1 }} onClick={() => { store.approveCancellation(c.id); notify(t('Cancellation approved')); }}>{t('Approve cancel')}</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* pending payment requests */}
         {pending.length > 0 && (
           <div>
@@ -169,7 +206,7 @@ export default function ParentHomeScreen() {
                 <div key={s.id} className="sq-card" style={{ padding: 14, display: 'flex', alignItems: 'center', gap: 13 }}>
                   <div style={{ width: 42, height: 42, borderRadius: 11, background: 'var(--sq-surface-2)', color: 'var(--sq-text-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icons.Calendar size={18} /></div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className="sq-display" style={{ fontSize: 14, fontWeight: 600 }}>{s.title}</div>
+                    <div className="sq-display" style={{ fontSize: 14, fontWeight: 600 }}>{t(s.title)}</div>
                     <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-2)', marginTop: 2 }}>{s.day} · {s.time} · {s.coach} · Court {s.court}</div>
                   </div>
                 </div>

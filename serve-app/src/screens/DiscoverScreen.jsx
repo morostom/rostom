@@ -2,13 +2,17 @@
 // right now and open group sessions, then the full directory: academies (open
 // booking) on the left, clubs (members-only) on the right.
 
+import { useState } from 'react';
 import { Icons } from '../components/Icons';
 import SQLogo from '../components/SQLogo';
 import { MScreen, MTabBar } from '../components/mobile';
+import Stars, { venueRating } from '../components/Stars';
 import { useNav } from '../navigation/nav';
 import { useStore } from '../store';
 import { useT } from '../i18n';
 import { OPEN_COURTS, OPEN_SESSIONS, ACADEMIES_DIR, CLUBS_DIR } from '../data';
+
+const courtNum = (c) => parseInt(String(c).replace(/\D/g, ''), 10) || 0;
 
 function endOf(time) {
   const [h, m] = time.split(':').map(Number);
@@ -20,6 +24,15 @@ export default function DiscoverScreen() {
   const { nav } = useNav();
   const state = useStore();
   const t = useT();
+  const [sort, setSort] = useState('near'); // near | best | courts
+
+  const academies = [...ACADEMIES_DIR].sort((a, b) => {
+    if (sort === 'best') return venueRating(state.reviews, b.id).avg - venueRating(state.reviews, a.id).avg;
+    if (sort === 'courts') return courtNum(b.courts) - courtNum(a.courts);
+    // "near me": Cairo-area venues first (no geolocation yet), stable otherwise
+    const near = (x) => (/cairo/i.test(x.city) ? 0 : 1);
+    return near(a) - near(b);
+  });
 
   function openCourt(c) {
     nav.push('payment', { courtNo: c.court, type: c.type, venue: c.venue, day: 'Today', time: c.time, endTime: endOf(c.time), price: c.price, guest: c.guest });
@@ -91,21 +104,32 @@ export default function DiscoverScreen() {
         </div>
       </div>
 
+      {/* academy sort filters */}
+      <div style={{ padding: '0 20px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{t('Sort')}</span>
+        {[['near', t('Near me')], ['best', t('Best')], ['courts', t('Courts')]].map(([id, label]) => (
+          <button key={id} onClick={() => setSort(id)} className={'sq-chip' + (sort === id ? ' gold' : '')} style={{ cursor: 'pointer', padding: '6px 11px', fontSize: 11.5 }}>{label}</button>
+        ))}
+      </div>
+
       {/* directory — academies left, clubs right */}
       <div style={{ padding: '0 20px 28px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
           <div>
             <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-gold)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>{t('Academies')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {ACADEMIES_DIR.map((a) => (
+              {academies.map((a) => {
+                const r = venueRating(state.reviews, a.id);
+                return (
                 <button key={a.id} onClick={() => openAcademy(a)} className="sq-card" style={{ textAlign: 'left', cursor: 'pointer', padding: 12, display: 'flex', flexDirection: 'column', gap: 5 }}>
                   <div style={{ width: 34, height: 34, borderRadius: 9, overflow: 'hidden', background: 'color-mix(in srgb, var(--sq-gold) 14%, transparent)', border: '1px solid color-mix(in srgb, var(--sq-gold) 28%, transparent)', color: 'var(--sq-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {a.id === 'ramyashour' && state.images?.academyLogo ? <img src={state.images.academyLogo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Icons.Trophy size={17} />}
                   </div>
-                  <div className="sq-display" style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.2 }}>{a.short}</div>
-                  <div className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)' }}>{a.courts} courts · book</div>
+                  <div className="sq-display" style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.2 }}>{t(a.short)}</div>
+                  {r.count > 0 ? <Stars value={r.avg} size={11} count={r.count} /> : <span className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)' }}>{a.courts} {t('courts')} · {t('book')}</span>}
                 </button>
-              ))}
+                );
+              })}
             </div>
           </div>
           <div>
@@ -116,9 +140,9 @@ export default function DiscoverScreen() {
                   <div style={{ width: 34, height: 34, borderRadius: 9, overflow: 'hidden', background: `color-mix(in srgb, ${c.accent} 16%, transparent)`, border: `1px solid color-mix(in srgb, ${c.accent} 30%, transparent)`, color: c.accent, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {c.id === 'heliopolis' && state.images?.clubCrest ? <img src={state.images.clubCrest} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Icons.Club size={17} />}
                   </div>
-                  <div className="sq-display" style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.2 }}>{c.short}</div>
+                  <div className="sq-display" style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.2 }}>{t(c.short)}</div>
                   <div className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                    {c.guestPass ? 'Guest passes' : <><Icons.Lock size={9} /> members</>}
+                    {c.guestPass ? t('Guest passes') : <><Icons.Lock size={9} /> {t('members')}</>}
                   </div>
                 </button>
               ))}

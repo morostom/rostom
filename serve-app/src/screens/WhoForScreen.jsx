@@ -88,7 +88,7 @@ export default function WhoForScreen() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <Choice icon={<Icons.User size={24} />} title={t('For myself')} sub={t('I play squash and want my own card.')} onClick={() => choose(false)} />
           <Choice icon={<Icons.Users size={24} />} title={t('For my child')} sub={t("I'm setting up my child's player card.")} onClick={() => choose(true)} />
-          <Choice icon={<Icons.Heart size={24} />} title={t('Parent account')} sub={t("No card — track my child's sessions, book courts, and pay their transfers.")} onClick={chooseParent} />
+          <Choice icon={<Icons.ParentChild size={26} />} title={t('Parent account')} sub={t("No card — track my child's sessions, book courts, and pay their transfers.")} onClick={chooseParent} />
         </div>
       </div>
     </MScreen>

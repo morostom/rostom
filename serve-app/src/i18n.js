@@ -247,6 +247,83 @@ const AR = {
   'Set up your club. This is what players will see.': 'أعدّ ناديك. هذا ما سيراه اللاعبون.',
   'Crest': 'الشعار',
   'Logo': 'الشعار',
+
+  // ── reviews & ratings ──
+  'No reviews yet': 'لا توجد تقييمات بعد',
+  'Ratings & reviews': 'التقييمات والمراجعات',
+  'Leave a review': 'اكتب مراجعة',
+  'How was your experience?': 'كيف كانت تجربتك؟',
+  'Submit review': 'إرسال المراجعة',
+  'Thanks for your review': 'شكرًا على مراجعتك',
+  'Anonymous': 'مجهول',
+  'Be the first to review this academy.': 'كن أول من يقيّم هذه الأكاديمية.',
+  'Message owner': 'راسل المالك',
+  'Message coach': 'راسل المدرب',
+
+  // ── discover filters ──
+  'Sort': 'ترتيب',
+  'Near me': 'الأقرب',
+  'Best': 'الأعلى تقييمًا',
+
+  // ── cancellation ──
+  'Sent to your parent to approve': 'أُرسل إلى ولي أمرك للموافقة',
+  'Session cancelled — club notified': 'أُلغيت الحصة — تم إخطار النادي',
+  'Reason (e.g. not feeling well)': 'السبب (مثلاً: لست بخير)',
+  'Under 16 — your parent must approve this cancellation.': 'أقل من ١٦ — يجب أن يوافق ولي أمرك على الإلغاء.',
+  'Keep session': 'إبقاء الحصة',
+  'Request cancel': 'طلب الإلغاء',
+  'Confirm cancel': 'تأكيد الإلغاء',
+  'Cancellation requests': 'طلبات الإلغاء',
+  'Keep it': 'إبقاؤها',
+  'Approve cancel': 'الموافقة على الإلغاء',
+  'Kept the session': 'تم إبقاء الحصة',
+  'Cancellation approved': 'تمت الموافقة على الإلغاء',
+
+  // ── joining a club ──
+  'Members only': 'للأعضاء فقط',
+  'This club is members only. Enter the access code from your club to unlock live courts, your schedule, and booking.': 'هذا النادي للأعضاء فقط. أدخل رمز الدخول من ناديك لفتح الملاعب المباشرة وجدولك والحجز.',
+  'Enter access code': 'أدخل رمز الدخول',
+  'Access code': 'رمز الدخول',
+  'Unlock club': 'فتح النادي',
+  'That code is not recognised.': 'هذا الرمز غير معروف.',
+  'Welcome to the club': 'أهلاً بك في النادي',
+  "Clubs are private. Unlike academies, only registered members can see a club's schedule and live courts — so you'll need an access code from your club's squash office.": 'الأندية خاصة. على عكس الأكاديميات، الأعضاء المسجّلون فقط يمكنهم رؤية جدول النادي وملاعبه المباشرة — لذا ستحتاج إلى رمز دخول من مكتب الإسكواش بناديك.',
+  'On SERVE': 'على SERVE',
+  'CODE REQUIRED': 'الرمز مطلوب',
+  'Already a member? Your squash office sends codes over WhatsApp — paste yours to unlock the club.': 'عضو بالفعل؟ يرسل مكتب الإسكواش الرموز عبر واتساب — الصق رمزك لفتح النادي.',
+  'Guest passes': 'تصاريح ضيوف',
+
+  // ── academy / club names ──
+  'Ramy Ashour': 'رامي عاشور',
+  'El Borolossy': 'البرلسي',
+  'Cairo Squash Hub': 'مركز القاهرة للإسكواش',
+  'Amir Wagih': 'أمير وجيه',
+  'Shoukry Squash': 'شكري سكواش',
+  'Bassem Makram': 'باسم مكرم',
+  'Heliopolis SC': 'هليوبوليس',
+  'Ramy Ashour Squash Academy': 'أكاديمية رامي عاشور للإسكواش',
+  'El Borolossy Academy': 'أكاديمية البرلسي',
+  'Amir Wagih Squash Academy': 'أكاديمية أمير وجيه للإسكواش',
+  'Bassem Makram Academy': 'أكاديمية باسم مكرم',
+  'Heliopolis Sporting Club': 'نادي هليوبوليس الرياضي',
+  'Wadi Degla': 'وادي دجلة',
+  'Black Ball': 'بلاك بول',
+  'Gezira SC': 'الجزيرة',
+  'Al Ahly': 'الأهلي',
+  'Smouha': 'سموحة',
+  'Sporting': 'سبورتنج',
+
+  // ── session names & types ──
+  'Fitness': 'لياقة',
+  'Solo lesson 1': 'درس فردي ١',
+  'Solo lesson 2': 'درس فردي ٢',
+  'Solo lesson 3': 'درس فردي ٣',
+  'U17 Squad': 'فريق تحت ١٧',
+  'U11 Beginners': 'مبتدئون تحت ١١',
+  'Elite Squad': 'فريق النخبة',
+  'Strength & movement': 'قوة وحركة',
+  'courts': 'ملاعب',
+  'book': 'احجز',
 };
 
 function load() {

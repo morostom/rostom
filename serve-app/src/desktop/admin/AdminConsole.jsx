@@ -579,7 +579,11 @@ function AcademyProfile() {
   const notify = useToast();
   const state = useStore();
   const [name, setName] = useState(state.academyName || ACADEMY.name);
-  function save() { store.setOrgName('academy', name); notify('Changes saved'); }
+  const c = state.contacts?.ramyashour || {};
+  const [ownerPhone, setOwnerPhone] = useState(c.owner || '');
+  const [coachPhone, setCoachPhone] = useState(c.coach || '');
+  const inputCss = { padding: '10px 12px', border: '1px solid var(--sq-border-2)', borderRadius: 8, background: 'rgba(255,255,255,0.02)', fontFamily: 'var(--sq-body)', fontSize: 13.5, color: 'var(--sq-text)', outline: 'none', width: '100%' };
+  function save() { store.setOrgName('academy', name); store.setContact('ramyashour', { owner: ownerPhone, coach: coachPhone }); notify('Changes saved'); }
   return (
     <>
       <Topbar title="Academy profile" sub="Branding · public page" trailing={
@@ -608,6 +612,16 @@ function AcademyProfile() {
               <input value={name} onChange={(e) => setName(e.target.value)} style={{ padding: '10px 12px', border: '1px solid var(--sq-border-2)', borderRadius: 8, background: 'rgba(255,255,255,0.02)', fontFamily: 'var(--sq-body)', fontSize: 13.5, color: 'var(--sq-text)', outline: 'none' }} />
             </div>
             <Field label="Tagline" value={ACADEMY.tagline} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: 11, color: 'var(--sq-text-3)', fontFamily: 'var(--sq-mono)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Owner WhatsApp</label>
+                <input value={ownerPhone} onChange={(e) => setOwnerPhone(e.target.value)} placeholder="+20 100 585 1199" style={inputCss} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: 11, color: 'var(--sq-text-3)', fontFamily: 'var(--sq-mono)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Head coach WhatsApp</label>
+                <input value={coachPhone} onChange={(e) => setCoachPhone(e.target.value)} placeholder="+20 10 1234 5678" style={inputCss} />
+              </div>
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
               <Field label="City" value="Cairo" />
               <Field label="District" value={ACADEMY.district} />

@@ -14,11 +14,13 @@ const paymentFromRow = (r) => ({ id: r.id, player: r.player, item: r.item, amoun
 const staffFromRow = (r) => ({ id: r.id, org_id: r.org_id, name: r.name, role: r.role, initials: r.initials, squads: r.squads });
 const parentLinkFromRow = (r) => ({ id: r.id, parent_identifier: r.parent_identifier, parent_name: r.parent_name, child_name: r.child_name, status: r.status || 'pending' });
 const requestFromRow = (r) => ({ id: r.id, parent_identifier: r.parent_identifier, child_name: r.child_name, item: r.item, venue: r.venue, court: r.court, day: r.day, time: r.time, amount: r.amount, status: r.status, expiresAt: r.expires_at, createdAt: r.created_at });
+const reviewFromRow = (r) => ({ id: r.id, venue_id: r.venue_id, venue_name: r.venue_name, player: r.player, rating: r.rating, comment: r.comment, createdAt: r.created_at });
+const cancellationFromRow = (r) => ({ id: r.id, session_id: r.session_id, session_title: r.session_title, club_id: r.club_id, coach: r.coach, player: r.player, parent_identifier: r.parent_identifier, reason: r.reason, status: r.status, createdAt: r.created_at });
 
 // Build a store patch from the whole DB (simple + robust for demo volume).
 export async function hydrate() {
   if (!hasBackend) return {};
-  const [courts, sessions, bookings, payments, settings, staff, links, requests] = await Promise.all([
+  const [courts, sessions, bookings, payments, settings, staff, links, requests, reviews, cancellations] = await Promise.all([
     supabase.from('courts').select('*').eq('club_id', CLUB).order('court_no'),
     supabase.from('sessions').select('*').eq('club_id', CLUB),
     supabase.from('bookings').select('*').order('created_at', { ascending: true }),
@@ -27,6 +29,8 @@ export async function hydrate() {
     supabase.from('staff').select('*').order('created_at', { ascending: true }),
     supabase.from('parent_links').select('*'),
     supabase.from('payment_requests').select('*').order('created_at', { ascending: true }),
+    supabase.from('reviews').select('*').order('created_at', { ascending: true }),
+    supabase.from('cancellations').select('*').order('created_at', { ascending: true }),
   ]);
   const patch = {};
   if (courts.data?.length) patch.courts = courts.data.map(courtFromRow);
@@ -36,6 +40,8 @@ export async function hydrate() {
   if (staff.data) patch.staff = staff.data.map(staffFromRow);
   if (links.data) patch.parentLinks = links.data.map(parentLinkFromRow);
   if (requests.data) patch.paymentRequests = requests.data.map(requestFromRow);
+  if (reviews.data) patch.reviews = reviews.data.map(reviewFromRow);
+  if (cancellations.data) patch.cancellations = cancellations.data.map(cancellationFromRow);
   if (settings.data) {
     const hel = settings.data.find((s) => s.id === CLUB);
     const aca = settings.data.find((s) => s.id === ACADEMY);
@@ -44,6 +50,10 @@ export async function hydrate() {
     if (hel?.name) patch.clubName = hel.name;
     if (aca?.name) patch.academyName = aca.name;
     patch.images = { clubCrest: hel?.crest || undefined, clubCover: hel?.cover || undefined, academyLogo: aca?.logo || undefined, academyCover: aca?.cover || undefined };
+    patch.contacts = {
+      heliopolis: { owner: hel?.owner_phone || '', coach: hel?.coach_phone || '' },
+      ramyashour: { owner: aca?.owner_phone || '', coach: aca?.coach_phone || '' },
+    };
   }
   return patch;
 }
@@ -72,6 +82,8 @@ export function subscribe(onChange) {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'staff' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'parent_links' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'payment_requests' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'reviews' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'cancellations' }, onChange)
     .subscribe();
   return () => supabase.removeChannel(ch);
 }
@@ -106,6 +118,19 @@ export async function setTheme(which, hex) {
 export async function setName(which, name) {
   const id = which === 'club' ? CLUB : ACADEMY;
   await supabase.from('org_settings').upsert({ id, type: which, name, updated_at: new Date().toISOString() });
+}
+export async function setContacts(org, { owner, coach }) {
+  const type = org === CLUB ? 'club' : 'academy';
+  await supabase.from('org_settings').upsert({ id: org, type, owner_phone: owner ?? null, coach_phone: coach ?? null, updated_at: new Date().toISOString() });
+}
+export async function addReview(r) {
+  await supabase.from('reviews').insert({ venue_id: r.venue_id, venue_name: r.venue_name ?? null, player: r.player ?? null, rating: r.rating, comment: r.comment ?? null });
+}
+export async function addCancellation(c) {
+  await supabase.from('cancellations').insert({ session_id: String(c.session_id ?? ''), session_title: c.session_title ?? null, club_id: c.club_id || 'heliopolis', coach: c.coach ?? null, player: c.player ?? null, parent_identifier: c.parent_identifier ?? null, reason: c.reason ?? null, status: c.status || 'cancelled' });
+}
+export async function updateCancellation(id, patch) {
+  await supabase.from('cancellations').update(patch).eq('id', id);
 }
 export async function addStaff(s) {
   // let the DB mint the uuid; realtime hydrate reconciles the optimistic row

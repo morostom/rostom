@@ -70,7 +70,7 @@ export default function ProfileHomeScreen({ justCreated }) {
         <div key={l.id} style={{ padding: '0 20px 16px' }}>
           <div className="sq-card serve-glow-soft" style={{ padding: 15, borderColor: 'color-mix(in srgb, var(--sq-gold) 32%, transparent)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 11, background: 'color-mix(in srgb, var(--sq-gold) 14%, transparent)', color: 'var(--sq-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icons.Heart size={19} /></div>
+              <div style={{ width: 40, height: 40, borderRadius: 11, background: 'color-mix(in srgb, var(--sq-gold) 14%, transparent)', color: 'var(--sq-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icons.ParentChild size={20} /></div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="sq-display" style={{ fontSize: 14, fontWeight: 600 }}>{t('Parent link request')}</div>
                 <div style={{ fontSize: 12, color: 'var(--sq-text-2)', marginTop: 2, lineHeight: 1.4 }}>{(l.parent_name || t('A parent'))} {t('wants to link to your account to pay for your bookings.')}</div>
@@ -94,8 +94,8 @@ export default function ProfileHomeScreen({ justCreated }) {
               <div className="sq-display" style={{ fontSize: 18, fontWeight: 700, lineHeight: 1 }}>{next.time.split(':')[0]}</div>
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 14, fontWeight: 500 }}>{next.title}</div>
-              <div className="sq-mono" style={{ fontSize: 11.5, color: 'var(--sq-text-2)' }}>{next.time} · {next.type} · {next.coach}</div>
+              <div style={{ fontSize: 14, fontWeight: 500 }}>{t(next.title)}</div>
+              <div className="sq-mono" style={{ fontSize: 11.5, color: 'var(--sq-text-2)' }}>{next.time} · {t(next.type)} · {next.coach}</div>
             </div>
             <Icons.Chevron size={16} />
           </button>

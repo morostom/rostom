@@ -6,10 +6,12 @@ import { Icons } from '../components/Icons';
 import SQLogo from '../components/SQLogo';
 import { MScreen, MTabBar } from '../components/mobile';
 import { useNav } from '../navigation/nav';
+import { useT } from '../i18n';
 import { CLUB } from '../data';
 
 export default function ClubsLockedScreen() {
   const { nav } = useNav();
+  const t = useT();
 
   return (
     <MScreen
@@ -17,7 +19,7 @@ export default function ClubsLockedScreen() {
       header={
         <div style={{ padding: '4px 20px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <h1 className="sq-display" style={{ margin: 0, fontSize: 30, fontWeight: 700, letterSpacing: '-0.03em' }}>
-            Clubs
+            {t('Clubs')}
           </h1>
           <SQLogo size={18} />
         </div>
@@ -43,10 +45,10 @@ export default function ClubsLockedScreen() {
           </div>
           <div>
             <h2 className="sq-display" style={{ margin: 0, fontSize: 23, fontWeight: 700, letterSpacing: '-0.02em' }}>
-              Members only
+              {t('Members only')}
             </h2>
             <p style={{ margin: '8px 0 0', color: 'var(--sq-text-2)', fontSize: 14, lineHeight: 1.5, maxWidth: 290, textWrap: 'pretty' }}>
-              Clubs are private. Unlike academies, only registered members can see a club's schedule and live courts — so you'll need an access code from your club's squash office.
+              {t("Clubs are private. Unlike academies, only registered members can see a club's schedule and live courts — so you'll need an access code from your club's squash office.")}
             </p>
           </div>
         </div>
@@ -54,7 +56,7 @@ export default function ClubsLockedScreen() {
         {/* teaser — your club is already on SERVE, but locked */}
         <div>
           <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8 }}>
-            On SERVE
+            {t('On SERVE')}
           </div>
           <div className="sq-card" style={{ padding: 14, display: 'flex', alignItems: 'center', gap: 13 }}>
             <div
@@ -75,7 +77,7 @@ export default function ClubsLockedScreen() {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div className="sq-display" style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.15 }}>
-                {CLUB.name}
+                {t(CLUB.name)}
               </div>
               <div style={{ fontSize: 12.5, color: 'var(--sq-text-2)', marginTop: 3 }}>
                 {CLUB.section} · {CLUB.city}
@@ -83,7 +85,7 @@ export default function ClubsLockedScreen() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, color: 'var(--sq-text-3)' }}>
                 <Icons.Lock size={12} />
                 <span className="sq-mono" style={{ fontSize: 10.5, letterSpacing: '0.04em' }}>
-                  CODE REQUIRED
+                  {t('CODE REQUIRED')}
                 </span>
               </div>
             </div>
@@ -97,10 +99,10 @@ export default function ClubsLockedScreen() {
             style={{ padding: '15px', fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9 }}
             onClick={() => nav.push('joinClub')}
           >
-            <Icons.Ticket size={17} /> Enter access code
+            <Icons.Ticket size={17} /> {t('Enter access code')}
           </button>
           <p style={{ margin: 0, textAlign: 'center', fontSize: 12.5, color: 'var(--sq-text-3)', lineHeight: 1.5 }}>
-            Already a member at HSC? Your squash office sends codes over WhatsApp — paste yours to unlock the club.
+            {t('Already a member? Your squash office sends codes over WhatsApp — paste yours to unlock the club.')}
           </p>
         </div>
       </div>

@@ -26,6 +26,8 @@ create table if not exists public.org_settings (
   logo text,              -- data URL or storage path
   cover text,
   crest text,
+  owner_phone text,       -- WhatsApp: owner/admin
+  coach_phone text,       -- WhatsApp: head coach
   updated_at timestamptz default now()
 );
 
@@ -94,6 +96,7 @@ create table if not exists public.staff (
   role text,
   initials text,
   squads text,
+  phone text,                    -- WhatsApp
   created_at timestamptz default now()
 );
 
@@ -132,6 +135,31 @@ create table if not exists public.payment_requests (
   created_at timestamptz default now()
 );
 
+-- ── reviews (players rate an academy/club after a booking) ───────────
+create table if not exists public.reviews (
+  id uuid primary key default gen_random_uuid(),
+  venue_id text not null,
+  venue_name text,
+  player text,
+  rating int not null,               -- 1..5
+  comment text,
+  created_at timestamptz default now()
+);
+
+-- ── cancellations (under-16 need parent approval; club gets notified) ─
+create table if not exists public.cancellations (
+  id uuid primary key default gen_random_uuid(),
+  session_id text,
+  session_title text,
+  club_id text default 'heliopolis',
+  coach text,
+  player text,
+  parent_identifier text,
+  reason text,
+  status text default 'cancelled',   -- pending | cancelled | declined
+  created_at timestamptz default now()
+);
+
 -- ── Row Level Security ───────────────────────────────────────────────
 alter table public.profiles         enable row level security;
 alter table public.org_settings     enable row level security;
@@ -143,6 +171,8 @@ alter table public.access_codes     enable row level security;
 alter table public.staff            enable row level security;
 alter table public.parent_links     enable row level security;
 alter table public.payment_requests enable row level security;
+alter table public.reviews          enable row level security;
+alter table public.cancellations    enable row level security;
 
 -- profiles: anyone can read (rosters), you manage your own
 drop policy if exists "profiles read" on public.profiles;
@@ -173,13 +203,19 @@ end $$;
 do $$
 declare t text;
 begin
-  foreach t in array array['parent_links','payment_requests'] loop
+  foreach t in array array['parent_links','payment_requests','cancellations'] loop
     execute format('drop policy if exists "%s read" on public.%I;', t, t);
     execute format('create policy "%s read" on public.%I for select to authenticated using (true);', t, t);
     execute format('drop policy if exists "%s write" on public.%I;', t, t);
     execute format('create policy "%s write" on public.%I for all to authenticated using (true) with check (true);', t, t);
   end loop;
 end $$;
+
+-- reviews: public read (ratings show pre-login), authenticated write
+drop policy if exists "reviews read" on public.reviews;
+create policy "reviews read" on public.reviews for select using (true);
+drop policy if exists "reviews write" on public.reviews;
+create policy "reviews write" on public.reviews for all to authenticated using (true) with check (true);
 
 -- ── Realtime: broadcast row changes for the live tables ──────────────
 alter publication supabase_realtime add table public.courts;
@@ -189,3 +225,5 @@ alter publication supabase_realtime add table public.bookings;
 alter publication supabase_realtime add table public.staff;
 alter publication supabase_realtime add table public.parent_links;
 alter publication supabase_realtime add table public.payment_requests;
+alter publication supabase_realtime add table public.reviews;
+alter publication supabase_realtime add table public.cancellations;

@@ -183,6 +183,15 @@ export const Icons = {
       <path d="M22 21c0-3-2-5-5-5" opacity="0.7" />
     </SQIcon>
   ),
+  // parent + child — the "transfer to parent" mark, SERVE stroke style
+  ParentChild: ({ size = 16 }) => (
+    <SQIcon size={size}>
+      <circle cx="7.5" cy="5" r="2.4" />
+      <path d="M4 21v-7a3.5 3.5 0 017 0v7" />
+      <circle cx="16.5" cy="9.5" r="1.9" />
+      <path d="M13.5 21v-5a3 3 0 016 0v5" />
+    </SQIcon>
+  ),
   TrendUp: ({ size = 16 }) => <SQIcon size={size} d="M3 17l6-6 4 4 8-8M14 7h7v7" />,
   Wallet: ({ size = 16 }) => (
     <SQIcon size={size}>
