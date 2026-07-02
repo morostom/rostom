@@ -9,7 +9,8 @@ import { MScreen } from '../components/mobile';
 import { useNav } from '../navigation/nav';
 import { DEMO_PLAYER } from '../data';
 import { hasBackend } from '../lib/supabase';
-import { signUp, signIn, loadCard } from '../lib/auth';
+import { signUp, signIn, loadCard, normId } from '../lib/auth';
+import { store } from '../store';
 import { useT } from '../i18n';
 
 function Field({ label, type, value, onChange, placeholder, icon, prefix }) {
@@ -26,7 +27,7 @@ function Field({ label, type, value, onChange, placeholder, icon, prefix }) {
 }
 
 export default function AuthScreen() {
-  const { nav, setAccount, setPlayer } = useNav();
+  const { nav, setAccount, setPlayer, setAccountType, setChild } = useNav();
   const t = useT();
   const [mode, setMode] = useState('signup'); // 'signup' | 'login'
   const [method, setMethod] = useState('phone'); // 'phone' | 'email'
@@ -55,7 +56,14 @@ export default function AuthScreen() {
       if (res.error) return setErr(res.error);
       if (mode === 'login') {
         const card = await loadCard();
-        setPlayer(card || { ...DEMO_PLAYER });
+        if (card?.kind === 'parent') {
+          // parent account — open the parent home, not a player card
+          setAccountType?.('parent');
+          setChild?.(card.childName || null);
+        } else {
+          setAccountType?.('player');
+          setPlayer(card || { ...DEMO_PLAYER });
+        }
         nav.replaceRoot('profile');
       } else {
         nav.push('whoFor');
@@ -63,9 +71,17 @@ export default function AuthScreen() {
       return;
     }
 
-    // local/offline mode (no backend configured)
+    // local/offline mode (no backend configured). A returning parent is
+    // recognised from the locally stored link (offline has no profiles table).
     if (mode === 'login') {
-      setPlayer({ ...DEMO_PLAYER });
+      const link = (store.get().parentLinks || []).find((l) => normId(l.parent_identifier) === normId(identifier));
+      if (link) {
+        setAccountType?.('parent');
+        setChild?.(link.child_name);
+      } else {
+        setAccountType?.('player');
+        setPlayer({ ...DEMO_PLAYER });
+      }
       nav.replaceRoot('profile');
     } else {
       nav.push('whoFor');

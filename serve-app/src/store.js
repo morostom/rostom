@@ -94,6 +94,7 @@ if (hasBackend) {
   const refresh = () => backend.hydrate().then((patch) => { state = { ...state, ...patch }; emit(); }).catch(() => {});
   refresh();
   backend.subscribe(refresh);
+  backend.onAuth(refresh); // RLS-visible data changes on login/logout
 }
 
 function subscribe(l) { listeners.add(l); return () => listeners.delete(l); }
@@ -187,16 +188,25 @@ export const store = {
     if (hasBackend) backend.removeCourtRow(court);
   },
   // ── parent accounts ──
-  // link a parent (by their login identifier) to a child (by name)
+  // Link a parent (by their login identifier) to a child (by name). Starts
+  // 'pending' — the child approves it from their app before transfers work.
   linkChild: ({ parent_identifier, parent_name, child_name }) => {
     const name = (child_name || '').trim();
     if (!name || !parent_identifier) return;
     const existing = state.parentLinks.find((l) => l.parent_identifier === parent_identifier && l.child_name.toLowerCase() === name.toLowerCase());
     if (existing) return existing;
-    const row = { id: 'pl' + Date.now(), parent_identifier, parent_name: parent_name || '', child_name: name };
+    const row = { id: 'pl' + Date.now(), parent_identifier, parent_name: parent_name || '', child_name: name, status: 'pending' };
     commit({ ...state, parentLinks: [...state.parentLinks, row] });
     if (hasBackend) backend.addParentLink(row);
     return row;
+  },
+  approveLink: (id) => {
+    commit({ ...state, parentLinks: state.parentLinks.map((l) => (l.id === id ? { ...l, status: 'approved' } : l)) });
+    if (hasBackend) backend.updateParentLink(id, { status: 'approved' });
+  },
+  declineLink: (id) => {
+    commit({ ...state, parentLinks: state.parentLinks.filter((l) => l.id !== id) });
+    if (hasBackend) backend.removeParentLink(id);
   },
   // child asks their parent to pay — creates a pending request with a 10-min hold
   requestTransfer: (req) => {
@@ -211,10 +221,16 @@ export const store = {
     if (hasBackend) backend.addPaymentRequest(row);
     return row;
   },
-  // parent approves & pays — confirms the booking under the child's name
+  // parent approves & pays — confirms the booking under the child's name.
+  // Refuses if the 10-minute hold has lapsed (marks it expired instead).
   payRequest: (id, method) => {
     const r = state.paymentRequests.find((x) => x.id === id);
     if (!r) return;
+    if (r.expiresAt && new Date(r.expiresAt).getTime() <= Date.now()) {
+      commit({ ...state, paymentRequests: state.paymentRequests.map((x) => (x.id === id ? { ...x, status: 'expired' } : x)) });
+      if (hasBackend) backend.updatePaymentRequest(id, { status: 'expired' });
+      return;
+    }
     const booking = { id: 'bk' + Date.now(), court: r.court, title: r.item, venue: r.venue, type: 'Standard', day: r.day, time: r.time, price: r.amount, method: method || 'card', status: 'confirmed', forChild: r.child_name };
     commit({
       ...state,

@@ -594,7 +594,7 @@ function AcademyProfile() {
             <div style={{ display: 'flex', gap: 16 }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: 110, flexShrink: 0 }}>
                 <label style={{ fontSize: 11, color: 'var(--sq-text-3)', fontFamily: 'var(--sq-mono)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Logo</label>
-                <UploadSlot value={state.images.academyLogo} onChange={(d) => { store.setImage('academyLogo', d); notify('Logo updated'); }} label="Drop logo" height={110} radius={16} />
+                <UploadSlot value={state.images.academyLogo} onChange={(d) => { store.setImage('academyLogo', d); notify('Logo updated'); }} label="Drop logo" height={110} radius={16} maxDim={512} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1 }}>
                 <label style={{ fontSize: 11, color: 'var(--sq-text-3)', fontFamily: 'var(--sq-mono)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Cover image</label>
@@ -783,7 +783,7 @@ function WizardStep({ step }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 560 }}>
         <h1 className="sq-display" style={{ margin: 0, fontSize: 30, fontWeight: 700, letterSpacing: '-0.025em' }}>Tell us about your academy.</h1>
         <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-          <div style={{ width: 80, flexShrink: 0 }}><UploadSlot value={store.get().images.academyLogo} onChange={(d) => store.setImage('academyLogo', d)} label="Logo" height={80} radius={16} /></div>
+          <div style={{ width: 80, flexShrink: 0 }}><UploadSlot value={store.get().images.academyLogo} onChange={(d) => store.setImage('academyLogo', d)} label="Logo" height={80} radius={16} maxDim={512} /></div>
           <div style={{ flex: 1 }}><Field label="Academy name" value={ACADEMY.name} /></div>
         </div>
         <Field label="Tagline" value={ACADEMY.tagline} />

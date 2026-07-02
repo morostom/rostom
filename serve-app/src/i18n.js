@@ -68,8 +68,16 @@ const AR = {
   'Link a child': 'اربط طفلاً',
   'No child linked yet.': 'لم يتم ربط أي طفل بعد.',
   'Decline': 'رفض',
+  'Approve': 'موافقة',
   'Pay EGP': 'ادفع',
   'Phone alerts enabled': 'تم تفعيل تنبيهات الهاتف',
+  'Waiting for your child to approve': 'في انتظار موافقة طفلك',
+  'Pending': 'قيد الانتظار',
+  'Parent link request': 'طلب ربط ولي أمر',
+  'A parent': 'ولي أمر',
+  'wants to link to your account to pay for your bookings.': 'يريد الارتباط بحسابك لدفع حجوزاتك.',
+  'Request declined': 'تم رفض الطلب',
+  'Parent linked': 'تم ربط ولي الأمر',
 
   // ── tabs ──
   'Profile': 'الملف',

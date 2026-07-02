@@ -76,15 +76,17 @@ export const RACKETS = ['Tecnifibre', 'Dunlop', 'Head', 'Prince', 'Harrow', 'Oth
 export const FAV_SHOTS = ['Straight drop', 'Backhand boast', 'Cross-court nick', 'Volley drop', 'Trickle boast', 'Deep lob', 'Forehand kill'];
 export const YEARS_OPTIONS = ['Less than 1 year', '1–2 years', '3–5 years', '5–10 years', '10+ years'];
 
-// ── player tiers (levels up as the player books & plays more) ────────
+// ── player tiers ─────────────────────────────────────────────────────
+// Everyone starts Bronze. A tier up every 10 bookings until Semi-pro,
+// then every 20 bookings after that.
 export const TIERS = [
   { key: 'beginner', label: 'Beginner', color: '#cd7f32', min: 0 },   // bronze
-  { key: 'amateur', label: 'Amateur', color: '#c0c0c0', min: 2 },     // silver
-  { key: 'semipro', label: 'Semi-pro', color: '#f5453b', min: 5 },    // red
-  { key: 'pro', label: 'Pro', color: '#d4a64f', min: 10 },            // gold
-  { key: 'elite', label: 'Elite', color: '#1e40af', min: 20 },        // dark blue
+  { key: 'amateur', label: 'Amateur', color: '#c0c0c0', min: 10 },    // silver
+  { key: 'semipro', label: 'Semi-pro', color: '#f5453b', min: 20 },   // red
+  { key: 'pro', label: 'Pro', color: '#d4a64f', min: 40 },            // gold
+  { key: 'elite', label: 'Elite', color: '#1e40af', min: 60 },        // dark blue
 ];
-// tier from total activity (bookings + sessions the player is in)
+// tier from the player's booking count
 export function tierForActivity(count) {
   let t = TIERS[0];
   for (const tier of TIERS) if (count >= tier.min) t = tier;

@@ -9,6 +9,7 @@ import { MScreen, Pill } from '../components/mobile';
 import { useNav } from '../navigation/nav';
 import { useStore, store } from '../store';
 import { useT } from '../i18n';
+import { normId, saveParent } from '../lib/auth';
 
 export default function ParentLinkScreen() {
   const { nav, account, setChild } = useNav();
@@ -23,8 +24,9 @@ export default function ParentLinkScreen() {
   function link() {
     const clean = name.trim();
     if (clean.length < 2) return setErr(t('Enter your child’s name.'));
-    const parent_identifier = account?.identifier || 'parent';
+    const parent_identifier = normId(account?.identifier) || 'parent';
     store.linkChild({ parent_identifier, parent_name: account?.name || 'Parent', child_name: clean });
+    saveParent({ childName: clean }); // so future logins open the parent home
     setChild?.(clean);
     nav.replaceRoot('profile');
   }

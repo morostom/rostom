@@ -113,6 +113,7 @@ create table if not exists public.parent_links (
   parent_identifier text not null,   -- the parent's phone/email (their login)
   parent_name text,
   child_name text not null,
+  status text default 'pending',     -- pending | approved (child must approve)
   created_at timestamptz default now()
 );
 
@@ -155,15 +156,28 @@ drop policy if exists "bookings own" on public.bookings;
 create policy "bookings own" on public.bookings for all
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
--- shared demo tables: public read; write allowed for everyone (DEMO ONLY)
+-- shared live tables: public read (live boards show pre-login), writes
+-- require a signed-in account. Per-org roles come with multi-tenancy.
 do $$
 declare t text;
 begin
-  foreach t in array array['org_settings','courts','sessions','payments','access_codes','staff','parent_links','payment_requests'] loop
+  foreach t in array array['org_settings','courts','sessions','payments','access_codes','staff'] loop
     execute format('drop policy if exists "%s read" on public.%I;', t, t);
     execute format('create policy "%s read" on public.%I for select using (true);', t, t);
     execute format('drop policy if exists "%s write" on public.%I;', t, t);
-    execute format('create policy "%s write" on public.%I for all using (true) with check (true);', t, t);
+    execute format('create policy "%s write" on public.%I for all to authenticated using (true) with check (true);', t, t);
+  end loop;
+end $$;
+
+-- parent tables: signed-in accounts only, read and write
+do $$
+declare t text;
+begin
+  foreach t in array array['parent_links','payment_requests'] loop
+    execute format('drop policy if exists "%s read" on public.%I;', t, t);
+    execute format('create policy "%s read" on public.%I for select to authenticated using (true);', t, t);
+    execute format('drop policy if exists "%s write" on public.%I;', t, t);
+    execute format('create policy "%s write" on public.%I for all to authenticated using (true) with check (true);', t, t);
   end loop;
 end $$;
 

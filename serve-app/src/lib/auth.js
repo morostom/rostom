@@ -55,6 +55,23 @@ export async function loadCard() {
   return data?.card || null;
 }
 
+// Normalize an identifier so "01005851199", "+20 100 585 1199" and
+// "0100-585-1199" all match: phones → digits only, emails → lowercased.
+export function normId(x) {
+  const s = (x || '').trim();
+  const digits = s.replace(/\D/g, '');
+  return digits.length >= 7 ? digits : s.toLowerCase();
+}
+
+// ── parent profile ───────────────────────────────────────────────────
+// Tagged kind:'parent' in profiles.card so login knows to open the parent
+// home instead of building a player card.
+export async function saveParent({ childName }) {
+  if (!hasBackend) return;
+  const { data } = await supabase.auth.getUser();
+  if (data?.user) await supabase.from('profiles').upsert({ id: data.user.id, card: { kind: 'parent', childName } });
+}
+
 // ── admin (club/academy owner) profile ───────────────────────────────
 // Stored in the same profiles.card jsonb, tagged kind:'admin', so we know
 // which console to open on login without a schema change.

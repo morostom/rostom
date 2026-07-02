@@ -407,7 +407,7 @@ function ClubProfile() {
             <div style={{ display: 'flex', gap: 16 }}>
               <div style={{ display: 'flex', flexDirection: 'column', width: 110, flexShrink: 0 }}>
                 <Label>Crest / logo</Label>
-                <UploadSlot value={state.images.clubCrest} onChange={(d) => { store.setImage('clubCrest', d); notify('Crest updated'); }} label="Drop crest" height={110} radius={16} />
+                <UploadSlot value={state.images.clubCrest} onChange={(d) => { store.setImage('clubCrest', d); notify('Crest updated'); }} label="Drop crest" height={110} radius={16} maxDim={512} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                 <Label>Cover photo</Label>

@@ -12,6 +12,7 @@ import { useStore, store } from '../store';
 import { useToast } from '../components/Toast';
 import { ensureNotifyPermission, notifyPermission, phoneAlert } from '../lib/notify';
 import { useT } from '../i18n';
+import { normId } from '../lib/auth';
 
 function fmtLeft(ms) {
   if (ms <= 0) return '0:00';
@@ -24,7 +25,7 @@ export default function ParentHomeScreen() {
   const state = useStore();
   const notify = useToast();
   const t = useT();
-  const me = account?.identifier || 'parent';
+  const me = normId(account?.identifier) || 'parent';
 
   const [, setTick] = useState(0);
   const [perm, setPerm] = useState(notifyPermission());
@@ -36,11 +37,12 @@ export default function ParentHomeScreen() {
     return () => clearInterval(t);
   }, []);
 
-  const myLinks = state.parentLinks.filter((l) => l.parent_identifier === me);
-  const childNames = Array.from(new Set([...(child ? [child] : []), ...myLinks.map((l) => l.child_name)]));
-  const primaryChild = childNames[0];
+  const myLinks = state.parentLinks.filter((l) => normId(l.parent_identifier) === me);
+  const primaryLink = myLinks.find((l) => l.status === 'approved') || myLinks[0];
+  const primaryChild = primaryLink?.child_name || child;
+  const approved = primaryLink?.status === 'approved';
 
-  const myRequests = state.paymentRequests.filter((r) => r.parent_identifier === me);
+  const myRequests = state.paymentRequests.filter((r) => normId(r.parent_identifier) === me);
   const pending = myRequests.filter((r) => r.status === 'pending');
   const settled = myRequests.filter((r) => r.status !== 'pending').slice(-4).reverse();
 
@@ -62,7 +64,8 @@ export default function ParentHomeScreen() {
     });
   }, [pending, notify]);
 
-  const childSessions = state.sessions.filter((s) => primaryChild && s.players?.includes(primaryChild));
+  // the child's data only unlocks once they've approved the link
+  const childSessions = approved ? state.sessions.filter((s) => primaryChild && s.players?.includes(primaryChild)) : [];
 
   async function turnOnAlerts() {
     const res = await ensureNotifyPermission();
@@ -108,9 +111,15 @@ export default function ParentHomeScreen() {
               <div style={{ width: 48, height: 48, borderRadius: 24, background: 'linear-gradient(135deg, #2a2a2a, #161616)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 700, flexShrink: 0 }}>{primaryChild.split(' ').map((w) => w[0]).slice(0, 2).join('')}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="sq-display" style={{ fontSize: 16, fontWeight: 700 }}>{primaryChild}</div>
-                <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-2)', marginTop: 2 }}>{childSessions.length} upcoming session{childSessions.length !== 1 ? 's' : ''}</div>
+                <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-2)', marginTop: 2 }}>
+                  {approved ? `${childSessions.length} upcoming session${childSessions.length !== 1 ? 's' : ''}` : t('Waiting for your child to approve')}
+                </div>
               </div>
-              <button className="sq-btn-gold" style={{ padding: '10px 14px', fontSize: 12.5 }} onClick={() => nav.switchTab('discover')}>{t('Book a court')}</button>
+              {approved ? (
+                <button className="sq-btn-gold" style={{ padding: '10px 14px', fontSize: 12.5 }} onClick={() => nav.switchTab('discover')}>{t('Book a court')}</button>
+              ) : (
+                <span className="sq-chip gold" style={{ fontSize: 10.5 }}>{t('Pending')}</span>
+              )}
             </div>
           ) : (
             <div className="sq-card" style={{ padding: 18, textAlign: 'center', color: 'var(--sq-text-3)' }}>

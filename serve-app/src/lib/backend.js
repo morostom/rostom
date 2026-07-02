@@ -12,7 +12,7 @@ const sessionFromRow = (r) => ({ id: r.id, day: r.day, time: r.time, type: r.typ
 const bookingFromRow = (r) => ({ id: r.id, court: r.court, title: r.title, venue: r.venue, type: r.type, day: r.day, time: r.time, endTime: r.end_time, price: r.price, method: r.method, status: r.status });
 const paymentFromRow = (r) => ({ id: r.id, player: r.player, item: r.item, amount: r.amount, status: r.status, method: r.method });
 const staffFromRow = (r) => ({ id: r.id, org_id: r.org_id, name: r.name, role: r.role, initials: r.initials, squads: r.squads });
-const parentLinkFromRow = (r) => ({ id: r.id, parent_identifier: r.parent_identifier, parent_name: r.parent_name, child_name: r.child_name });
+const parentLinkFromRow = (r) => ({ id: r.id, parent_identifier: r.parent_identifier, parent_name: r.parent_name, child_name: r.child_name, status: r.status || 'pending' });
 const requestFromRow = (r) => ({ id: r.id, parent_identifier: r.parent_identifier, child_name: r.child_name, item: r.item, venue: r.venue, court: r.court, day: r.day, time: r.time, amount: r.amount, status: r.status, expiresAt: r.expires_at, createdAt: r.created_at });
 
 // Build a store patch from the whole DB (simple + robust for demo volume).
@@ -46,6 +46,14 @@ export async function hydrate() {
     patch.images = { clubCrest: hel?.crest || undefined, clubCover: hel?.cover || undefined, academyLogo: aca?.logo || undefined, academyCover: aca?.cover || undefined };
   }
   return patch;
+}
+
+// Re-hydrate on login/logout — with tightened RLS, what a client can see
+// depends on who they are, so the pre-login snapshot goes stale on sign-in.
+export function onAuth(cb) {
+  if (!hasBackend) return () => {};
+  const { data } = supabase.auth.onAuthStateChange(() => cb());
+  return () => data?.subscription?.unsubscribe();
 }
 
 // Re-hydrate whenever any live table changes.
@@ -104,7 +112,13 @@ export async function removeStaff(id) {
   await supabase.from('staff').delete().eq('id', id);
 }
 export async function addParentLink(l) {
-  await supabase.from('parent_links').insert({ parent_identifier: l.parent_identifier, parent_name: l.parent_name ?? null, child_name: l.child_name });
+  await supabase.from('parent_links').insert({ parent_identifier: l.parent_identifier, parent_name: l.parent_name ?? null, child_name: l.child_name, status: l.status || 'pending' });
+}
+export async function updateParentLink(id, patch) {
+  await supabase.from('parent_links').update(patch).eq('id', id);
+}
+export async function removeParentLink(id) {
+  await supabase.from('parent_links').delete().eq('id', id);
 }
 export async function addPaymentRequest(r) {
   await supabase.from('payment_requests').insert({

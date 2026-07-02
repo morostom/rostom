@@ -39,8 +39,8 @@ export default function PaymentScreen(params) {
   const [method, setMethod] = useState('applepay');
   const [phase, setPhase] = useState('form');
 
-  // if this player is linked to a parent, they can send the bill to them instead
-  const parentLink = state.parentLinks.find((l) => player?.name && l.child_name.toLowerCase() === player.name.toLowerCase());
+  // if this player has an APPROVED parent link, they can send the bill there
+  const parentLink = state.parentLinks.find((l) => player?.name && l.status === 'approved' && l.child_name.toLowerCase() === player.name.toLowerCase());
 
   function pay() {
     setPhase('processing');

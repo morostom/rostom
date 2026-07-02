@@ -156,7 +156,7 @@ export default function AdminAuth({ onLive }) {
               <div style={{ display: 'flex', gap: 16 }}>
                 <div style={{ width: 120, flexShrink: 0 }}>
                   <Label>{orgType === 'club' ? t('Crest') : t('Logo')}</Label>
-                  <UploadSlot value={state.images[logoKey]} onChange={(d) => store.setImage(logoKey, d)} label="Drop image" height={120} radius={16} />
+                  <UploadSlot value={state.images[logoKey]} onChange={(d) => store.setImage(logoKey, d)} label="Drop image" height={120} radius={16} maxDim={512} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <Label>{t('Cover photo')}</Label>

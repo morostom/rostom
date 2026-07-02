@@ -1,17 +1,44 @@
 // UploadSlot.jsx — a working image upload slot. Click to choose a file; shows a
 // live preview. `value` is a data URL, `onChange(dataURL)` is called on upload.
+//
+// Images are downscaled + compressed before they leave this component — these
+// data URLs are stored in DB rows and hydrated to every client, so a raw
+// 4MB phone photo would bloat everyone's load. PNGs stay PNG (transparency
+// for crests/logos); everything else becomes JPEG.
 
 import { useRef } from 'react';
 import { Icons } from './Icons';
 
-export default function UploadSlot({ value, onChange, label = 'Upload', height = 110, radius = 14, round = false, style = {} }) {
+function compress(file, maxDim, cb) {
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  img.onload = () => {
+    URL.revokeObjectURL(url);
+    const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+    const w = Math.max(1, Math.round(img.width * scale));
+    const h = Math.max(1, Math.round(img.height * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+    const png = file.type === 'image/png';
+    cb(png ? canvas.toDataURL('image/png') : canvas.toDataURL('image/jpeg', 0.82));
+  };
+  img.onerror = () => {
+    // not decodable as an image (or blocked) — fall back to the raw file
+    URL.revokeObjectURL(url);
+    const reader = new FileReader();
+    reader.onload = () => cb(reader.result);
+    reader.readAsDataURL(file);
+  };
+  img.src = url;
+}
+
+export default function UploadSlot({ value, onChange, label = 'Upload', height = 110, radius = 14, round = false, maxDim = 1200, style = {} }) {
   const ref = useRef(null);
   function pick(e) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => onChange(reader.result);
-    reader.readAsDataURL(file);
+    compress(file, maxDim, onChange);
   }
   return (
     <button

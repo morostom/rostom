@@ -7,7 +7,7 @@ import { MScreen, MTabBar, Pill } from '../components/mobile';
 import PlayerCard from '../components/PlayerCard';
 import FlipReveal from '../components/FlipReveal';
 import { useNav } from '../navigation/nav';
-import { useStore } from '../store';
+import { useStore, store } from '../store';
 import { useToast } from '../components/Toast';
 import { tierForActivity } from '../data';
 import { useT } from '../i18n';
@@ -22,8 +22,11 @@ export default function ProfileHomeScreen({ justCreated }) {
 
   const mine = state.sessions.filter((s) => s.mine || (player?.name && s.players?.includes(player.name)));
   const next = mine[0];
-  // Tier levels up with activity (bookings + sessions the player is in).
-  const tier = tierForActivity(state.bookings.length + mine.length);
+  // Tier levels up with bookings only: every 10 to Semi-pro, then every 20.
+  const tier = tierForActivity(state.bookings.length);
+
+  // parent link requests waiting for this player's approval
+  const linkRequests = state.parentLinks.filter((l) => l.status === 'pending' && player?.name && l.child_name.toLowerCase() === player.name.toLowerCase());
 
   function editCard() {
     setCardType(player.cardType);
@@ -61,6 +64,25 @@ export default function ProfileHomeScreen({ justCreated }) {
           </div>
         </FlipReveal>
       </div>
+
+      {/* parent link requests — the child approves who can pay for them */}
+      {linkRequests.map((l) => (
+        <div key={l.id} style={{ padding: '0 20px 16px' }}>
+          <div className="sq-card serve-glow-soft" style={{ padding: 15, borderColor: 'color-mix(in srgb, var(--sq-gold) 32%, transparent)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 11, background: 'color-mix(in srgb, var(--sq-gold) 14%, transparent)', color: 'var(--sq-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icons.Heart size={19} /></div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="sq-display" style={{ fontSize: 14, fontWeight: 600 }}>{t('Parent link request')}</div>
+                <div style={{ fontSize: 12, color: 'var(--sq-text-2)', marginTop: 2, lineHeight: 1.4 }}>{(l.parent_name || t('A parent'))} {t('wants to link to your account to pay for your bookings.')}</div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
+              <button className="sq-btn-ghost" style={{ padding: '10px', fontSize: 12.5, flex: 1, color: 'var(--sq-text-2)' }} onClick={() => { store.declineLink(l.id); notify(t('Request declined')); }}>{t('Decline')}</button>
+              <button className="sq-btn-gold" style={{ padding: '10px', fontSize: 12.5, flex: 1 }} onClick={() => { store.approveLink(l.id); notify(t('Parent linked')); }}>{t('Approve')}</button>
+            </div>
+          </div>
+        </div>
+      ))}
 
       {/* up next — from the live schedule */}
       {next && (
