@@ -233,13 +233,15 @@ drop policy if exists "reviews write" on public.reviews;
 create policy "reviews write" on public.reviews for all to authenticated using (true) with check (true);
 
 -- ── Realtime: broadcast row changes for the live tables ──────────────
-alter publication supabase_realtime add table public.courts;
-alter publication supabase_realtime add table public.sessions;
-alter publication supabase_realtime add table public.org_settings;
-alter publication supabase_realtime add table public.bookings;
-alter publication supabase_realtime add table public.staff;
-alter publication supabase_realtime add table public.parent_links;
-alter publication supabase_realtime add table public.payment_requests;
-alter publication supabase_realtime add table public.reviews;
-alter publication supabase_realtime add table public.cancellations;
-alter publication supabase_realtime add table public.branches;
+-- Idempotent: skip any table already in the publication (re-run safe).
+do $$
+declare t text;
+begin
+  foreach t in array array['courts','sessions','org_settings','bookings','staff',
+                           'parent_links','payment_requests','reviews','cancellations','branches'] loop
+    begin
+      execute format('alter publication supabase_realtime add table public.%I;', t);
+    exception when duplicate_object then null;
+    end;
+  end loop;
+end $$;
