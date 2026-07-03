@@ -7,9 +7,11 @@ import { hasBackend, supabase } from './supabase';
 const CLUB = 'heliopolis';
 const ACADEMY = 'ramyashour';
 
-const courtFromRow = (r) => ({ court: r.court_no, type: r.type, status: r.status, who: r.who, coach: r.coach, until: r.until, left: r.remaining, next: r.next });
-const sessionFromRow = (r) => ({ id: r.id, day: r.day, time: r.time, type: r.type, title: r.title, coach: r.coach, court: r.court, players: r.players || [], mine: false });
-const bookingFromRow = (r) => ({ id: r.id, court: r.court, title: r.title, venue: r.venue, type: r.type, day: r.day, time: r.time, endTime: r.end_time, price: r.price, method: r.method, status: r.status });
+// courts/sessions live under a branch — the branch id IS the club_id column.
+const courtFromRow = (r) => ({ branch: r.club_id, court: r.court_no, type: r.type, status: r.status, who: r.who, coach: r.coach, until: r.until, left: r.remaining, next: r.next });
+const sessionFromRow = (r) => ({ id: r.id, branch: r.club_id, day: r.day, time: r.time, type: r.type, title: r.title, coach: r.coach, court: r.court, players: r.players || [], mine: false });
+const bookingFromRow = (r) => ({ id: r.id, branch: r.branch, court: r.court, title: r.title, venue: r.venue, type: r.type, day: r.day, time: r.time, endTime: r.end_time, price: r.price, method: r.method, status: r.status });
+const branchFromRow = (r) => ({ id: r.id, org_id: r.org_id, name: r.name, location: r.location, courts: r.court_count });
 const paymentFromRow = (r) => ({ id: r.id, player: r.player, item: r.item, amount: r.amount, status: r.status, method: r.method });
 const staffFromRow = (r) => ({ id: r.id, org_id: r.org_id, name: r.name, role: r.role, initials: r.initials, squads: r.squads });
 const parentLinkFromRow = (r) => ({ id: r.id, parent_identifier: r.parent_identifier, parent_name: r.parent_name, child_name: r.child_name, status: r.status || 'pending' });
@@ -20,9 +22,9 @@ const cancellationFromRow = (r) => ({ id: r.id, session_id: r.session_id, sessio
 // Build a store patch from the whole DB (simple + robust for demo volume).
 export async function hydrate() {
   if (!hasBackend) return {};
-  const [courts, sessions, bookings, payments, settings, staff, links, requests, reviews, cancellations] = await Promise.all([
-    supabase.from('courts').select('*').eq('club_id', CLUB).order('court_no'),
-    supabase.from('sessions').select('*').eq('club_id', CLUB),
+  const [courts, sessions, bookings, payments, settings, staff, links, requests, reviews, cancellations, branches] = await Promise.all([
+    supabase.from('courts').select('*').order('court_no'),
+    supabase.from('sessions').select('*'),
     supabase.from('bookings').select('*').order('created_at', { ascending: true }),
     supabase.from('payments').select('*'),
     supabase.from('org_settings').select('*'),
@@ -31,8 +33,10 @@ export async function hydrate() {
     supabase.from('payment_requests').select('*').order('created_at', { ascending: true }),
     supabase.from('reviews').select('*').order('created_at', { ascending: true }),
     supabase.from('cancellations').select('*').order('created_at', { ascending: true }),
+    supabase.from('branches').select('*').order('created_at', { ascending: true }),
   ]);
   const patch = {};
+  if (branches.data?.length) patch.branches = branches.data.map(branchFromRow);
   if (courts.data?.length) patch.courts = courts.data.map(courtFromRow);
   if (sessions.data) patch.sessions = sessions.data.map(sessionFromRow);
   if (bookings.data) patch.bookings = bookings.data.map(bookingFromRow);
@@ -84,16 +88,19 @@ export function subscribe(onChange) {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'payment_requests' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'reviews' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'cancellations' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'branches' }, onChange)
     .subscribe();
   return () => supabase.removeChannel(ch);
 }
 
 // ── writes ───────────────────────────────────────────────────────────
+// the branch id is stored in the club_id column
 export async function writeCourt(c) {
-  await supabase.from('courts').update({ status: c.status, who: c.who ?? null, coach: c.coach ?? null, until: c.until ?? null, remaining: c.left ?? null, next: c.next ?? null }).eq('club_id', CLUB).eq('court_no', c.court);
+  if (!c) return;
+  await supabase.from('courts').update({ status: c.status, who: c.who ?? null, coach: c.coach ?? null, until: c.until ?? null, remaining: c.left ?? null, next: c.next ?? null }).eq('club_id', c.branch).eq('court_no', c.court);
 }
 export async function addSession(s) {
-  await supabase.from('sessions').insert({ club_id: CLUB, day: s.day, time: s.time, type: s.type, title: s.title, coach: s.coach, court: s.court, players: s.players || [] });
+  await supabase.from('sessions').insert({ club_id: s.branch || CLUB, day: s.day, time: s.time, type: s.type, title: s.title, coach: s.coach, court: s.court, players: s.players || [] });
 }
 export async function removeSession(id) {
   await supabase.from('sessions').delete().eq('id', id);
@@ -101,9 +108,24 @@ export async function removeSession(id) {
 export async function addBooking(b) {
   const { data } = await supabase.auth.getUser();
   await supabase.from('bookings').insert({
-    user_id: data?.user?.id ?? null, venue: b.venue, court: String(b.court ?? ''), title: b.title ?? null,
+    user_id: data?.user?.id ?? null, venue: b.venue, court: String(b.court ?? ''), branch: b.branch ?? null, title: b.title ?? null,
     type: b.type ?? null, day: b.day, time: b.time, end_time: b.endTime ?? null, price: b.price, method: b.method, status: b.status || 'confirmed',
   });
+}
+export async function addBranch(br) {
+  await supabase.from('branches').insert({ id: br.id, org_id: br.org_id, name: br.name, location: br.location ?? null, court_count: br.courts ?? 0 });
+}
+export async function updateBranch(id, patch) {
+  const row = {};
+  if (patch.name != null) row.name = patch.name;
+  if (patch.location != null) row.location = patch.location;
+  if (patch.courts != null) row.court_count = patch.courts;
+  await supabase.from('branches').update(row).eq('id', id);
+}
+export async function removeBranch(id) {
+  await supabase.from('courts').delete().eq('club_id', id);
+  await supabase.from('sessions').delete().eq('club_id', id);
+  await supabase.from('branches').delete().eq('id', id);
 }
 export async function removeBooking(id) {
   await supabase.from('bookings').delete().eq('id', id);
@@ -162,10 +184,10 @@ export async function updatePaymentRequest(id, patch) {
   await supabase.from('payment_requests').update(patch).eq('id', id);
 }
 export async function addCourtRow(c) {
-  await supabase.from('courts').insert({ club_id: CLUB, court_no: c.court, type: c.type || 'Standard', status: c.status || 'free', next: c.next ?? null });
+  await supabase.from('courts').insert({ club_id: c.branch, court_no: c.court, type: c.type || 'Standard', status: c.status || 'free', next: c.next ?? null });
 }
-export async function removeCourtRow(court) {
-  await supabase.from('courts').delete().eq('club_id', CLUB).eq('court_no', court);
+export async function removeCourtRow(branch, court) {
+  await supabase.from('courts').delete().eq('club_id', branch).eq('court_no', court);
 }
 export async function setImage(key, dataURL) {
   // key: academyLogo | academyCover | clubCrest | clubCover

@@ -19,14 +19,15 @@ function endOf(time) {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
-export default function BookCourtScreen({ court: preCourt }) {
+export default function BookCourtScreen({ court: preCourt, branch }) {
   const { nav } = useNav();
   const state = useStore();
-  const freeCourts = state.courts.filter((c) => c.status === 'free');
+  const activeBranch = branch || preCourt?.branch || state.branches.find((b) => b.org_id === 'heliopolis')?.id;
+  const freeCourts = state.courts.filter((c) => c.status === 'free' && c.branch === activeBranch);
   const [courtNo, setCourtNo] = useState(preCourt?.court ?? freeCourts[0]?.court ?? null);
   const [time, setTime] = useState('18:00');
 
-  const court = state.courts.find((c) => c.court === courtNo);
+  const court = state.courts.find((c) => c.branch === activeBranch && c.court === courtNo);
   const price = priceFor(court);
 
   if (!freeCourts.length) {
@@ -59,7 +60,7 @@ export default function BookCourtScreen({ court: preCourt }) {
               <div className="sq-display" style={{ fontSize: 20, fontWeight: 700 }}>EGP {price}</div>
             </div>
             <button className="sq-btn-gold serve-glow-soft" style={{ padding: '15px 22px', fontSize: 14.5 }} disabled={!court || !time}
-              onClick={() => nav.push('payment', { courtNo, type: court?.type, venue: 'Heliopolis SC', day: 'Today', time, endTime: endOf(time), price, secureCourt: true })}>
+              onClick={() => nav.push('payment', { courtNo, branch: activeBranch, type: court?.type, venue: 'Heliopolis SC', day: 'Today', time, endTime: endOf(time), price, secureCourt: true })}>
               Continue to pay →
             </button>
           </div>

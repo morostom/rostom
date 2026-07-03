@@ -4,6 +4,7 @@
 // a court the coordinator marks busy shows here instantly; themed in the club's
 // own brand colour.
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Icons } from '../components/Icons';
 import { MScreen, MTabBar } from '../components/mobile';
@@ -86,11 +87,17 @@ export default function MyClubScreen() {
   const { nav, player, accountType, child } = useNav();
   const state = useStore();
   const t = useT();
-  const free = state.courts.filter((c) => c.status === 'free').length;
   // a parent views their child's schedule; a player views their own
   const isParent = accountType === 'parent';
   const who = isParent ? child : player?.name;
   const mine = state.sessions.filter((s) => (isParent ? who && s.players?.includes(who) : (s.mine || (who && s.players?.includes(who)))));
+
+  // branches — Heliopolis runs multiple locations, each its own live board
+  const branches = state.branches.filter((b) => b.org_id === 'heliopolis');
+  const [branch, setBranch] = useState(branches[0]?.id || null);
+  const activeBranch = branches.some((b) => b.id === branch) ? branch : (branches[0]?.id || null);
+  const branchCourts = state.courts.filter((c) => c.branch === activeBranch);
+  const free = branchCourts.filter((c) => c.status === 'free').length;
 
   return (
     <ThemeScope accent={state.clubTheme}>
@@ -122,6 +129,17 @@ export default function MyClubScreen() {
             </div>
           </div>
         )}
+        {/* branch picker (when the club has more than one location) */}
+        {branches.length > 1 && (
+          <div style={{ padding: '0 20px 12px', display: 'flex', gap: 8, overflowX: 'auto' }}>
+            {branches.map((b) => (
+              <button key={b.id} onClick={() => setBranch(b.id)} className={'sq-chip' + (b.id === activeBranch ? ' gold' : '')} style={{ cursor: 'pointer', padding: '8px 13px', fontSize: 12, whiteSpace: 'nowrap', flexShrink: 0 }}>
+                <Icons.Pin size={12} /> {b.name}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* live court tracker */}
         <div style={{ padding: '2px 20px 18px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 11 }}>
@@ -132,9 +150,9 @@ export default function MyClubScreen() {
             <span className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-green)' }}>{free} {t('open')}</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            {state.courts.map((c) => <CourtTile key={c.court} c={c} onBook={(court) => nav.push('book', { court })} />)}
+            {branchCourts.map((c) => <CourtTile key={c.branch + c.court} c={c} onBook={(court) => nav.push('book', { court, branch: activeBranch })} />)}
           </div>
-          <button className="sq-btn-gold serve-glow-soft" style={{ width: '100%', padding: '14px', fontSize: 14, marginTop: 12 }} onClick={() => nav.push('book')}>
+          <button className="sq-btn-gold serve-glow-soft" style={{ width: '100%', padding: '14px', fontSize: 14, marginTop: 12 }} onClick={() => nav.push('book', { branch: activeBranch })}>
             <Icons.Plus size={15} style={{ verticalAlign: -3, marginRight: 6 }} /> {t('Book a court')}
           </button>
         </div>

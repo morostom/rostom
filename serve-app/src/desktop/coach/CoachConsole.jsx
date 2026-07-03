@@ -22,7 +22,7 @@ const SIDEBAR_W = 240;
 // crest badge (shows the uploaded image from the store when present)
 const Crest = ClubCrest;
 
-function Sidebar({ active, onNav }) {
+function Sidebar({ active, onNav, branches = [], branch, setBranch }) {
   const state = useStore();
   const t = useT();
   const coachCount = state.staff.filter((s) => s.org_id === 'heliopolis').length;
@@ -32,9 +32,11 @@ function Sidebar({ active, onNav }) {
     { id: 'members', icon: <Icons.Users size={16} />, label: 'Members', badge: String(ROSTER.length) },
     { id: 'coaches', icon: <Icons.Trophy size={16} />, label: 'Coaches', badge: String(coachCount) },
     { id: 'codes', icon: <Icons.Ticket size={16} />, label: 'Access codes' },
+    { id: 'branches', icon: <Icons.Pin size={16} />, label: 'Branches', badge: String(branches.length) },
     { id: 'profile', icon: <Icons.Settings size={16} />, label: 'Club profile' },
   ];
-  const inUse = state.courts.filter((c) => c.status !== 'free').length;
+  const inUse = state.courts.filter((c) => c.branch === branch && c.status !== 'free').length;
+  const branchCourts = state.courts.filter((c) => c.branch === branch).length;
   return (
     <div style={{ width: SIDEBAR_W, flexShrink: 0, height: '100%', background: '#0a0a0a', borderRight: '1px solid var(--sq-border)', display: 'flex', flexDirection: 'column', padding: '18px 12px' }}>
       <div style={{ padding: '4px 8px 16px' }}><SQLogo size={20} accent /></div>
@@ -46,6 +48,22 @@ function Sidebar({ active, onNav }) {
         </div>
         <Icons.Chevron size={12} dir="down" />
       </div>
+      {branches.length > 0 && (
+        <div style={{ marginBottom: 12 }}>
+          <div className="sq-mono" style={{ padding: '2px 10px 6px', fontSize: 9, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{t('Branch')}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {branches.map((b) => (
+              <button key={b.id} onClick={() => setBranch(b.id)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 8, cursor: 'pointer', textAlign: 'left', border: '1px solid ' + (b.id === branch ? 'color-mix(in srgb, var(--sq-gold) 40%, transparent)' : 'transparent'), background: b.id === branch ? 'color-mix(in srgb, var(--sq-gold) 10%, transparent)' : 'transparent', color: b.id === branch ? 'var(--sq-gold)' : 'var(--sq-text-2)', fontFamily: 'var(--sq-body)' }}>
+                <Icons.Pin size={13} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: b.id === branch ? 600 : 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.name}</div>
+                </div>
+                <span className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)' }}>{b.courts}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="sq-mono" style={{ padding: '8px 10px 6px', fontSize: 9.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>{t('Section')}</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {items.map((it) => (
@@ -59,7 +77,7 @@ function Sidebar({ active, onNav }) {
       <div style={{ flex: 1 }} />
       <div className="sq-card" style={{ padding: 12, background: 'linear-gradient(135deg, color-mix(in srgb, var(--sq-gold) 10%, transparent), transparent)', borderColor: 'color-mix(in srgb, var(--sq-gold) 20%, transparent)' }}>
         <div className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-gold)', letterSpacing: '0.1em' }}>COURTS IN USE</div>
-        <div className="sq-display" style={{ fontSize: 20, fontWeight: 700, marginTop: 4 }}>{inUse} of {state.courts.length}</div>
+        <div className="sq-display" style={{ fontSize: 20, fontWeight: 700, marginTop: 4 }}>{inUse} of {branchCourts}</div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 8px 2px' }}>
         <div style={{ width: 28, height: 28, borderRadius: 14, background: 'linear-gradient(135deg, #2a2a2a, #1a1a1a)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600 }}>MR</div>
@@ -123,27 +141,29 @@ function CourtCard({ c }) {
       </div>
       {free ? (
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="sq-btn-ghost" style={{ flex: 1, padding: '8px', fontSize: 12 }} onClick={() => { store.setCourt(c.court, { status: 'playing', who: 'Members match', coach: null, until: '—', left: 45 }); notify(`Court ${c.court} marked busy`); }}>Mark busy</button>
-          <button className="sq-btn-ghost" title="Remove court" style={{ padding: '8px 11px', fontSize: 13, color: 'var(--sq-text-3)' }} onClick={() => { store.removeCourt(c.court); notify(`Court ${c.court} removed`); }}>×</button>
+          <button className="sq-btn-ghost" style={{ flex: 1, padding: '8px', fontSize: 12 }} onClick={() => { store.setCourt(c.branch, c.court, { status: 'playing', who: 'Members match', coach: null, until: '—', left: 45 }); notify(`Court ${c.court} marked busy`); }}>Mark busy</button>
+          <button className="sq-btn-ghost" title="Remove court" style={{ padding: '8px 11px', fontSize: 13, color: 'var(--sq-text-3)' }} onClick={() => { store.removeCourt(c.branch, c.court); notify(`Court ${c.court} removed`); }}>×</button>
         </div>
       ) : (
-        <button className="sq-btn-ghost" style={{ padding: '8px', fontSize: 12 }} onClick={() => { store.freeCourt(c.court); notify(`Court ${c.court} freed`); }}>Free up</button>
+        <button className="sq-btn-ghost" style={{ padding: '8px', fontSize: 12 }} onClick={() => { store.freeCourt(c.branch, c.court); notify(`Court ${c.court} freed`); }}>Free up</button>
       )}
     </motion.div>
   );
 }
 
-function LiveCourts() {
+function LiveCourts({ branch, branches }) {
   const notify = useToast();
   const state = useStore();
-  const inUse = state.courts.filter((c) => c.status !== 'free').length;
+  const branchCourts = state.courts.filter((c) => c.branch === branch);
+  const inUse = branchCourts.filter((c) => c.status !== 'free').length;
+  const branchName = branches?.find((b) => b.id === branch)?.name || '';
   const cancels = state.cancellations.filter((c) => c.status === 'cancelled').slice(-4).reverse();
   return (
     <>
-      <Topbar title="Live courts" sub="Wednesday · 14 May 2026 · 16:33" trailing={
+      <Topbar title="Live courts" sub={branchName ? `${branchName} · syncs to the app` : 'Wednesday · 14 May 2026 · 16:33'} trailing={
         <>
           <span style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, color: 'var(--sq-text-3)' }}><span className="sq-live-dot" /> Live · syncs to the app</span>
-          <button className="sq-btn-ghost" style={{ padding: '9px 14px', fontSize: 12.5 }} onClick={() => { store.addCourt(); notify('Court added'); }}><Icons.Plus size={13} style={{ marginRight: 6, verticalAlign: -2 }} /> Add court</button>
+          <button className="sq-btn-ghost" style={{ padding: '9px 14px', fontSize: 12.5 }} onClick={() => { store.addCourt(branch); notify('Court added'); }}><Icons.Plus size={13} style={{ marginRight: 6, verticalAlign: -2 }} /> Add court</button>
           <button className="sq-btn-ghost" style={{ padding: '9px 14px', fontSize: 12.5 }} onClick={() => { store.reset(); notify('Board reset'); }}>Reset board</button>
         </>
       } />
@@ -162,11 +182,11 @@ function LiveCourts() {
           </div>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, fontSize: 12.5, color: 'var(--sq-text-2)' }}>
-          <span className="sq-mono" style={{ color: 'var(--sq-gold)' }}>{inUse} of {state.courts.length} courts in use</span>
-          <span style={{ color: 'var(--sq-text-3)' }}>· toggle a court and watch it update live in the player app</span>
+          <span className="sq-mono" style={{ color: 'var(--sq-gold)' }}>{inUse} of {branchCourts.length} courts in use</span>
+          <span style={{ color: 'var(--sq-text-3)' }}>· {branchName} · toggle a court and watch it update live in the player app</span>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
-          {state.courts.map((c) => <CourtCard key={c.court} c={c} />)}
+          {branchCourts.map((c) => <CourtCard key={c.branch + c.court} c={c} />)}
         </div>
       </div>
     </>
@@ -174,12 +194,14 @@ function LiveCourts() {
 }
 
 // ── Schedule builder (mix & match) ───────────────────────────────────
-function ScheduleBuilder() {
+function ScheduleBuilder({ branch, branches }) {
   const notify = useToast();
   const state = useStore();
   const coaches = state.staff.filter((s) => s.org_id === 'heliopolis');
+  const branchCourts = state.courts.filter((c) => c.branch === branch);
+  const branchName = branches?.find((b) => b.id === branch)?.name || '';
   const [coach, setCoach] = useState(coaches[0]?.name || '');
-  const [court, setCourt] = useState(1);
+  const [court, setCourt] = useState(branchCourts[0]?.court || 1);
   const [day, setDay] = useState('Wed');
   const [time, setTime] = useState('17:00');
   const [type, setType] = useState('Group training');
@@ -189,7 +211,7 @@ function ScheduleBuilder() {
   const toggle = (n) => setPlayers((p) => (p.includes(n) ? p.filter((x) => x !== n) : [...p, n]));
   function add() {
     if (!players.length) return notify('Pick at least one player');
-    store.addSession({ day, time, type, title: title || type, coach, court, players, mine: players.includes('Nour Hassan') });
+    store.addSession({ day, time, type, title: title || type, coach, court, players, branch, mine: players.includes('Nour Hassan') });
     notify(`Added ${title} → published to ${players.length} player${players.length > 1 ? 's' : ''}`);
     setPlayers([]);
   }
@@ -213,7 +235,7 @@ function ScheduleBuilder() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
             <div><Label>Coach</Label><select style={fieldCss} value={coach} onChange={(e) => setCoach(e.target.value)}>{coaches.map((c) => <option key={c.id}>{c.name}</option>)}</select></div>
-            <div><Label>Court</Label><select style={fieldCss} value={court} onChange={(e) => setCourt(Number(e.target.value))}>{state.courts.map((c) => <option key={c.court} value={c.court}>Court {c.court}</option>)}</select></div>
+            <div><Label>Court</Label><select style={fieldCss} value={court} onChange={(e) => setCourt(Number(e.target.value))}>{branchCourts.map((c) => <option key={c.court} value={c.court}>Court {c.court}</option>)}</select></div>
             <div><Label>Day</Label><select style={fieldCss} value={day} onChange={(e) => setDay(e.target.value)}>{WEEK_DAYS.map((d) => <option key={d[0]}>{d[0]}</option>)}</select></div>
           </div>
           <div><Label>Time</Label>
@@ -232,11 +254,11 @@ function ScheduleBuilder() {
           <button className="sq-btn-gold serve-glow-soft" style={{ padding: '13px', fontSize: 14 }} onClick={add}>Publish session →</button>
         </div>
 
-        {/* current schedule */}
+        {/* current schedule (this branch) */}
         <div>
-          <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>Published schedule · {state.sessions.length}</div>
+          <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>{branchName} · {state.sessions.filter((s) => s.branch === branch).length}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-            {state.sessions.map((s) => (
+            {state.sessions.filter((s) => s.branch === branch).map((s) => (
               <div key={s.id} className="sq-card" style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div className="sq-mono" style={{ fontSize: 13, fontWeight: 600, minWidth: 64 }}>{s.day} {s.time}</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -485,20 +507,92 @@ function ClubProfile() {
   );
 }
 
-const SECTIONS = { board: LiveCourts, schedule: ScheduleBuilder, members: Members, coaches: CoachesTab, codes: AccessCodes, profile: ClubProfile };
+// ── Branches (locations) ─────────────────────────────────────────────
+function Branches() {
+  const notify = useToast();
+  const state = useStore();
+  const list = state.branches.filter((b) => b.org_id === 'heliopolis');
+  const [adding, setAdding] = useState(false);
+  const [name, setName] = useState('');
+  const [location, setLocation] = useState('');
+  const [courts, setCourts] = useState('6');
+  const fieldCss = { padding: '10px 12px', border: '1px solid var(--sq-border-2)', borderRadius: 8, background: 'rgba(255,255,255,0.02)', fontSize: 13.5, color: 'var(--sq-text)', outline: 'none', width: '100%', fontFamily: 'var(--sq-body)' };
+  const Label = ({ children }) => <label className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 6 }}>{children}</label>;
+
+  function submit() {
+    if (!name.trim()) return notify('Enter a branch name');
+    store.addBranch('heliopolis', { name, location, courts });
+    notify(`Added ${name.trim()}`);
+    setName(''); setLocation(''); setCourts('6'); setAdding(false);
+  }
+  return (
+    <>
+      <Topbar title="Branches" sub="Locations · each has its own live board & schedule" trailing={
+        <button className="sq-btn-gold" style={{ padding: '9px 16px', fontSize: 12.5 }} onClick={() => setAdding((v) => !v)}><Icons.Plus size={14} style={{ marginRight: 6, verticalAlign: -3 }} /> Add branch</button>
+      } />
+      <div style={{ padding: '24px 30px 40px', display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 760 }}>
+        <AnimatePresence>
+          {adding && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: DUR_FAST }} style={{ overflow: 'hidden' }}>
+              <div className="sq-card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <h2 className="sq-display" style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>New branch</h2>
+                <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 12 }}>
+                  <div><Label>Branch name</Label><input autoFocus style={fieldCss} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. El Shorouk" /></div>
+                  <div><Label>Courts</Label><input style={fieldCss} type="number" min="0" max="40" value={courts} onChange={(e) => setCourts(e.target.value)} /></div>
+                </div>
+                <div><Label>Location</Label><input style={fieldCss} value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. El Shorouk City" /></div>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button className="sq-btn-gold" style={{ padding: '10px 18px', fontSize: 13 }} onClick={submit}>Add branch</button>
+                  <button className="sq-btn-ghost" style={{ padding: '10px 16px', fontSize: 13 }} onClick={() => setAdding(false)}>Cancel</button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        {list.map((b) => {
+          const courtCount = state.courts.filter((c) => c.branch === b.id).length;
+          return (
+            <div key={b.id} className="sq-card" style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                <div style={{ width: 42, height: 42, borderRadius: 11, background: 'color-mix(in srgb, var(--sq-gold) 14%, transparent)', color: 'var(--sq-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icons.Pin size={20} /></div>
+                <div style={{ flex: 1 }}>
+                  <input className="sq-display" defaultValue={b.name} onBlur={(e) => { if (e.target.value.trim() && e.target.value !== b.name) { store.setBranchInfo(b.id, { name: e.target.value.trim() }); notify('Branch updated'); } }}
+                    style={{ fontSize: 16, fontWeight: 700, background: 'none', border: 0, color: 'var(--sq-text)', outline: 'none', width: '100%', padding: 0 }} />
+                  <input defaultValue={b.location} placeholder="Location" onBlur={(e) => { if (e.target.value !== b.location) { store.setBranchInfo(b.id, { location: e.target.value }); notify('Branch updated'); } }}
+                    className="sq-mono" style={{ fontSize: 11.5, background: 'none', border: 0, color: 'var(--sq-text-3)', outline: 'none', width: '100%', padding: '2px 0 0' }} />
+                </div>
+                <span className="sq-chip gold" style={{ fontSize: 11 }}>{courtCount} courts</span>
+              </div>
+              <div style={{ display: 'flex', gap: 8, borderTop: '1px solid var(--sq-border)', paddingTop: 10 }}>
+                <button className="sq-btn-ghost" style={{ padding: '8px 12px', fontSize: 12 }} onClick={() => notify('Open Live courts and pick this branch to edit its board')}>Manage courts</button>
+                {list.length > 1 && <button className="sq-btn-ghost" style={{ padding: '8px 12px', fontSize: 12, color: 'var(--sq-text-3)' }} onClick={() => { store.removeBranch(b.id); notify(`Removed ${b.name}`); }}>Remove branch</button>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+const SECTIONS = { board: LiveCourts, schedule: ScheduleBuilder, members: Members, coaches: CoachesTab, codes: AccessCodes, branches: Branches, profile: ClubProfile };
 
 function ConsoleInner() {
   const state = useStore();
   const [active, setActive] = useState('board');
+  const clubBranches = state.branches.filter((b) => b.org_id === 'heliopolis');
+  const [branch, setBranch] = useState(clubBranches[0]?.id || null);
+  // keep the active branch valid as branches change
+  const activeBranch = clubBranches.some((b) => b.id === branch) ? branch : (clubBranches[0]?.id || null);
   const Section = SECTIONS[active] || LiveCourts;
   return (
     <ThemeScope accent={state.clubTheme}>
       <div className="sq-app" style={{ display: 'flex', width: '100%', height: '100%', overflow: 'hidden' }}>
-        <Sidebar active={active} onNav={setActive} />
+        <Sidebar active={active} onNav={setActive} branches={clubBranches} branch={activeBranch} setBranch={setBranch} />
         <div style={{ flex: 1, minWidth: 0, height: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
           <AnimatePresence mode="wait">
-            <motion.div key={active} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: DUR_FAST }}>
-              <Section />
+            <motion.div key={active + activeBranch} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: DUR_FAST }}>
+              <Section branch={activeBranch} branches={clubBranches} onNav={setActive} />
             </motion.div>
           </AnimatePresence>
         </div>

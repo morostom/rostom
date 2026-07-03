@@ -34,7 +34,7 @@ export default function PaymentScreen(params) {
   const { nav, player } = useNav();
   const state = useStore();
   const t = useT();
-  const { courtNo, title, venue = 'Heliopolis SC', type = 'Standard', day = 'Today', time, endTime, price, secureCourt = false, guest = false } = params;
+  const { courtNo, branch, title, venue = 'Heliopolis SC', type = 'Standard', day = 'Today', time, endTime, price, secureCourt = false, guest = false } = params;
   const heading = title || `Court ${courtNo}`;
   const [method, setMethod] = useState('applepay');
   const [phase, setPhase] = useState('form');
@@ -45,8 +45,8 @@ export default function PaymentScreen(params) {
   function pay() {
     setPhase('processing');
     setTimeout(() => {
-      const booking = { court: courtNo ?? '—', title, venue, type, day, time, endTime, price, method, status: 'confirmed' };
-      if (secureCourt && courtNo) store.bookCourt(courtNo, booking);
+      const booking = { court: courtNo ?? '—', branch, title, venue, type, day, time, endTime, price, method, status: 'confirmed' };
+      if (secureCourt && courtNo) store.bookCourt(branch, courtNo, booking);
       else store.addBooking(booking);
       setPhase('done');
     }, 1000);

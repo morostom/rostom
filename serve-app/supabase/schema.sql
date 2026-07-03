@@ -28,13 +28,26 @@ create table if not exists public.org_settings (
   crest text,
   owner_phone text,       -- WhatsApp: owner/admin
   coach_phone text,       -- WhatsApp: head coach
+  owner_id uuid,          -- the auth user who owns this org (multi-tenancy)
   updated_at timestamptz default now()
 );
 
--- ── live courts (one club's board — Heliopolis for the demo) ─────────
+-- ── branches (a club/academy can run several locations) ──────────────
+-- The branch id is used as club_id on courts/sessions, so each branch has
+-- its own live board + schedule under a parent org_id.
+create table if not exists public.branches (
+  id text primary key,          -- e.g. 'hel-masr'
+  org_id text not null,         -- 'heliopolis' | 'ramyashour'
+  name text not null,
+  location text,
+  court_count int default 0,
+  created_at timestamptz default now()
+);
+
+-- ── live courts (per branch — club_id holds the branch id) ───────────
 create table if not exists public.courts (
   id bigint generated always as identity primary key,
-  club_id text not null,
+  club_id text not null,        -- branch id
   court_no int not null,
   type text default 'Standard',
   status text default 'free',   -- free | playing | lesson | booked
@@ -66,6 +79,7 @@ create table if not exists public.bookings (
   user_id uuid references auth.users (id) on delete cascade,
   venue text,
   court text,
+  branch text,
   title text,
   type text,
   day text,
@@ -173,6 +187,7 @@ alter table public.parent_links     enable row level security;
 alter table public.payment_requests enable row level security;
 alter table public.reviews          enable row level security;
 alter table public.cancellations    enable row level security;
+alter table public.branches         enable row level security;
 
 -- profiles: anyone can read (rosters), you manage your own
 drop policy if exists "profiles read" on public.profiles;
@@ -191,7 +206,7 @@ create policy "bookings own" on public.bookings for all
 do $$
 declare t text;
 begin
-  foreach t in array array['org_settings','courts','sessions','payments','access_codes','staff'] loop
+  foreach t in array array['org_settings','courts','sessions','payments','access_codes','staff','branches'] loop
     execute format('drop policy if exists "%s read" on public.%I;', t, t);
     execute format('create policy "%s read" on public.%I for select using (true);', t, t);
     execute format('drop policy if exists "%s write" on public.%I;', t, t);
@@ -227,3 +242,4 @@ alter publication supabase_realtime add table public.parent_links;
 alter publication supabase_realtime add table public.payment_requests;
 alter publication supabase_realtime add table public.reviews;
 alter publication supabase_realtime add table public.cancellations;
+alter publication supabase_realtime add table public.branches;

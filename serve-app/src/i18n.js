@@ -227,6 +227,8 @@ const AR = {
   'Save changes': 'حفظ التغييرات',
   'Section': 'القسم',
   'Manage': 'الإدارة',
+  'Branch': 'الفرع',
+  'Branches': 'الفروع',
 
   // ── admin auth ──
   'Create account': 'إنشاء حساب',

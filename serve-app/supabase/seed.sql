@@ -7,26 +7,38 @@ insert into public.org_settings (id, type, name, accent) values
   ('ramyashour', 'academy', 'Ramy Ashour Squash Academy', '#f5453b')
 on conflict (id) do update set accent = excluded.accent, name = excluded.name;
 
--- Heliopolis live courts (7, standard)
+-- branches (Heliopolis runs two locations; Ramy Ashour one)
+insert into public.branches (id, org_id, name, location, court_count) values
+  ('hel-masr',    'heliopolis', 'Masr El Gedida', 'Heliopolis · Cairo', 7),
+  ('hel-shorouk', 'heliopolis', 'El Shorouk',     'El Shorouk City',    10),
+  ('ramy-main',   'ramyashour', 'Main Branch',    'New Cairo',          7)
+on conflict (id) do update set name = excluded.name, location = excluded.location, court_count = excluded.court_count;
+
+-- Masr El Gedida live courts (7) — the club_id column holds the branch id
 insert into public.courts (club_id, court_no, type, status, who, coach, until, remaining, next) values
-  ('heliopolis', 1, 'Standard', 'lesson',  'U17 Squad',      'Ali Ashmawy', '17:00', 18, null),
-  ('heliopolis', 2, 'Standard', 'playing', 'Aly vs Taha',    null,          '16:45', 12, null),
-  ('heliopolis', 3, 'Standard', 'lesson',  'Mohamed Rostom', 'Ali Ashmawy', '17:15', 33, null),
-  ('heliopolis', 4, 'Standard', 'free',    null, null, null, null, '17:00 · Belal S.'),
-  ('heliopolis', 5, 'Standard', 'free',    null, null, null, null, '18:30 · open'),
-  ('heliopolis', 6, 'Standard', 'playing', 'Salman vs Nour', null,          '17:05', 25, null),
-  ('heliopolis', 7, 'Standard', 'free',    null, null, null, null, '19:00 · open')
+  ('hel-masr', 1, 'Standard', 'lesson',  'U17 Squad',      'Ali Ashmawy', '17:00', 18, null),
+  ('hel-masr', 2, 'Standard', 'playing', 'Aly vs Taha',    null,          '16:45', 12, null),
+  ('hel-masr', 3, 'Standard', 'lesson',  'Mohamed Rostom', 'Ali Ashmawy', '17:15', 33, null),
+  ('hel-masr', 4, 'Standard', 'free',    null, null, null, null, '17:00 · Belal S.'),
+  ('hel-masr', 5, 'Standard', 'free',    null, null, null, null, '18:30 · open'),
+  ('hel-masr', 6, 'Standard', 'playing', 'Salman vs Nour', null,          '17:05', 25, null),
+  ('hel-masr', 7, 'Standard', 'free',    null, null, null, null, '19:00 · open')
 on conflict (club_id, court_no) do update set
   status = excluded.status, who = excluded.who, coach = excluded.coach,
   until = excluded.until, remaining = excluded.remaining, next = excluded.next;
 
--- schedule sessions
+-- El Shorouk live courts (10, mostly open)
+insert into public.courts (club_id, court_no, type, status, next)
+select 'hel-shorouk', g, 'Standard', 'free', 'open' from generate_series(1, 10) as g
+on conflict (club_id, court_no) do nothing;
+
+-- schedule sessions (tagged to the Masr El Gedida branch)
 insert into public.sessions (club_id, day, time, type, title, coach, court, players) values
-  ('heliopolis', 'Mon', '18:00', 'Lesson',         'Solo lesson 1',      'Ali Ashmawy',            3, array['Mohamed Rostom']),
-  ('heliopolis', 'Wed', '18:00', 'Lesson',         'Solo lesson 2',      'Ali Ashmawy',            3, array['Mohamed Rostom']),
-  ('heliopolis', 'Fri', '18:00', 'Lesson',         'Solo lesson 3',      'Ali Ashmawy',            2, array['Mohamed Rostom']),
-  ('heliopolis', 'Wed', '17:00', 'Group training', 'U17 Squad',          'Abdel Rahman ElSergany', 1, array['Mohamed Rostom','Nour Hassan','Taha Ibrahim']),
-  ('heliopolis', 'Thu', '19:00', 'Fitness',        'Strength & movement','Bassem Tarek',           5, array['Mohamed Rostom','Aly Kamal'])
+  ('hel-masr', 'Mon', '18:00', 'Lesson',         'Solo lesson 1',      'Ali Ashmawy',            3, array['Mohamed Rostom']),
+  ('hel-masr', 'Wed', '18:00', 'Lesson',         'Solo lesson 2',      'Ali Ashmawy',            3, array['Mohamed Rostom']),
+  ('hel-masr', 'Fri', '18:00', 'Lesson',         'Solo lesson 3',      'Ali Ashmawy',            2, array['Mohamed Rostom']),
+  ('hel-masr', 'Wed', '17:00', 'Group training', 'U17 Squad',          'Abdel Rahman ElSergany', 1, array['Mohamed Rostom','Nour Hassan','Taha Ibrahim']),
+  ('hel-masr', 'Thu', '19:00', 'Fitness',        'Strength & movement','Bassem Tarek',           5, array['Mohamed Rostom','Aly Kamal'])
 on conflict do nothing;
 
 -- academy payments
