@@ -145,6 +145,26 @@ export async function setContacts(org, { owner, coach }) {
   const type = org === CLUB ? 'club' : 'academy';
   await supabase.from('org_settings').upsert({ id: org, type, owner_phone: owner ?? null, coach_phone: coach ?? null, updated_at: new Date().toISOString() });
 }
+// Bind an org to the signed-in admin (only if it's still unclaimed). After
+// this, RLS lets only this owner edit the org + its branches/courts/staff.
+export async function claimOrg(orgType) {
+  if (!hasBackend) return;
+  const id = orgType === 'club' ? CLUB : ACADEMY;
+  const { data } = await supabase.auth.getUser();
+  const uid = data?.user?.id;
+  if (!uid) return;
+  await supabase.from('org_settings').update({ owner_id: uid }).eq('id', id).is('owner_id', null);
+}
+// Is the current org owned by someone other than me? (drives a read-only notice)
+export async function orgOwnership(orgType) {
+  if (!hasBackend) return { ownerId: null, mine: true };
+  const id = orgType === 'club' ? CLUB : ACADEMY;
+  const { data: u } = await supabase.auth.getUser();
+  const uid = u?.user?.id || null;
+  const { data } = await supabase.from('org_settings').select('owner_id').eq('id', id).single();
+  const ownerId = data?.owner_id || null;
+  return { ownerId, mine: !ownerId || ownerId === uid };
+}
 export async function addReview(r) {
   await supabase.from('reviews').insert({ venue_id: r.venue_id, venue_name: r.venue_name ?? null, player: r.player ?? null, rating: r.rating, comment: r.comment ?? null });
 }

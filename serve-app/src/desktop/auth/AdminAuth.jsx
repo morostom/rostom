@@ -12,6 +12,7 @@ import { DUR_FAST } from '../../motion';
 import { useStore, store } from '../../store';
 import { hasBackend } from '../../lib/supabase';
 import { signUp, signIn, saveAdmin, loadAdmin } from '../../lib/auth';
+import { claimOrg } from '../../lib/backend';
 import { useT } from '../../i18n';
 import { BRAND_COLORS } from '../../data';
 
@@ -82,6 +83,7 @@ export default function AdminAuth({ onLive }) {
     setErr('');
     if (adminName.trim().length < 2) return setErr(t('Enter your name.'));
     if (orgName.trim().length < 2) return setErr(t('Enter your name.'));
+    await claimOrg(orgType); // bind this org to the owner before writing to it
     store.setOrgName(orgType, orgName);
     await saveAdmin({ adminName, orgType, orgName });
     onLive(orgType);
