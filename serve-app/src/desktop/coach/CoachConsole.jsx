@@ -15,6 +15,7 @@ import { ToastProvider, useToast } from '../../components/Toast';
 import { DUR_FAST } from '../../motion';
 import { useStore, store } from '../../store';
 import { useT } from '../../i18n';
+import { signOut } from '../../lib/auth';
 import { CLUB, ROSTER, CODES, randomCode, SESSION_TYPES, TIME_SLOTS, WEEK_DAYS, BRAND_COLORS } from '../../data';
 
 const SIDEBAR_W = 240;
@@ -86,6 +87,10 @@ function Sidebar({ active, onNav, branches = [], branch, setBranch }) {
           <div className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)' }}>Squash coordinator</div>
         </div>
       </div>
+      <button className="sq-btn-ghost" style={{ margin: '8px 8px 0', padding: '8px', fontSize: 11.5, color: 'var(--sq-text-3)' }}
+        onClick={async () => { await signOut(); window.location.reload(); }}>
+        {t('Log out')}
+      </button>
     </div>
   );
 }

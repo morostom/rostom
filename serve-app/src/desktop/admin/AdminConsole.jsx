@@ -14,6 +14,7 @@ import ThemeScope from '../../components/ThemeScope';
 import { DUR_FAST } from '../../motion';
 import { useStore, store } from '../../store';
 import { useT } from '../../i18n';
+import { signOut } from '../../lib/auth';
 import {
   ACADEMY, ADMIN_COURTS, ADMIN_COACHES, ADMIN_PLAYERS,
   REVENUE_7D, REVENUE_DAYS, SETUP_STEPS, OPERATING_HOURS, REVENUE_BREAKDOWN, BRAND_COLORS,
@@ -77,6 +78,10 @@ function Sidebar({ active, onNav }) {
         </div>
         <Icons.Settings size={14} />
       </div>
+      <button className="sq-btn-ghost" style={{ margin: '8px 8px 0', padding: '8px', fontSize: 11.5, color: 'var(--sq-text-3)' }}
+        onClick={async () => { await signOut(); window.location.reload(); }}>
+        {t('Log out')}
+      </button>
     </div>
   );
 }
