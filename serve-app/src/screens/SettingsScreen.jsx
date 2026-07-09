@@ -7,6 +7,7 @@ import { useToast } from '../components/Toast';
 import { hasBackend } from '../lib/supabase';
 import { signOut } from '../lib/auth';
 import { useT, useLang, setLang } from '../i18n';
+import { useTheme, setTheme } from '../lib/theme';
 
 function Row({ icon, label, value, onClick, danger }) {
   return (
@@ -32,6 +33,7 @@ export default function SettingsScreen() {
   const notify = useToast();
   const t = useT();
   const lang = useLang();
+  const theme = useTheme();
 
   async function logout() {
     await signOut();
@@ -67,6 +69,7 @@ export default function SettingsScreen() {
           <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>{t('Preferences')}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
             <Row icon={<Icons.Chat size={16} />} label={t('Language')} value={lang === 'ar' ? 'العربية' : 'English'} onClick={toggleLang} />
+            <Row icon={<Icons.Star size={16} />} label={t('Appearance')} value={theme === 'light' ? t('Light') : t('Dark')} onClick={() => { const next = theme === 'light' ? 'dark' : 'light'; setTheme(next); notify(next === 'light' ? t('Light mode on') : t('Dark mode on')); }} />
             <Row icon={<Icons.Bolt size={16} />} label={t('Notifications')} value={t('On')} onClick={() => notify('Notification settings')} />
           </div>
         </div>

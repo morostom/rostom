@@ -28,7 +28,7 @@ function UnlockOverlay({ onDone }) {
         position: 'absolute',
         inset: 0,
         zIndex: 20,
-        background: 'rgba(7,7,7,0.82)',
+        background: 'var(--sq-scrim)',
         backdropFilter: 'blur(8px)',
         display: 'flex',
         flexDirection: 'column',

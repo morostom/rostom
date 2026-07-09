@@ -35,7 +35,7 @@ export default function ClubBioScreen() {
           </div>
         }
         tabBar={
-          <div style={{ padding: '12px 20px', borderTop: '1px solid var(--sq-border)', background: 'rgba(7,7,7,0.95)' }}>
+          <div style={{ padding: '12px 20px', borderTop: '1px solid var(--sq-border)', background: 'var(--sq-scrim)' }}>
             <button className="sq-btn-gold serve-glow-soft" style={{ width: '100%', padding: '15px', fontSize: 14.5 }} onClick={() => nav.push('joinClub')}>
               <Icons.Ticket size={16} /> {t('Enter access code')}
             </button>

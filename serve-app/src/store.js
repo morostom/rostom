@@ -83,6 +83,7 @@ function seed() {
       ramyashour: { owner: '', coach: '' },
     },
     playerCards: {},        // real player cards by lowercase name (backend)
+    openJoins: {},          // open-session signups made here: { sessionId: [names] }
     undo: null,             // { kind, label, expiresAt, ...snapshot } — one-slot undo
     images: {}, // { academyLogo, academyCover, clubCrest } → data URLs
   };
@@ -305,6 +306,14 @@ export const store = {
     if (!r || r.status !== 'pending') return;
     commit({ ...state, paymentRequests: state.paymentRequests.map((x) => (x.id === id ? { ...x, status: 'expired' } : x)) });
     if (hasBackend) backend.updatePaymentRequest(id, { status: 'expired' });
+  },
+  // joining an open group session adds you to its visible roster
+  joinOpenSession: (sessionId, name) => {
+    const clean = (name || '').trim();
+    if (!sessionId || !clean) return;
+    const cur = state.openJoins[sessionId] || [];
+    if (cur.some((n) => n.toLowerCase() === clean.toLowerCase())) return;
+    commit({ ...state, openJoins: { ...state.openJoins, [sessionId]: [...cur, clean] } });
   },
   // ── reviews ──
   addReview: ({ venue_id, venue_name, player, rating, comment }) => {

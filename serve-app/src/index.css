@@ -19,9 +19,32 @@
   --sq-border: rgba(255, 255, 255, 0.08);
   --sq-border-2: rgba(255, 255, 255, 0.14);
   --sq-danger: #ef5560;
+  --sq-scrim: rgba(7, 7, 7, 0.95);      /* pinned bars / overlays */
+  --sq-scrim-2: rgba(18, 18, 18, 0.96); /* toasts / floating chrome */
+  --sq-fill: rgba(255, 255, 255, 0.05);   /* chip fill */
+  --sq-fill-2: rgba(255, 255, 255, 0.025);/* field fill */
   --sq-display: 'Space Grotesk', system-ui, sans-serif;
   --sq-body: 'Geist', system-ui, sans-serif;
   --sq-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* ── light mode (Settings → Appearance) ─────────────────────────────
+   Accents stay SERVE red/blue/green; canvas, text and fills invert with
+   enough contrast that every label stays clearly readable. */
+[data-theme='light'] {
+  --sq-bg: #f4f3ef;
+  --sq-surface: #ffffff;
+  --sq-surface-2: #eceae4;
+  --sq-gold-hi: #d63a31;
+  --sq-text: #17181c;
+  --sq-text-2: #4b5058;
+  --sq-text-3: #8a8f98;
+  --sq-border: rgba(20, 20, 25, 0.10);
+  --sq-border-2: rgba(20, 20, 25, 0.18);
+  --sq-scrim: rgba(250, 250, 248, 0.96);
+  --sq-scrim-2: rgba(255, 255, 255, 0.97);
+  --sq-fill: rgba(20, 20, 25, 0.05);
+  --sq-fill-2: rgba(20, 20, 25, 0.03);
 }
 
 /* Arabic / RTL: use Cairo for all three families so glyphs render cleanly */
@@ -161,8 +184,8 @@ body {
   white-space: nowrap;
 }
 .sq-btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.24);
+  background: var(--sq-fill);
+  border-color: var(--sq-border-2);
 }
 
 /* ── card / chip ── */
@@ -179,7 +202,7 @@ body {
   border-radius: 999px;
   font-size: 11px;
   font-weight: 500;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--sq-fill);
   border: 1px solid var(--sq-border);
   color: var(--sq-text-2);
 }
@@ -198,7 +221,7 @@ body {
   padding: 13px 14px;
   border-radius: 11px;
   border: 1px solid var(--sq-border-2);
-  background: rgba(255, 255, 255, 0.025);
+  background: var(--sq-fill-2);
   transition: border-color 0.15s;
 }
 .sq-field:focus-within {
@@ -303,4 +326,42 @@ body {
   .serve-mobile-notice {
     display: flex;
   }
+}
+
+/* light-mode wordmark: swap the white neon stroke for ink */
+[data-theme='light'] .serve-wordmark {
+  -webkit-text-stroke: 1.4px rgba(23, 24, 28, 0.9);
+  text-shadow: none;
+}
+[data-theme='light'] .serve-wordmark.accent {
+  -webkit-text-stroke-color: var(--sq-gold);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--sq-gold) 30%, transparent);
+}
+
+/* ── dark island: elements that stay dark in light mode (player card) ── */
+.sq-dark-scope {
+  --sq-text: #ffffff;
+  --sq-text-2: #b4b4b4;
+  --sq-text-3: #6e6e6e;
+  --sq-border: rgba(255, 255, 255, 0.08);
+  --sq-border-2: rgba(255, 255, 255, 0.14);
+  --sq-surface: #121212;
+  --sq-surface-2: #1c1c1c;
+  --sq-fill: rgba(255, 255, 255, 0.05);
+  --sq-fill-2: rgba(255, 255, 255, 0.025);
+  --sq-scrim: rgba(7, 7, 7, 0.95);
+}
+[data-theme='light'] .sq-dark-scope .serve-wordmark {
+  -webkit-text-stroke: 1.4px rgba(255, 255, 255, 0.92);
+  text-shadow:
+    0 0 4px rgba(255, 255, 255, 0.55),
+    0 0 14px rgba(255, 255, 255, 0.35),
+    0 0 30px rgba(255, 255, 255, 0.18);
+}
+[data-theme='light'] .sq-dark-scope .serve-wordmark.accent {
+  -webkit-text-stroke-color: var(--sq-gold);
+  text-shadow:
+    0 0 4px color-mix(in srgb, var(--sq-gold) 60%, transparent),
+    0 0 16px color-mix(in srgb, var(--sq-gold) 40%, transparent),
+    0 0 34px color-mix(in srgb, var(--sq-gold) 22%, transparent);
 }

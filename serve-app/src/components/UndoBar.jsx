@@ -45,7 +45,7 @@ export default function UndoBar() {
           style={{
             position: 'fixed', bottom: 84, left: '50%', transform: 'translateX(-50%)', zIndex: 2100,
             display: 'flex', alignItems: 'center', gap: 12, padding: '11px 12px 11px 16px', borderRadius: 14,
-            background: 'rgba(18,18,18,0.97)', border: '1px solid var(--sq-border-2)', boxShadow: '0 14px 40px rgba(0,0,0,0.6)',
+            background: 'var(--sq-scrim-2)', border: '1px solid var(--sq-border-2)', boxShadow: '0 14px 40px rgba(0,0,0,0.6)',
             maxWidth: 'calc(100% - 40px)',
           }}
         >

@@ -115,21 +115,28 @@ export default function AcademyScreen({ academy }) {
           <div style={{ marginTop: 22 }}>
             <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-gold)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>{t('Group sessions')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {sessions.map((s) => (
+              {sessions.map((s) => {
+                const count = (s.players?.length || 0) + (state.openJoins?.[s.id]?.length || 0);
+                return (
                 <div key={s.id} className="sq-card" style={{ padding: 14, display: 'flex', alignItems: 'center', gap: 13 }}>
-                  <div style={{ width: 42, height: 42, borderRadius: 11, background: 'var(--sq-surface-2)', color: 'var(--sq-text-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Icons.Users size={20} />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className="sq-display" style={{ fontSize: 14.5, fontWeight: 600 }}>{s.title}</div>
-                    <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-2)', marginTop: 2 }}>{s.coach} · {s.time} · {s.spots}</div>
+                  {/* tapping the row shows who's signed up; Join goes to checkout */}
+                  <div onClick={() => nav.push('sessionPlayers', { session: s })} style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 13, cursor: 'pointer' }}>
+                    <div style={{ width: 42, height: 42, borderRadius: 11, background: 'var(--sq-surface-2)', color: 'var(--sq-text-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Icons.Users size={20} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="sq-display" style={{ fontSize: 14.5, fontWeight: 600 }}>{s.title}</div>
+                      <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-2)', marginTop: 2 }}>{s.coach} · {s.time} · {s.spots}</div>
+                      <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', marginTop: 3, display: 'flex', alignItems: 'center', gap: 5 }}><Icons.Users size={10} /> {count} {t('players')} · {t('tap to view')}</div>
+                    </div>
                   </div>
                   <button className="sq-btn-gold" style={{ padding: '7px 14px', fontSize: 12 }}
-                    onClick={() => nav.push('payment', { title: s.title, venue: academy.name, day: s.time, time: s.time, price: s.price })}>
+                    onClick={() => nav.push('payment', { title: s.title, venue: academy.name, day: s.time, time: s.time, price: s.price, sessionId: s.id })}>
                     {t('Join')}
                   </button>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}

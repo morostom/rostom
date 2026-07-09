@@ -34,7 +34,7 @@ export default function PaymentScreen(params) {
   const { nav, player } = useNav();
   const state = useStore();
   const t = useT();
-  const { courtNo, branch, title, venue = 'Heliopolis SC', type = 'Standard', day = 'Today', time, endTime, price, secureCourt = false, guest = false } = params;
+  const { courtNo, branch, title, venue = 'Heliopolis SC', type = 'Standard', day = 'Today', time, endTime, price, secureCourt = false, guest = false, sessionId } = params;
   const heading = title || `Court ${courtNo}`;
   const [method, setMethod] = useState('applepay');
   const [phase, setPhase] = useState('form');
@@ -48,6 +48,8 @@ export default function PaymentScreen(params) {
       const booking = { court: courtNo ?? '—', branch, title, venue, type, day, time, endTime, price, method, status: 'confirmed' };
       if (secureCourt && courtNo) store.bookCourt(branch, courtNo, booking);
       else store.addBooking(booking);
+      // joining an open group session puts you on its visible roster
+      if (sessionId && player?.name) store.joinOpenSession(sessionId, player.name);
       setPhase('done');
     }, 1000);
   }
@@ -62,7 +64,9 @@ export default function PaymentScreen(params) {
   }
 
   return (
-    <ThemeScope accent={state.clubTheme}>
+    // Checkout runs in SERVE's own neon red — a distinct identity, never the
+    // club/academy theme (it used to inherit Heliopolis blue everywhere).
+    <ThemeScope accent="#f5453b">
       <MScreen
         header={phase === 'form' ? (
           <div style={{ padding: '6px 16px 10px', display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -71,7 +75,7 @@ export default function PaymentScreen(params) {
           </div>
         ) : null}
         tabBar={phase === 'form' ? (
-          <div style={{ padding: '12px 20px', borderTop: '1px solid var(--sq-border)', background: 'rgba(7,7,7,0.95)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ padding: '12px 20px', borderTop: '1px solid var(--sq-border)', background: 'var(--sq-scrim)', display: 'flex', flexDirection: 'column', gap: 10 }}>
             <button className="sq-btn-gold serve-glow-soft" style={{ width: '100%', padding: '15px', fontSize: 14.5 }} onClick={pay}>
               {method === 'applepay' ? <> Pay</> : `${t('Pay EGP')} ${price}`}
             </button>

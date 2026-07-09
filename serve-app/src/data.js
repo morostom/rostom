@@ -50,9 +50,9 @@ export const OPEN_COURTS = [
 ];
 
 export const OPEN_SESSIONS = [
-  { id: 'os1', title: 'Junior Group Clinic', coach: 'Mohamed Reda', venue: 'Ramy Ashour Squash Academy', venueId: 'ramyashour', time: 'Today 17:00', spots: '3 left', price: 150 },
-  { id: 'os2', title: 'Adults Fitness', coach: 'Bassem Tarek', venue: 'Shoukry Squash', venueId: 'shoukry', time: 'Thu 19:00', spots: '5 left', price: 120 },
-  { id: 'os3', title: 'Drill Squad', coach: 'Adham Nabil', venue: 'Cairo Squash Hub', venueId: 'cairohub', time: 'Fri 18:00', spots: '2 left', price: 180 },
+  { id: 'os1', title: 'Junior Group Clinic', coach: 'Mohamed Reda', venue: 'Ramy Ashour Squash Academy', venueId: 'ramyashour', time: 'Today 17:00', spots: '3 left', price: 150, players: ['Aly Kamal', 'Aly Mostafa', 'Belal Sherif'] },
+  { id: 'os2', title: 'Adults Fitness', coach: 'Bassem Tarek', venue: 'Shoukry Squash', venueId: 'shoukry', time: 'Thu 19:00', spots: '5 left', price: 120, players: ['Salman Adel'] },
+  { id: 'os3', title: 'Drill Squad', coach: 'Adham Nabil', venue: 'Cairo Squash Hub', venueId: 'cairohub', time: 'Fri 18:00', spots: '2 left', price: 180, players: ['Taha Ibrahim', 'Nour Hassan'] },
 ];
 
 // Generates a few open standard courts for an academy detail page.

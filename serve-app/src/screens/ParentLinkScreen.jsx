@@ -40,7 +40,7 @@ export default function ParentLinkScreen() {
         </div>
       }
       tabBar={
-        <div style={{ padding: '12px 22px', borderTop: '1px solid var(--sq-border)', background: 'rgba(7,7,7,0.95)' }}>
+        <div style={{ padding: '12px 22px', borderTop: '1px solid var(--sq-border)', background: 'var(--sq-scrim)' }}>
           <button className="sq-btn-gold serve-glow-soft" style={{ padding: '15px 18px', fontSize: 14.5, width: '100%' }} onClick={link}>
             {t('Link child →')}
           </button>

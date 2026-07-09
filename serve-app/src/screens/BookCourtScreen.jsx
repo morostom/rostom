@@ -54,7 +54,7 @@ export default function BookCourtScreen({ court: preCourt, branch }) {
           </div>
         }
         tabBar={
-          <div style={{ padding: '12px 20px', borderTop: '1px solid var(--sq-border)', background: 'rgba(7,7,7,0.95)', display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ padding: '12px 20px', borderTop: '1px solid var(--sq-border)', background: 'var(--sq-scrim)', display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{ flex: 1 }}>
               <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Total · 60 min</div>
               <div className="sq-display" style={{ fontSize: 20, fontWeight: 700 }}>EGP {price}</div>

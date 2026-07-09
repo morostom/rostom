@@ -34,7 +34,7 @@ export default function CardCloseupScreen({ player, ownCard, tier }) {
         </div>
       }
       tabBar={
-        <div style={{ padding: '12px 20px 8px', borderTop: '1px solid var(--sq-border)', background: 'rgba(7,7,7,0.95)', display: 'flex', gap: 10 }}>
+        <div style={{ padding: '12px 20px 8px', borderTop: '1px solid var(--sq-border)', background: 'var(--sq-scrim)', display: 'flex', gap: 10 }}>
           <button className="sq-btn-ghost" style={{ padding: '14px 16px', fontSize: 13.5, flex: 1 }} onClick={ownCard ? () => nav.push('build') : share}>
             <Icons.Upload size={15} />
             {ownCard ? 'Edit card' : 'Save card'}

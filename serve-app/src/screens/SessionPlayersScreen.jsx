@@ -18,7 +18,9 @@ export default function SessionPlayersScreen({ session }) {
   const state = useStore();
   const t = useT();
   const s = session || {};
-  const names = s.players || [];
+  // include anyone who joined this open session from the app
+  const joined = (s.id && state.openJoins?.[s.id]) || [];
+  const names = [...new Set([...(s.players || []), ...joined])];
 
   const info = (name) =>
     state.playerCards?.[name.toLowerCase()] ||
@@ -44,7 +46,7 @@ export default function SessionPlayersScreen({ session }) {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div className="sq-display" style={{ fontSize: 15, fontWeight: 700 }}>{t(s.title || 'Session')}</div>
               <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-2)', marginTop: 2 }}>
-                {s.day} · {s.time}{s.coach ? ` · ${s.coach}` : ''}{s.court ? ` · Court ${s.court}` : ''}
+                {[[s.day, s.time].filter(Boolean).join(' · '), s.coach, s.venue, s.court ? `Court ${s.court}` : null].filter(Boolean).join(' · ')}
               </div>
             </div>
             <span className="sq-chip gold" style={{ fontSize: 10.5 }}>{names.length} {t('players')}</span>

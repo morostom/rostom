@@ -38,7 +38,7 @@ export default function DiscoverScreen() {
     nav.push('payment', { courtNo: c.court, type: c.type, venue: c.venue, day: 'Today', time: c.time, endTime: endOf(c.time), price: c.price, guest: c.guest });
   }
   function openSession(s) {
-    nav.push('payment', { title: s.title, venue: s.venue, day: s.time, time: s.time, price: s.price });
+    nav.push('payment', { title: s.title, venue: s.venue, day: s.time, time: s.time, price: s.price, sessionId: s.id });
   }
   function openAcademy(a) {
     nav.push('academy', { academy: a });
@@ -89,27 +89,42 @@ export default function DiscoverScreen() {
       <div style={{ padding: '0 0 20px' }}>
         <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', padding: '0 20px', marginBottom: 10 }}>Open group sessions</div>
         <div style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '0 20px' }}>
-          {OPEN_SESSIONS.map((s) => (
+          {OPEN_SESSIONS.map((s) => {
+            const joined = state.openJoins?.[s.id] || [];
+            const count = (s.players?.length || 0) + joined.length;
+            return (
             <div key={s.id} className="sq-card" style={{ flex: '0 0 210px', padding: 14, display: 'flex', flexDirection: 'column', gap: 7 }}>
-              <span className="sq-chip" style={{ fontSize: 9.5, padding: '2px 8px', width: 'fit-content', color: 'var(--sq-blue)', borderColor: 'rgba(78,168,255,0.25)', background: 'rgba(78,168,255,0.1)' }}><Icons.Users size={10} /> {s.spots}</span>
-              <div className="sq-display" style={{ fontSize: 14.5, fontWeight: 600, lineHeight: 1.2 }}>{s.title}</div>
-              <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-2)' }}>{s.coach} · {s.time}</div>
-              <div style={{ fontSize: 11, color: 'var(--sq-text-3)' }}>{s.venue}</div>
+              {/* tapping the card shows who's signed up; Join goes to checkout */}
+              <div onClick={() => nav.push('sessionPlayers', { session: s })} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 7 }}>
+                <span className="sq-chip" style={{ fontSize: 9.5, padding: '2px 8px', width: 'fit-content', color: 'var(--sq-blue)', borderColor: 'rgba(78,168,255,0.25)', background: 'rgba(78,168,255,0.1)' }}><Icons.Users size={10} /> {s.spots}</span>
+                <div className="sq-display" style={{ fontSize: 14.5, fontWeight: 600, lineHeight: 1.2 }}>{s.title}</div>
+                <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-2)' }}>{s.coach} · {s.time}</div>
+                <div style={{ fontSize: 11, color: 'var(--sq-text-3)' }}>{s.venue}</div>
+                <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <Icons.Users size={10} /> {count} {t('players')} · {t('tap to view')}
+                </div>
+              </div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
                 <span className="sq-mono" style={{ fontSize: 13, color: 'var(--sq-gold)' }}>EGP {s.price}</span>
-                <button className="sq-btn-gold" style={{ padding: '7px 14px', fontSize: 12 }} onClick={() => openSession(s)}>Join</button>
+                <button className="sq-btn-gold" style={{ padding: '7px 14px', fontSize: 12 }} onClick={() => openSession(s)}>{t('Join')}</button>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
-      {/* academy sort filters */}
-      <div style={{ padding: '0 20px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{t('Sort')}</span>
-        {[['near', t('Near me')], ['best', t('Best')], ['courts', t('Courts')]].map(([id, label]) => (
-          <button key={id} onClick={() => setSort(id)} className={'sq-chip' + (sort === id ? ' gold' : '')} style={{ cursor: 'pointer', padding: '6px 11px', fontSize: 11.5 }}>{label}</button>
-        ))}
+      {/* academy sort — dropdown */}
+      <div style={{ padding: '0 20px 12px', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <span className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.1em', flexShrink: 0 }}>{t('Sort')}</span>
+        <div className="sq-field" style={{ padding: '9px 12px', borderRadius: 10, flex: 1, maxWidth: 220 }}>
+          <Icons.Search size={13} />
+          <select className="sq-input sq-select" value={sort} onChange={(e) => setSort(e.target.value)} style={{ fontSize: 13 }}>
+            <option value="near">{t('Near me')}</option>
+            <option value="best">{t('Best rated')}</option>
+            <option value="courts">{t('Most courts')}</option>
+          </select>
+        </div>
       </div>
 
       {/* directory — academies left, clubs right */}

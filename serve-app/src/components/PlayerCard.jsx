@@ -74,7 +74,10 @@ function PlayerCard({ player, accent, variant = 'full', tier }) {
   const tr = tier || TIERS.find((t) => t.key === player.tierKey) || TIERS[0];
 
   return (
+    // sq-dark-scope: the card stays a dark collectible even in light mode, so
+    // it pins the dark text/border tokens locally (see index.css).
     <div
+      className="sq-dark-scope"
       style={{
         position: 'relative',
         borderRadius: 18,

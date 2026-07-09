@@ -38,7 +38,7 @@ export function ToastProvider({ children }) {
               gap: 9,
               padding: '11px 16px',
               borderRadius: 12,
-              background: 'rgba(18,18,18,0.96)',
+              background: 'var(--sq-scrim-2)',
               border: '1px solid color-mix(in srgb, var(--sq-gold) 35%, transparent)',
               boxShadow: '0 12px 40px rgba(0,0,0,0.6)',
               color: 'var(--sq-text)',

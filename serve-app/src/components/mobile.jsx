@@ -59,7 +59,7 @@ export function MTabBar({ active = 'profile', onTab }) {
         display: 'flex',
         justifyContent: 'space-around',
         borderTop: '1px solid var(--sq-border)',
-        background: 'rgba(10,10,10,0.85)',
+        background: 'var(--sq-scrim)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
         padding: '10px 4px 6px',

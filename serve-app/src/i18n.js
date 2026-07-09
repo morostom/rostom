@@ -303,6 +303,16 @@ const AR = {
   'Sort': 'ترتيب',
   'Near me': 'الأقرب',
   'Best': 'الأعلى تقييمًا',
+  'Best rated': 'الأعلى تقييمًا',
+  'Most courts': 'الأكثر ملاعب',
+  'tap to view': 'اضغط للعرض',
+
+  // ── appearance ──
+  'Appearance': 'المظهر',
+  'Light': 'فاتح',
+  'Dark': 'داكن',
+  'Light mode on': 'تم تفعيل الوضع الفاتح',
+  'Dark mode on': 'تم تفعيل الوضع الداكن',
 
   // ── cancellation ──
   'Sent to your parent to approve': 'أُرسل إلى ولي أمرك للموافقة',
