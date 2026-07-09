@@ -27,6 +27,7 @@ import DiscoverScreen from '../screens/DiscoverScreen';
 import ClubBioScreen from '../screens/ClubBioScreen';
 import AcademyScreen from '../screens/AcademyScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import SessionPlayersScreen from '../screens/SessionPlayersScreen';
 
 export default function PlayerApp() {
   const [account, setAccount] = useState(null);
@@ -61,6 +62,7 @@ export default function PlayerApp() {
       case 'cardCloseup': return <CardCloseupScreen player={params.player} ownCard={params.player?.id === player.id} />;
       case 'joinClub': return <JoinClubScreen />;
       case 'settings': return <SettingsScreen />;
+      case 'sessionPlayers': return <SessionPlayersScreen session={params.session} />;
       default: return <AuthScreen />;
     }
   }

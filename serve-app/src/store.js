@@ -82,6 +82,7 @@ function seed() {
       heliopolis: { owner: '', coach: '' },
       ramyashour: { owner: '', coach: '' },
     },
+    playerCards: {},        // real player cards by lowercase name (backend)
     undo: null,             // { kind, label, expiresAt, ...snapshot } — one-slot undo
     images: {}, // { academyLogo, academyCover, clubCrest } → data URLs
   };

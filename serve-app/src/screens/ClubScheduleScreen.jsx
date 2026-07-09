@@ -37,8 +37,11 @@ export default function ClubScheduleScreen() {
                   {day}{full ? ` ${full[1]}` : ''}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-                  {rows.map((s) => (
-                    <div key={s.id} style={{
+                  {rows.map((s) => {
+                    const hasPlayers = (s.players?.length || 0) > 0;
+                    return (
+                    <button key={s.id} onClick={hasPlayers ? () => nav.push('sessionPlayers', { session: s }) : undefined} style={{
+                      textAlign: 'left', width: '100%', cursor: hasPlayers ? 'pointer' : 'default',
                       display: 'flex', alignItems: 'center', gap: 14, padding: '12px 14px', borderRadius: 13,
                       background: s.mine ? 'linear-gradient(120deg, color-mix(in srgb, var(--sq-gold) 14%, var(--sq-surface)), var(--sq-surface) 75%)' : 'var(--sq-surface)',
                       border: '1px solid ' + (s.mine ? 'color-mix(in srgb, var(--sq-gold) 38%, transparent)' : 'var(--sq-border)'),
@@ -52,9 +55,17 @@ export default function ClubScheduleScreen() {
                         </div>
                         <div style={{ fontSize: 11.5, color: 'var(--sq-text-2)', marginTop: 2 }}>{s.coach} · {s.type}</div>
                       </div>
-                      <span className="sq-chip" style={{ fontSize: 10, padding: '2px 8px' }}>Court {s.court}</span>
-                    </div>
-                  ))}
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 5 }}>
+                        <span className="sq-chip" style={{ fontSize: 10, padding: '2px 8px' }}>Court {s.court}</span>
+                        {hasPlayers && (
+                          <span className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <Icons.Users size={10} /> {s.players.length}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                    );
+                  })}
                 </div>
               </div>
             );

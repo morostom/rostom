@@ -142,6 +142,18 @@ export const COACHES = [
   { name: 'Ismail Sherif', initials: 'IS', role: 'Private Coach', squads: 'Privates' },
 ];
 
+// mini player profiles shown on group-session rosters (name · age · division ·
+// ranking). Real signups' cards (from the DB) override these when connected.
+export const PLAYER_DIRECTORY = [
+  { name: 'Mohamed Rostom', age: '15', division: 'U17', rankLabel: '#3 · U17 National', club: 'Heliopolis SC' },
+  { name: 'Nour Hassan', age: '16', division: 'U17', rankLabel: '#12 · U17 National', club: 'Heliopolis SC' },
+  { name: 'Taha Ibrahim', age: '17', division: 'U19', rankLabel: '#5 · U19 National', club: 'Heliopolis SC' },
+  { name: 'Aly Kamal', age: '12', division: 'U13', club: 'Heliopolis SC' },
+  { name: 'Belal Sherif', age: '14', division: 'U15', rankLabel: '#21 · U15 National', club: 'Heliopolis SC' },
+  { name: 'Salman Adel', age: '34', division: 'Senior', club: 'Heliopolis SC' },
+  { name: 'Aly Mostafa', age: '11', division: 'U11', club: 'Heliopolis SC' },
+];
+
 export const ROSTER = [
   { name: 'Mohamed Rostom', initials: 'MR', group: 'U17 Squad', status: 'active', last: 'Today · 14:10' },
   { name: 'Nour Hassan', initials: 'NH', group: 'U17 Squad', status: 'active', last: 'Today · 16:30' },

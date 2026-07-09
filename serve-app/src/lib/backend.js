@@ -22,7 +22,7 @@ const cancellationFromRow = (r) => ({ id: r.id, session_id: r.session_id, sessio
 // Build a store patch from the whole DB (simple + robust for demo volume).
 export async function hydrate() {
   if (!hasBackend) return {};
-  const [courts, sessions, bookings, payments, settings, staff, links, requests, reviews, cancellations, branches] = await Promise.all([
+  const [courts, sessions, bookings, payments, settings, staff, links, requests, reviews, cancellations, branches, profiles] = await Promise.all([
     supabase.from('courts').select('*').order('court_no'),
     supabase.from('sessions').select('*'),
     supabase.from('bookings').select('*').order('created_at', { ascending: true }),
@@ -34,6 +34,7 @@ export async function hydrate() {
     supabase.from('reviews').select('*').order('created_at', { ascending: true }),
     supabase.from('cancellations').select('*').order('created_at', { ascending: true }),
     supabase.from('branches').select('*').order('created_at', { ascending: true }),
+    supabase.from('profiles').select('name, card'),
   ]);
   const patch = {};
   if (branches.data?.length) patch.branches = branches.data.map(branchFromRow);
@@ -46,6 +47,17 @@ export async function hydrate() {
   if (requests.data) patch.paymentRequests = requests.data.map(requestFromRow);
   if (reviews.data) patch.reviews = reviews.data.map(reviewFromRow);
   if (cancellations.data) patch.cancellations = cancellations.data.map(cancellationFromRow);
+  if (profiles.data) {
+    // real player cards, keyed by lowercase name — only the public-safe
+    // fields (name · age · division · ranking · club), never the full card
+    const cards = {};
+    for (const row of profiles.data) {
+      const c = row.card;
+      if (!c || c.kind === 'admin' || c.kind === 'parent' || !c.name) continue;
+      cards[c.name.toLowerCase()] = { name: c.name, age: c.age, division: c.division, rankLabel: c.rankLabel, rankVerified: !!c.rankVerified, club: c.club };
+    }
+    patch.playerCards = cards;
+  }
   if (settings.data) {
     const hel = settings.data.find((s) => s.id === CLUB);
     const aca = settings.data.find((s) => s.id === ACADEMY);

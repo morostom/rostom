@@ -93,12 +93,15 @@ export default function BookingsScreen() {
                 return (
                   <div key={s.id} className="sq-card" style={{ padding: 15 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 13 }}>
-                      <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--sq-surface-2)', color: 'var(--sq-text-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <Ic size={19} />
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div className="sq-display" style={{ fontSize: 14, fontWeight: 600 }}>{t(s.title)}</div>
-                        <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-2)', marginTop: 2 }}>{s.day} · {s.time} · {t(s.coach)} · Court {s.court}</div>
+                      <div onClick={(s.players?.length || 0) > 0 ? () => nav.push('sessionPlayers', { session: s }) : undefined}
+                        style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 13, cursor: (s.players?.length || 0) > 0 ? 'pointer' : 'default' }}>
+                        <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--sq-surface-2)', color: 'var(--sq-text-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <Ic size={19} />
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div className="sq-display" style={{ fontSize: 14, fontWeight: 600 }}>{t(s.title)}</div>
+                          <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-2)', marginTop: 2 }}>{s.day} · {s.time} · {t(s.coach)} · Court {s.court}{(s.players?.length || 0) > 1 ? ` · ${s.players.length} ${t('players')}` : ''}</div>
+                        </div>
                       </div>
                       {!open && <button className="sq-btn-ghost" style={{ padding: '8px 12px', fontSize: 11.5, color: 'var(--sq-text-2)' }} onClick={() => { setCancelId(s.id); setReason(''); }}>{t('Cancel')}</button>}
                     </div>

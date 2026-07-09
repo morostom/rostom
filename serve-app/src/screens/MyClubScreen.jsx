@@ -66,11 +66,12 @@ function CourtTile({ c, onBook }) {
 
 const TYPE_ICON = { Lesson: Icons.Medal, 'Group training': Icons.Users, Fitness: Icons.Bolt };
 
-function MySessionRow({ s }) {
+function MySessionRow({ s, onOpen }) {
   const t = useT();
   const Ic = TYPE_ICON[s.type] || Icons.Calendar;
+  const hasPlayers = (s.players?.length || 0) > 0;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '13px 14px', borderRadius: 13, background: 'linear-gradient(120deg, color-mix(in srgb, var(--sq-gold) 12%, var(--sq-surface)), var(--sq-surface) 78%)', border: '1px solid color-mix(in srgb, var(--sq-gold) 30%, transparent)' }}>
+    <button onClick={hasPlayers ? () => onOpen?.(s) : undefined} style={{ textAlign: 'left', width: '100%', cursor: hasPlayers ? 'pointer' : 'default', display: 'flex', alignItems: 'center', gap: 13, padding: '13px 14px', borderRadius: 13, background: 'linear-gradient(120deg, color-mix(in srgb, var(--sq-gold) 12%, var(--sq-surface)), var(--sq-surface) 78%)', border: '1px solid color-mix(in srgb, var(--sq-gold) 30%, transparent)' }}>
       <div style={{ width: 40, height: 40, borderRadius: 11, flexShrink: 0, background: 'color-mix(in srgb, var(--sq-gold) 16%, transparent)', color: 'var(--sq-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Ic size={18} />
       </div>
@@ -78,8 +79,15 @@ function MySessionRow({ s }) {
         <div className="sq-display" style={{ fontSize: 14.5, fontWeight: 600 }}>{t(s.title)}</div>
         <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-2)', marginTop: 2 }}>{s.day} · {s.time} · {s.coach} · Court {s.court}</div>
       </div>
-      <span className="sq-chip gold" style={{ fontSize: 9.5, padding: '2px 8px' }}>{t(s.type)}</span>
-    </div>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 5 }}>
+        <span className="sq-chip gold" style={{ fontSize: 9.5, padding: '2px 8px' }}>{t(s.type)}</span>
+        {hasPlayers && (
+          <span className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <Icons.Users size={10} /> {s.players.length}
+          </span>
+        )}
+      </div>
+    </button>
   );
 }
 
@@ -167,7 +175,7 @@ export default function MyClubScreen() {
           </div>
           {mine.length ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-              {mine.map((s) => <MySessionRow key={s.id} s={s} />)}
+              {mine.map((s) => <MySessionRow key={s.id} s={s} onOpen={(sess) => nav.push('sessionPlayers', { session: sess })} />)}
             </div>
           ) : (
             <div className="sq-card" style={{ padding: 20, textAlign: 'center', color: 'var(--sq-text-3)', fontSize: 13 }}>
