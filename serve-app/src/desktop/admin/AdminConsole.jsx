@@ -15,6 +15,7 @@ import { DUR_FAST } from '../../motion';
 import { useStore, store } from '../../store';
 import { useT } from '../../i18n';
 import { signOut } from '../../lib/auth';
+import BranchesPanel from '../BranchesPanel';
 import {
   ACADEMY, ADMIN_COURTS, ADMIN_COACHES, ADMIN_PLAYERS,
   REVENUE_7D, REVENUE_DAYS, SETUP_STEPS, OPERATING_HOURS, REVENUE_BREAKDOWN, BRAND_COLORS,
@@ -35,6 +36,7 @@ function Sidebar({ active, onNav }) {
     { id: 'coaches', icon: <Icons.Users size={16} />, label: 'Coaches', badge: String(coachCount) },
     { id: 'players', icon: <Icons.User size={16} />, label: 'Players', badge: String(ADMIN_PLAYERS.length) },
     { id: 'clinics', icon: <Icons.Bolt size={16} />, label: 'Group training' },
+    { id: 'branches', icon: <Icons.Pin size={16} />, label: 'Branches', badge: String(state.branches.filter((b) => b.org_id === 'ramyashour').length) },
     { id: 'payments', icon: <Icons.Wallet size={16} />, label: 'Payments' },
     { id: 'revenue', icon: <Icons.TrendUp size={16} />, label: 'Revenue' },
   ];
@@ -942,9 +944,13 @@ function Payments() {
 }
 
 // ── shell ────────────────────────────────────────────────────────────
+function Branches() {
+  return <BranchesPanel orgId="ramyashour" Topbar={Topbar} />;
+}
+
 const SECTIONS = {
   dashboard: Dashboard, profile: AcademyProfile, schedule: Schedule,
-  courts: Courts, coaches: Coaches, players: Players, clinics: CreateClinic, payments: Payments, revenue: Revenue,
+  courts: Courts, coaches: Coaches, players: Players, clinics: CreateClinic, branches: Branches, payments: Payments, revenue: Revenue,
 };
 
 function ConsoleInner() {

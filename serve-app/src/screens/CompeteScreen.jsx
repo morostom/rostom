@@ -5,6 +5,7 @@ import SQLogo from '../components/SQLogo';
 import { Icons } from '../components/Icons';
 import { MScreen, Pill } from '../components/mobile';
 import { useNav } from '../navigation/nav';
+import { useT } from '../i18n';
 import { EMPTY_COMPETITIVE, EMPTY_RECREATIONAL } from '../data';
 
 function Choice({ icon, title, sub, accent, onClick }) {
@@ -35,7 +36,8 @@ function Choice({ icon, title, sub, accent, onClick }) {
 
 export default function CompeteScreen() {
   const { nav, forChild, setCardType, setPlayer } = useNav();
-  const who = forChild ? 'your child' : 'you';
+  const t = useT();
+  const who = forChild ? t('your child') : t('you');
 
   function choose(cardType) {
     setCardType(cardType);
@@ -57,28 +59,28 @@ export default function CompeteScreen() {
     >
       <div style={{ padding: '18px 22px 24px' }}>
         <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.14em' }}>
-          Step 2 of 3
+          {t('Step 2 of 3')}
         </div>
         <h1 className="sq-display" style={{ margin: '8px 0 0', fontSize: 27, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
-          Do {who}<br /><span style={{ color: 'var(--sq-gold)' }}>compete?</span>
+          {t('Do')} {who}<br /><span style={{ color: 'var(--sq-gold)' }}>{t('compete?')}</span>
         </h1>
         <p style={{ margin: '8px 0 22px', color: 'var(--sq-text-2)', fontSize: 13.5, lineHeight: 1.5 }}>
-          This decides what your card shows. You can change it later.
+          {t('This decides what your card shows. You can change it later.')}
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <Choice
             icon={<Icons.Medal size={24} />}
             accent="var(--sq-gold)"
-            title="Yes, I compete"
-            sub="Tournament player — show national ranking, division & match record."
+            title={t('Yes, I compete')}
+            sub={t('Tournament player — show national ranking, division & match record.')}
             onClick={() => choose('competitive')}
           />
           <Choice
             icon={<Icons.Heart size={24} />}
             accent="var(--sq-blue)"
-            title="No, I play for fun"
-            sub="Casual / recreational — a clean card with your club, favourite shot & years playing."
+            title={t('No, I play for fun')}
+            sub={t('Casual / recreational — a clean card with your club, favourite shot & years playing.')}
             onClick={() => choose('recreational')}
           />
         </div>

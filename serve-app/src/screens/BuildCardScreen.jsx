@@ -8,6 +8,7 @@ import { Icons } from '../components/Icons';
 import SQLogo from '../components/SQLogo';
 import { MScreen, Pill } from '../components/mobile';
 import { useNav } from '../navigation/nav';
+import { useT } from '../i18n';
 import { saveCard } from '../lib/auth';
 import { ACADEMIES_LIST, FAV_PLAYERS, FAV_SHOTS, YEARS_OPTIONS, RACKETS, divisionForAge } from '../data';
 
@@ -69,14 +70,15 @@ function SelectOrOther({ label, value, onChange, options, placeholder, icon }) {
 
 export default function BuildCardScreen() {
   const { nav, player, setPlayer, cardType, forChild } = useNav();
+  const t = useT();
   const recreational = cardType === 'recreational';
   const [form, setForm] = useState(player);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
   const fileRef = useRef(null);
 
-  const who = forChild ? "Your child's" : 'Your';
-  const namePlaceholder = forChild ? "Child's full name" : 'Your full name';
+  const who = forChild ? t("Your child's") : t('Your');
+  const namePlaceholder = forChild ? t("Child's full name") : t('Your full name');
   const division = divisionForAge(form.age);
 
   const set = (key) => (val) => setForm((f) => ({ ...f, [key]: val }));
@@ -95,9 +97,9 @@ export default function BuildCardScreen() {
 
   function handleCreate() {
     setError('');
-    if (!form.name.trim()) return setError('Add a name to build the card.');
-    if (!form.age) return setError('Add an age.');
-    if (!form.club) return setError('Pick a club or academy.');
+    if (!form.name.trim()) return setError(t('Add a name to build the card.'));
+    if (!form.age) return setError(t('Add an age.'));
+    if (!form.club) return setError(t('Pick a club or academy.'));
     setCreating(true);
     const card = { ...form, division };
     saveCard(card); // persists to the player's profile when a backend is configured
@@ -121,10 +123,10 @@ export default function BuildCardScreen() {
             <SQLogo size={18} accent />
           </div>
           <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.14em', marginTop: 14 }}>
-            Step 3 of 3 · {recreational ? 'Recreational' : 'Competitive'} card
+            {t('Step 3 of 3')} · {recreational ? t('Recreational') : t('Competitive')}
           </div>
           <h1 className="sq-display" style={{ margin: '6px 0 0', fontSize: 26, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05 }}>
-            Build {who.toLowerCase()}<br /><span style={{ color: accent }}>player card.</span>
+            {t('Build')} {who.toLowerCase()}<br /><span style={{ color: accent }}>{t('player card.')}</span>
           </h1>
         </div>
       }
@@ -136,7 +138,7 @@ export default function BuildCardScreen() {
             disabled={!canCreate || creating}
             onClick={handleCreate}
           >
-            {creating ? 'Creating your card…' : 'Create my card →'}
+            {creating ? t('Creating your card…') : t('Create my card →')}
           </button>
         </div>
       }
@@ -158,49 +160,49 @@ export default function BuildCardScreen() {
           </div>
         </button>
         <div style={{ flex: 1 }}>
-          <div className="sq-display" style={{ fontSize: 15, fontWeight: 600 }}>Add {forChild ? "their" : 'your'} photo</div>
-          <div style={{ fontSize: 12, color: 'var(--sq-text-3)', marginTop: 3, lineHeight: 1.4 }}>Tap the circle to upload — this is the face of the card.</div>
+          <div className="sq-display" style={{ fontSize: 15, fontWeight: 600 }}>{forChild ? t('Add their photo') : t('Add your photo')}</div>
+          <div style={{ fontSize: 12, color: 'var(--sq-text-3)', marginTop: 3, lineHeight: 1.4 }}>{t('Tap the circle to upload — this is the face of the card.')}</div>
         </div>
         <input ref={fileRef} type="file" accept="image/*" onChange={pickPhoto} style={{ display: 'none' }} />
       </div>
 
       {/* fields */}
       <div style={{ padding: '0 20px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <PField label={forChild ? "Child's name" : 'Full name'} value={form.name} onChange={set('name')} placeholder={namePlaceholder} icon={<Icons.User size={15} />} />
+        <PField label={forChild ? t("Child's name") : t('Full name')} value={form.name} onChange={set('name')} placeholder={namePlaceholder} icon={<Icons.User size={15} />} />
 
         {/* age + auto division */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr', gap: 12 }}>
-          <PField label="Age" value={form.age} onChange={setAge} placeholder="14" mono type="number" />
+          <PField label={t('Age')} value={form.age} onChange={setAge} placeholder="14" mono type="number" />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label className="sq-label">Division · auto</label>
+            <label className="sq-label">{t('Division · auto')}</label>
             <div className="sq-field" style={{ background: 'rgba(255,255,255,0.015)' }}>
               <Icons.Medal size={15} />
               <span className="sq-input" style={{ display: 'flex', alignItems: 'center', color: division ? accent : 'var(--sq-text-3)', fontFamily: 'var(--sq-mono)' }}>
-                {division || 'enter age'}
+                {division || t('enter age')}
               </span>
             </div>
           </div>
         </div>
 
-        <PSelect label="Club / academy" value={form.club} onChange={set('club')} options={ACADEMIES_LIST} placeholder="Select a club" icon={<Icons.Pin size={15} />} />
+        <PSelect label={t('Club / academy')} value={form.club} onChange={set('club')} options={ACADEMIES_LIST} placeholder={t('Select a club')} icon={<Icons.Pin size={15} />} />
 
         {recreational ? (
           <>
-            <SelectOrOther label="Favourite shot" value={form.favShot} onChange={set('favShot')} options={FAV_SHOTS} placeholder="Pick your signature shot" icon={<Icons.Racket size={15} />} />
-            <PSelect label="Years playing" value={form.yearsPlaying} onChange={set('yearsPlaying')} options={YEARS_OPTIONS} placeholder="How long have you played?" icon={<Icons.Calendar size={15} />} />
-            <SelectOrOther label="Favorite player" value={form.fav} onChange={set('fav')} options={FAV_PLAYERS} placeholder="Pick a pro (or write your own)" icon={<Icons.Heart size={15} />} />
+            <SelectOrOther label={t('Favourite shot')} value={form.favShot} onChange={set('favShot')} options={FAV_SHOTS} placeholder={t('Pick your signature shot')} icon={<Icons.Racket size={15} />} />
+            <PSelect label={t('Years playing')} value={form.yearsPlaying} onChange={set('yearsPlaying')} options={YEARS_OPTIONS} placeholder={t('How long have you played?')} icon={<Icons.Calendar size={15} />} />
+            <SelectOrOther label={t('Favorite player')} value={form.fav} onChange={set('fav')} options={FAV_PLAYERS} placeholder={t('Pick a pro (or write your own)')} icon={<Icons.Heart size={15} />} />
           </>
         ) : (
           <>
             <div>
-              <PField label="National ranking" value={form.rankLabel} onChange={set('rankLabel')} placeholder="e.g. #3 · U17 National" icon={<Icons.Medal size={15} />} />
+              <PField label={t('National ranking')} value={form.rankLabel} onChange={set('rankLabel')} placeholder="e.g. #3 · U17 National" icon={<Icons.Medal size={15} />} />
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 7, color: 'var(--sq-text-3)', fontSize: 11.5, lineHeight: 1.4 }}>
                 <Icons.Lock size={12} />
-                <span>A SERVE team member verifies your ranking before the badge appears on your card.</span>
+                <span>{t('A SERVE team member verifies your ranking before the badge appears on your card.')}</span>
               </div>
             </div>
-            <SelectOrOther label="Racket" value={form.racket} onChange={set('racket')} options={RACKETS} placeholder="Pick your racket" icon={<Icons.Racket size={15} />} />
-            <SelectOrOther label="Favorite player" value={form.fav} onChange={set('fav')} options={FAV_PLAYERS} placeholder="Pick a pro (or write your own)" icon={<Icons.Heart size={15} />} />
+            <SelectOrOther label={t('Racket')} value={form.racket} onChange={set('racket')} options={RACKETS} placeholder={t('Pick your racket')} icon={<Icons.Racket size={15} />} />
+            <SelectOrOther label={t('Favorite player')} value={form.fav} onChange={set('fav')} options={FAV_PLAYERS} placeholder={t('Pick a pro (or write your own)')} icon={<Icons.Heart size={15} />} />
           </>
         )}
 
