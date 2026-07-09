@@ -15,7 +15,7 @@ import { ToastProvider, useToast } from '../../components/Toast';
 import BranchesPanel from '../BranchesPanel';
 import { parseSchedule } from '../../lib/scheduleImport';
 import { DUR_FAST } from '../../motion';
-import { useStore, store } from '../../store';
+import { useStore, store, orgInfo } from '../../store';
 import { useT } from '../../i18n';
 import { signOut } from '../../lib/auth';
 import { CLUB, ROSTER, CODES, randomCode, SESSION_TYPES, TIME_SLOTS, WEEK_DAYS, BRAND_COLORS } from '../../data';
@@ -25,10 +25,11 @@ const SIDEBAR_W = 240;
 // crest badge (shows the uploaded image from the store when present)
 const Crest = ClubCrest;
 
-function Sidebar({ active, onNav, branches = [], branch, setBranch }) {
+function Sidebar({ active, onNav, branches = [], branch, setBranch, orgId }) {
   const state = useStore();
   const t = useT();
-  const coachCount = state.staff.filter((s) => s.org_id === 'heliopolis').length;
+  const org = orgInfo(state, orgId);
+  const coachCount = state.staff.filter((s) => s.org_id === orgId).length;
   const items = [
     { id: 'board', icon: <Icons.Activity size={16} />, label: 'Live courts' },
     { id: 'schedule', icon: <Icons.Calendar size={16} />, label: 'Schedule builder' },
@@ -44,9 +45,11 @@ function Sidebar({ active, onNav, branches = [], branch, setBranch }) {
     <div style={{ width: SIDEBAR_W, flexShrink: 0, height: '100%', background: '#0a0a0a', borderRight: '1px solid var(--sq-border)', display: 'flex', flexDirection: 'column', padding: '18px 12px' }}>
       <div style={{ padding: '4px 8px 16px' }}><SQLogo size={20} accent /></div>
       <div className="sq-card" style={{ padding: '10px 12px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
-        <Crest size={32} radius={8} />
+        <div style={{ width: 32, height: 32, borderRadius: 8, flexShrink: 0, overflow: 'hidden', background: 'color-mix(in srgb, var(--sq-gold) 14%, transparent)', border: '1px solid color-mix(in srgb, var(--sq-gold) 28%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--sq-gold)' }}>
+          {org.logo ? <img src={org.logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Icons.Club size={17} />}
+        </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="sq-display" style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.1 }}>{state.clubName || CLUB.short}</div>
+          <div className="sq-display" style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{org.name || CLUB.short}</div>
           <div className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)', letterSpacing: '0.04em' }}>Squash · Cairo</div>
         </div>
         <Icons.Chevron size={12} dir="down" />
@@ -83,10 +86,10 @@ function Sidebar({ active, onNav, branches = [], branch, setBranch }) {
         <div className="sq-display" style={{ fontSize: 20, fontWeight: 700, marginTop: 4 }}>{inUse} of {branchCourts}</div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 8px 2px' }}>
-        <div style={{ width: 28, height: 28, borderRadius: 14, background: 'linear-gradient(135deg, #2a2a2a, #1a1a1a)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600 }}>MR</div>
+        <div style={{ width: 28, height: 28, borderRadius: 14, background: 'linear-gradient(135deg, #2a2a2a, #1a1a1a)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600 }}>{orgId === 'heliopolis' ? 'MR' : (org.name || 'O')[0].toUpperCase()}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 12, fontWeight: 500 }}>Coach Mohamed Reda</div>
-          <div className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)' }}>Squash coordinator</div>
+          <div style={{ fontSize: 12, fontWeight: 500 }}>{orgId === 'heliopolis' ? 'Coach Mohamed Reda' : org.name || 'Owner'}</div>
+          <div className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)' }}>{orgId === 'heliopolis' ? 'Squash coordinator' : 'Owner'}</div>
         </div>
       </div>
       <button className="sq-btn-ghost" style={{ margin: '8px 8px 0', padding: '8px', fontSize: 11.5, color: 'var(--sq-text-3)' }}
@@ -201,10 +204,10 @@ function LiveCourts({ branch, branches }) {
 }
 
 // ── Schedule builder (mix & match) ───────────────────────────────────
-function ScheduleBuilder({ branch, branches }) {
+function ScheduleBuilder({ branch, branches, orgId }) {
   const notify = useToast();
   const state = useStore();
-  const coaches = state.staff.filter((s) => s.org_id === 'heliopolis');
+  const coaches = state.staff.filter((s) => s.org_id === orgId);
   const branchCourts = state.courts.filter((c) => c.branch === branch);
   const branchName = branches?.find((b) => b.id === branch)?.name || '';
   const [coach, setCoach] = useState(coaches[0]?.name || '');
@@ -230,10 +233,10 @@ function ScheduleBuilder({ branch, branches }) {
     const { rows, skipped } = parseSchedule(importText);
     if (!rows.length) return notify(skipped ? `No valid rows (${skipped} skipped) — check the format` : 'Paste your schedule first');
     let newCoaches = 0;
-    const known = new Set(store.get().staff.filter((s) => s.org_id === 'heliopolis').map((s) => s.name.toLowerCase()));
+    const known = new Set(store.get().staff.filter((s) => s.org_id === orgId).map((s) => s.name.toLowerCase()));
     for (const r of rows) {
       if (!known.has(r.coach.toLowerCase())) {
-        store.addStaff('heliopolis', { name: r.coach, role: 'Coach' });
+        store.addStaff(orgId, { name: r.coach, role: 'Coach' });
         known.add(r.coach.toLowerCase());
         newCoaches++;
       }
@@ -366,10 +369,10 @@ function Members() {
 }
 
 // ── Coaches (add / remove → persists to Supabase) ────────────────────
-function CoachesTab() {
+function CoachesTab({ orgId }) {
   const notify = useToast();
   const state = useStore();
-  const coaches = state.staff.filter((s) => s.org_id === 'heliopolis');
+  const coaches = state.staff.filter((s) => s.org_id === orgId);
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState('');
   const [role, setRole] = useState('Coach');
@@ -379,7 +382,7 @@ function CoachesTab() {
 
   function submit() {
     if (!name.trim()) return notify('Enter a name');
-    store.addStaff('heliopolis', { name, role, squads });
+    store.addStaff(orgId, { name, role, squads });
     notify(`Added ${name.trim()}`);
     setName(''); setRole('Coach'); setSquads(''); setAdding(false);
   }
@@ -477,16 +480,20 @@ function AccessCodes() {
 }
 
 // ── Club profile (logo + cover + name + brand colour) ────────────────
-function ClubProfile() {
+function ClubProfile({ orgId, branches }) {
   const notify = useToast();
   const state = useStore();
-  const [name, setName] = useState(state.clubName || CLUB.name);
-  const cc = state.contacts?.heliopolis || {};
-  const [ownerPhone, setOwnerPhone] = useState(cc.owner || '');
-  const [coachPhone, setCoachPhone] = useState(cc.coach || '');
+  const org = orgInfo(state, orgId);
+  const legacy = orgId === 'heliopolis';
+  const [name, setName] = useState(org.name || (legacy ? CLUB.name : ''));
+  const [ownerPhone, setOwnerPhone] = useState(org.owner_phone || '');
+  const [coachPhone, setCoachPhone] = useState(org.coach_phone || '');
+  const branchIds = new Set((branches || []).map((b) => b.id));
+  const courtCount = state.courts.filter((c) => branchIds.has(c.branch)).length;
+  const city = legacy ? CLUB.city : (branches?.[0]?.location || 'Egypt');
   const fieldCss = { padding: '11px 13px', border: '1px solid var(--sq-border-2)', borderRadius: 9, background: 'rgba(255,255,255,0.02)', fontSize: 14, color: 'var(--sq-text)', outline: 'none', width: '100%', fontFamily: 'var(--sq-body)' };
   const Label = ({ children }) => <label className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 6 }}>{children}</label>;
-  function save() { store.setOrgName('club', name); store.setContact('heliopolis', { owner: ownerPhone, coach: coachPhone }); notify('Profile saved'); }
+  function save() { store.updateOrg(orgId, { name, owner_phone: ownerPhone, coach_phone: coachPhone }); notify('Profile saved'); }
   return (
     <>
       <Topbar title="Club profile" sub="Branding · public page" trailing={<button className="sq-btn-gold" style={{ padding: '9px 16px', fontSize: 12.5 }} onClick={save}>Save changes</button>} />
@@ -497,11 +504,11 @@ function ClubProfile() {
             <div style={{ display: 'flex', gap: 16 }}>
               <div style={{ display: 'flex', flexDirection: 'column', width: 110, flexShrink: 0 }}>
                 <Label>Crest / logo</Label>
-                <UploadSlot value={state.images.clubCrest} onChange={(d) => { store.setImage('clubCrest', d); notify('Crest updated'); }} label="Drop crest" height={110} radius={16} maxDim={512} />
+                <UploadSlot value={org.logo} onChange={(d) => { store.updateOrg(orgId, { logo: d }); notify('Crest updated'); }} label="Drop crest" height={110} radius={16} maxDim={512} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                 <Label>Cover photo</Label>
-                <UploadSlot value={state.images.clubCover} onChange={(d) => { store.setImage('clubCover', d); notify('Cover updated'); }} label="Drop a cover photo of your courts" height={110} radius={12} />
+                <UploadSlot value={org.cover} onChange={(d) => { store.updateOrg(orgId, { cover: d }); notify('Cover updated'); }} label="Drop a cover photo of your courts" height={110} radius={12} />
               </div>
             </div>
           </div>
@@ -521,9 +528,9 @@ function ClubProfile() {
             </div>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
               {BRAND_COLORS.map((c) => {
-                const on = state.clubTheme.toLowerCase() === c.hex.toLowerCase();
+                const on = (org.accent || '#f5453b').toLowerCase() === c.hex.toLowerCase();
                 return (
-                  <button key={c.hex} onClick={() => { store.setClubTheme(c.hex); notify(`Theme set to ${c.name}`); }} title={c.name}
+                  <button key={c.hex} onClick={() => { store.updateOrg(orgId, { accent: c.hex }); notify(`Theme set to ${c.name}`); }} title={c.name}
                     style={{ width: 44, height: 44, borderRadius: 12, background: c.hex, cursor: 'pointer', border: 0, boxShadow: on ? `0 0 0 2px var(--sq-bg), 0 0 0 4px ${c.hex}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0a0a0a' }}>
                     {on && <Icons.Check size={18} />}
                   </button>
@@ -538,17 +545,19 @@ function ClubProfile() {
           <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>Members see this →</div>
           <div className="sq-card" style={{ padding: 0, overflow: 'hidden' }}>
             <div style={{ position: 'relative', height: 150 }}>
-              {state.images.clubCover ? <img src={state.images.clubCover} alt="" style={{ width: '100%', height: 150, objectFit: 'cover' }} /> : <ImgPlaceholder label="cover" height={150} radius={0} hue="gold" style={{ borderRadius: 0, border: 0 }} />}
+              {org.cover ? <img src={org.cover} alt="" style={{ width: '100%', height: 150, objectFit: 'cover' }} /> : <ImgPlaceholder label="cover" height={150} radius={0} hue="gold" style={{ borderRadius: 0, border: 0 }} />}
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(7,7,7,0.95) 100%)' }} />
               <span className="sq-chip gold" style={{ position: 'absolute', top: 12, left: 12 }}><span className="sq-live-dot" /> Live courts</span>
             </div>
             <div style={{ padding: '0 18px 18px', marginTop: -34, position: 'relative' }}>
-              <div style={{ width: 64, height: 64, borderRadius: 16, overflow: 'hidden', border: '2px solid var(--sq-bg)' }}><Crest size={64} radius={16} /></div>
-              <h2 className="sq-display" style={{ margin: '12px 0 2px', fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>{name}</h2>
-              <div style={{ color: 'var(--sq-text-2)', fontSize: 12.5, display: 'flex', alignItems: 'center', gap: 6 }}><Icons.Pin size={12} /> {CLUB.city}</div>
+              <div style={{ width: 64, height: 64, borderRadius: 16, overflow: 'hidden', border: '2px solid var(--sq-bg)' }}>
+                {legacy ? <Crest size={64} radius={16} /> : org.logo ? <img src={org.logo} alt="" style={{ width: 64, height: 64, objectFit: 'cover' }} /> : <ImgPlaceholder label="logo" height={64} radius={0} hue="gold" style={{ borderRadius: 0, border: 0 }} />}
+              </div>
+              <h2 className="sq-display" style={{ margin: '12px 0 2px', fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>{name || 'Your club'}</h2>
+              <div style={{ color: 'var(--sq-text-2)', fontSize: 12.5, display: 'flex', alignItems: 'center', gap: 6 }}><Icons.Pin size={12} /> {city}</div>
               <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
                 <span className="sq-chip gold" style={{ fontSize: 11 }}>Members only</span>
-                <span className="sq-chip" style={{ fontSize: 11 }}>{state.courts.length} courts</span>
+                <span className="sq-chip" style={{ fontSize: 11 }}>{courtCount} courts</span>
               </div>
             </div>
           </div>
@@ -559,28 +568,28 @@ function ClubProfile() {
 }
 
 // ── Branches (locations) — shared panel ─────────────────────────────
-function Branches() {
-  return <BranchesPanel orgId="heliopolis" Topbar={Topbar} />;
+function Branches({ orgId }) {
+  return <BranchesPanel orgId={orgId} Topbar={Topbar} />;
 }
 
 const SECTIONS = { board: LiveCourts, schedule: ScheduleBuilder, members: Members, coaches: CoachesTab, codes: AccessCodes, branches: Branches, profile: ClubProfile };
 
-function ConsoleInner() {
+function ConsoleInner({ orgId }) {
   const state = useStore();
   const [active, setActive] = useState('board');
-  const clubBranches = state.branches.filter((b) => b.org_id === 'heliopolis');
+  const clubBranches = state.branches.filter((b) => b.org_id === orgId);
   const [branch, setBranch] = useState(clubBranches[0]?.id || null);
   // keep the active branch valid as branches change
   const activeBranch = clubBranches.some((b) => b.id === branch) ? branch : (clubBranches[0]?.id || null);
   const Section = SECTIONS[active] || LiveCourts;
   return (
-    <ThemeScope accent={state.clubTheme}>
+    <ThemeScope accent={orgInfo(state, orgId).accent}>
       <div className="sq-app" style={{ display: 'flex', width: '100%', height: '100%', overflow: 'hidden' }}>
-        <Sidebar active={active} onNav={setActive} branches={clubBranches} branch={activeBranch} setBranch={setBranch} />
+        <Sidebar active={active} onNav={setActive} branches={clubBranches} branch={activeBranch} setBranch={setBranch} orgId={orgId} />
         <div style={{ flex: 1, minWidth: 0, height: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
           <AnimatePresence mode="wait">
             <motion.div key={active + activeBranch} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: DUR_FAST }}>
-              <Section branch={activeBranch} branches={clubBranches} onNav={setActive} />
+              <Section branch={activeBranch} branches={clubBranches} onNav={setActive} orgId={orgId} />
             </motion.div>
           </AnimatePresence>
         </div>
@@ -589,10 +598,10 @@ function ConsoleInner() {
   );
 }
 
-export default function CoachConsole() {
+export default function CoachConsole({ orgId = 'heliopolis' }) {
   return (
     <ToastProvider>
-      <ConsoleInner />
+      <ConsoleInner orgId={orgId} />
     </ToastProvider>
   );
 }

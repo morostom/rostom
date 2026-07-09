@@ -25,27 +25,40 @@ export default function AcademyScreen({ academy }) {
   const state = useStore();
   const notify = useToast();
   const t = useT();
-  const courts = academyCourts(academy);
   const sessions = OPEN_SESSIONS.filter((s) => s.venueId === academy.id);
 
-  // the Ramy Ashour academy is the one backed by the admin console, so it
-  // reflects the owner's uploaded logo/cover + brand colour live.
-  const backed = academy.id === 'ramyashour';
-  const cover = backed ? state.images?.academyCover : null;
-  const logo = backed ? state.images?.academyLogo : null;
-  const accent = (backed && state.academyTheme) || academy.accent || '#f5453b';
+  // console-backed academies reflect their owner's branding live: the demo
+  // (Ramy Ashour) reads the legacy store fields, dynamic sign-ups read their
+  // own org row.
+  const dyn = state.orgs?.find((o) => o.id === academy.id);
+  const legacy = academy.id === 'ramyashour';
+  const cover = dyn?.cover || (legacy ? state.images?.academyCover : null);
+  const logo = dyn?.logo || (legacy ? state.images?.academyLogo : null);
+  const accent = dyn?.accent || (legacy && state.academyTheme) || academy.accent || '#f5453b';
+  const displayName = dyn?.name || (legacy && state.academyName) || academy.name;
+
+  // dynamic academies list their real free courts; the seeded directory keeps
+  // its demo availability
+  let courts;
+  if (dyn) {
+    const branchIds = new Set(state.branches.filter((b) => b.org_id === academy.id).map((b) => b.id));
+    courts = state.courts.filter((c) => branchIds.has(c.branch) && c.status === 'free').slice(0, 8)
+      .map((c) => ({ court: c.court, type: c.type || 'Standard', time: '18:00', price: 200 }));
+  } else {
+    courts = academyCourts(academy);
+  }
 
   const { avg, count } = venueRating(state.reviews, academy.id);
   const reviews = state.reviews.filter((r) => r.venue_id === academy.id).slice().reverse();
-  const contact = state.contacts?.[academy.id] || {};
-  const ownerWa = waLink(contact.owner, `Hi, I'm reaching out about ${academy.name} on SERVE.`);
-  const coachWa = waLink(contact.coach, `Hi Coach, a question about training at ${academy.name}.`);
+  const contact = dyn ? { owner: dyn.owner_phone, coach: dyn.coach_phone } : (state.contacts?.[academy.id] || {});
+  const ownerWa = waLink(contact.owner, `Hi, I'm reaching out about ${displayName} on SERVE.`);
+  const coachWa = waLink(contact.coach, `Hi Coach, a question about training at ${displayName}.`);
 
   const [writing, setWriting] = useState(false);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   function submitReview() {
-    store.addReview({ venue_id: academy.id, venue_name: academy.name, player: player?.name, rating, comment });
+    store.addReview({ venue_id: academy.id, venue_name: displayName, player: player?.name, rating, comment });
     notify(t('Thanks for your review'));
     setWriting(false); setComment(''); setRating(5);
   }
@@ -69,7 +82,7 @@ export default function AcademyScreen({ academy }) {
             {logo ? <img src={logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Icons.Trophy size={24} />}
           </div>
         </div>
-        <h1 className="sq-display" style={{ margin: '14px 0 0', fontSize: 24, fontWeight: 700, letterSpacing: '-0.025em', lineHeight: 1.1 }}>{(backed && state.academyName) || t(academy.name)}</h1>
+        <h1 className="sq-display" style={{ margin: '14px 0 0', fontSize: 24, fontWeight: 700, letterSpacing: '-0.025em', lineHeight: 1.1 }}>{dyn ? displayName : (legacy && state.academyName) || t(academy.name)}</h1>
         <div className="sq-mono" style={{ fontSize: 11.5, color: 'var(--sq-text-2)', marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
           <Icons.Pin size={12} /> {academy.city} · {academy.courts} courts · {t('open booking')}
         </div>
@@ -101,7 +114,7 @@ export default function AcademyScreen({ academy }) {
                 <div style={{ textAlign: 'right' }}>
                   <div className="sq-mono" style={{ fontSize: 13, color: 'var(--sq-gold)', marginBottom: 6 }}>EGP {c.price}</div>
                   <button className="sq-btn-gold" style={{ padding: '7px 14px', fontSize: 12 }}
-                    onClick={() => nav.push('payment', { courtNo: c.court, type: c.type, venue: academy.name, day: 'Today', time: c.time, endTime: endOf(c.time), price: c.price })}>
+                    onClick={() => nav.push('payment', { courtNo: c.court, type: c.type, venue: displayName, day: 'Today', time: c.time, endTime: endOf(c.time), price: c.price })}>
                     {t('Book')}
                   </button>
                 </div>
@@ -131,7 +144,7 @@ export default function AcademyScreen({ academy }) {
                     </div>
                   </div>
                   <button className="sq-btn-gold" style={{ padding: '7px 14px', fontSize: 12 }}
-                    onClick={() => nav.push('payment', { title: s.title, venue: academy.name, day: s.time, time: s.time, price: s.price, sessionId: s.id })}>
+                    onClick={() => nav.push('payment', { title: s.title, venue: displayName, day: s.time, time: s.time, price: s.price, sessionId: s.id })}>
                     {t('Join')}
                   </button>
                 </div>

@@ -12,7 +12,7 @@ import UploadSlot from '../../components/UploadSlot';
 import { ToastProvider, useToast } from '../../components/Toast';
 import ThemeScope from '../../components/ThemeScope';
 import { DUR_FAST } from '../../motion';
-import { useStore, store } from '../../store';
+import { useStore, store, orgInfo } from '../../store';
 import { useT } from '../../i18n';
 import { signOut } from '../../lib/auth';
 import BranchesPanel from '../BranchesPanel';
@@ -24,10 +24,11 @@ import {
 const SIDEBAR_W = 232;
 
 // ── sidebar ──────────────────────────────────────────────────────────
-function Sidebar({ active, onNav }) {
+function Sidebar({ active, onNav, orgId }) {
   const state = useStore();
   const t = useT();
-  const coachCount = state.staff.filter((s) => s.org_id === 'ramyashour').length;
+  const org = orgInfo(state, orgId);
+  const coachCount = state.staff.filter((s) => s.org_id === orgId).length;
   const items = [
     { id: 'dashboard', icon: <Icons.Home size={16} />, label: 'Dashboard' },
     { id: 'profile', icon: <Icons.Trophy size={16} />, label: 'Academy profile' },
@@ -36,7 +37,7 @@ function Sidebar({ active, onNav }) {
     { id: 'coaches', icon: <Icons.Users size={16} />, label: 'Coaches', badge: String(coachCount) },
     { id: 'players', icon: <Icons.User size={16} />, label: 'Players', badge: String(ADMIN_PLAYERS.length) },
     { id: 'clinics', icon: <Icons.Bolt size={16} />, label: 'Group training' },
-    { id: 'branches', icon: <Icons.Pin size={16} />, label: 'Branches', badge: String(state.branches.filter((b) => b.org_id === 'ramyashour').length) },
+    { id: 'branches', icon: <Icons.Pin size={16} />, label: 'Branches', badge: String(state.branches.filter((b) => b.org_id === orgId).length) },
     { id: 'payments', icon: <Icons.Wallet size={16} />, label: 'Payments' },
     { id: 'revenue', icon: <Icons.TrendUp size={16} />, label: 'Revenue' },
   ];
@@ -47,11 +48,11 @@ function Sidebar({ active, onNav }) {
       </div>
       <div className="sq-card" style={{ padding: '10px 12px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{ width: 30, height: 30, borderRadius: 8, overflow: 'hidden', flexShrink: 0, background: 'color-mix(in srgb, var(--sq-gold) 14%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--sq-gold)' }}>
-          {state.images?.academyLogo ? <img src={state.images.academyLogo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Icons.Trophy size={16} />}
+          {org.logo ? <img src={org.logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Icons.Trophy size={16} />}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="sq-display" style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.1 }}>{state.academyName || ACADEMY.short}</div>
-          <div className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)', letterSpacing: '0.05em' }}>Admin · {ACADEMY.district}</div>
+          <div className="sq-display" style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.1 }}>{org.name || (orgId === 'ramyashour' ? ACADEMY.short : 'Your academy')}</div>
+          <div className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)', letterSpacing: '0.05em' }}>Admin{orgId === 'ramyashour' ? ` · ${ACADEMY.district}` : ''}</div>
         </div>
         <Icons.Chevron size={12} dir="down" />
       </div>
@@ -73,9 +74,9 @@ function Sidebar({ active, onNav }) {
         <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)' }}>5 quick steps</div>
       </button>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px', marginTop: 8 }}>
-        <div style={{ width: 26, height: 26, borderRadius: 13, background: 'linear-gradient(135deg, #2a2a2a, #1a1a1a)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600 }}>{ACADEMY.ownerInitials}</div>
+        <div style={{ width: 26, height: 26, borderRadius: 13, background: 'linear-gradient(135deg, #2a2a2a, #1a1a1a)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600 }}>{orgId === 'ramyashour' ? ACADEMY.ownerInitials : (org.name || 'O')[0].toUpperCase()}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 12, fontWeight: 500 }}>{ACADEMY.owner}</div>
+          <div style={{ fontSize: 12, fontWeight: 500 }}>{orgId === 'ramyashour' ? ACADEMY.owner : org.name || 'Owner'}</div>
           <div className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)' }}>Owner</div>
         </div>
         <Icons.Settings size={14} />
@@ -208,11 +209,11 @@ function RevenueChart({ range = '7d' }) {
   );
 }
 
-function Dashboard() {
+function Dashboard({ orgId }) {
   const notify = useToast();
   return (
     <>
-      <Topbar title={`Welcome back, ${ACADEMY.owner.split(' ')[0]}.`} sub="Wednesday · 14 May 2026 · 15:24" trailing={
+      <Topbar title={orgId === 'ramyashour' ? `Welcome back, ${ACADEMY.owner.split(' ')[0]}.` : 'Welcome back.'} sub="Wednesday · 14 May 2026 · 15:24" trailing={
         <>
           <button className="sq-btn-ghost" style={{ padding: '9px 14px', fontSize: 12.5 }} onClick={() => notify('Filters applied')}>Filters</button>
           <button className="sq-btn-gold" style={{ padding: '9px 16px', fontSize: 12.5 }} onClick={() => notify('New booking started')}>
@@ -410,10 +411,10 @@ function Courts() {
 }
 
 // ── Coaches (add / remove → persists to Supabase) ────────────────────
-function Coaches() {
+function Coaches({ orgId }) {
   const notify = useToast();
   const state = useStore();
-  const coaches = state.staff.filter((s) => s.org_id === 'ramyashour');
+  const coaches = state.staff.filter((s) => s.org_id === orgId);
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState('');
   const [role, setRole] = useState('Coach');
@@ -423,7 +424,7 @@ function Coaches() {
 
   function submit() {
     if (!name.trim()) return notify('Enter a name');
-    store.addStaff('ramyashour', { name, role, squads });
+    store.addStaff(orgId, { name, role, squads });
     notify(`Added ${name.trim()}`);
     setName(''); setRole('Coach'); setSquads(''); setAdding(false);
   }
@@ -582,15 +583,20 @@ function PreviewStat({ label, value }) {
     </div>
   );
 }
-function AcademyProfile() {
+function AcademyProfile({ orgId }) {
   const notify = useToast();
   const state = useStore();
-  const [name, setName] = useState(state.academyName || ACADEMY.name);
-  const c = state.contacts?.ramyashour || {};
-  const [ownerPhone, setOwnerPhone] = useState(c.owner || '');
-  const [coachPhone, setCoachPhone] = useState(c.coach || '');
+  const org = orgInfo(state, orgId);
+  const legacy = orgId === 'ramyashour';
+  const [name, setName] = useState(org.name || (legacy ? ACADEMY.name : ''));
+  const [ownerPhone, setOwnerPhone] = useState(org.owner_phone || '');
+  const [coachPhone, setCoachPhone] = useState(org.coach_phone || '');
+  const myBranches = state.branches.filter((b) => b.org_id === orgId);
+  const branchIds = new Set(myBranches.map((b) => b.id));
+  const courtCount = state.courts.filter((cr) => branchIds.has(cr.branch)).length;
+  const city = legacy ? ACADEMY.city : (myBranches[0]?.location || 'Egypt');
   const inputCss = { padding: '10px 12px', border: '1px solid var(--sq-border-2)', borderRadius: 8, background: 'rgba(255,255,255,0.02)', fontFamily: 'var(--sq-body)', fontSize: 13.5, color: 'var(--sq-text)', outline: 'none', width: '100%' };
-  function save() { store.setOrgName('academy', name); store.setContact('ramyashour', { owner: ownerPhone, coach: coachPhone }); notify('Changes saved'); }
+  function save() { store.updateOrg(orgId, { name, owner_phone: ownerPhone, coach_phone: coachPhone }); notify('Changes saved'); }
   return (
     <>
       <Topbar title="Academy profile" sub="Branding · public page" trailing={
@@ -605,11 +611,11 @@ function AcademyProfile() {
             <div style={{ display: 'flex', gap: 16 }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: 110, flexShrink: 0 }}>
                 <label style={{ fontSize: 11, color: 'var(--sq-text-3)', fontFamily: 'var(--sq-mono)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Logo</label>
-                <UploadSlot value={state.images.academyLogo} onChange={(d) => { store.setImage('academyLogo', d); notify('Logo updated'); }} label="Drop logo" height={110} radius={16} maxDim={512} />
+                <UploadSlot value={org.logo} onChange={(d) => { store.updateOrg(orgId, { logo: d }); notify('Logo updated'); }} label="Drop logo" height={110} radius={16} maxDim={512} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1 }}>
                 <label style={{ fontSize: 11, color: 'var(--sq-text-3)', fontFamily: 'var(--sq-mono)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Cover image</label>
-                <UploadSlot value={state.images.academyCover} onChange={(d) => { store.setImage('academyCover', d); notify('Cover updated'); }} label="Drop a cover photo of your courts" height={110} radius={12} />
+                <UploadSlot value={org.cover} onChange={(d) => { store.updateOrg(orgId, { cover: d }); notify('Cover updated'); }} label="Drop a cover photo of your courts" height={110} radius={12} />
               </div>
             </div>
           </FormCard>
@@ -618,7 +624,7 @@ function AcademyProfile() {
               <label style={{ fontSize: 11, color: 'var(--sq-text-3)', fontFamily: 'var(--sq-mono)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Academy name</label>
               <input value={name} onChange={(e) => setName(e.target.value)} style={{ padding: '10px 12px', border: '1px solid var(--sq-border-2)', borderRadius: 8, background: 'rgba(255,255,255,0.02)', fontFamily: 'var(--sq-body)', fontSize: 13.5, color: 'var(--sq-text)', outline: 'none' }} />
             </div>
-            <Field label="Tagline" value={ACADEMY.tagline} />
+            <Field label="Tagline" value={legacy ? ACADEMY.tagline : ''} />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <label style={{ fontSize: 11, color: 'var(--sq-text-3)', fontFamily: 'var(--sq-mono)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Owner WhatsApp</label>
@@ -630,17 +636,17 @@ function AcademyProfile() {
               </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-              <Field label="City" value="Cairo" />
-              <Field label="District" value={ACADEMY.district} />
+              <Field label="City" value={legacy ? ACADEMY.city : city} />
+              <Field label="District" value={legacy ? ACADEMY.district : ''} />
             </div>
-            <Field label="Contact" value={ACADEMY.contact} mono />
+            <Field label="Contact" value={legacy ? ACADEMY.contact : ''} mono />
           </FormCard>
           <FormCard title="Brand color" step="Accent">
             <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
               {BRAND_COLORS.map((c) => {
-                const on = state.academyTheme.toLowerCase() === c.hex.toLowerCase();
+                const on = (org.accent || '#f5453b').toLowerCase() === c.hex.toLowerCase();
                 return (
-                  <button key={c.hex} title={c.name} onClick={() => { store.setAcademyTheme(c.hex); notify(`Theme set to ${c.name}`); }} style={{ width: 38, height: 38, borderRadius: 10, background: c.hex, cursor: 'pointer', border: 0, color: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: on ? `0 0 0 2px var(--sq-bg), 0 0 0 4px ${c.hex}` : 'none' }}>
+                  <button key={c.hex} title={c.name} onClick={() => { store.updateOrg(orgId, { accent: c.hex }); notify(`Theme set to ${c.name}`); }} style={{ width: 38, height: 38, borderRadius: 10, background: c.hex, cursor: 'pointer', border: 0, color: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: on ? `0 0 0 2px var(--sq-bg), 0 0 0 4px ${c.hex}` : 'none' }}>
                     {on && <Icons.Check size={16} />}
                   </button>
                 );
@@ -653,22 +659,22 @@ function AcademyProfile() {
           <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>Players see this →</div>
           <div className="sq-card" style={{ padding: 0, overflow: 'hidden' }}>
             <div style={{ position: 'relative', height: 150 }}>
-              {state.images.academyCover ? <img src={state.images.academyCover} alt="" style={{ width: '100%', height: 150, objectFit: 'cover' }} /> : <ImgPlaceholder label="cover" height={150} radius={0} hue="gold" style={{ borderRadius: 0, border: 0 }} />}
+              {org.cover ? <img src={org.cover} alt="" style={{ width: '100%', height: 150, objectFit: 'cover' }} /> : <ImgPlaceholder label="cover" height={150} radius={0} hue="gold" style={{ borderRadius: 0, border: 0 }} />}
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(7,7,7,0.95) 100%)' }} />
               <span className="sq-chip gold" style={{ position: 'absolute', top: 12, left: 12 }}><span className="sq-live-dot" /> Open now</span>
             </div>
             <div style={{ padding: '0 18px 18px', marginTop: -34, position: 'relative' }}>
               <div style={{ width: 64, height: 64, borderRadius: 16, overflow: 'hidden', border: '2px solid var(--sq-bg)', background: 'var(--sq-surface-2)' }}>
-                {state.images.academyLogo ? <img src={state.images.academyLogo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <ImgPlaceholder label="logo" height={64} radius={16} hue="gold" />}
+                {org.logo ? <img src={org.logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <ImgPlaceholder label="logo" height={64} radius={16} hue="gold" />}
               </div>
-              <h2 className="sq-display" style={{ margin: '12px 0 2px', fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>{ACADEMY.name}</h2>
+              <h2 className="sq-display" style={{ margin: '12px 0 2px', fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>{name || (legacy ? ACADEMY.name : 'Your academy')}</h2>
               <div style={{ color: 'var(--sq-text-2)', fontSize: 12.5, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Icons.Pin size={12} /> {ACADEMY.city}
+                <Icons.Pin size={12} /> {city}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, margin: '14px 0 0' }}>
-                <PreviewStat label="Courts" value={ACADEMY.courts} />
-                <PreviewStat label="Juniors" value={ACADEMY.juniors} />
-                <PreviewStat label="From" value={`EGP ${ACADEMY.minPrice}`} />
+                <PreviewStat label="Courts" value={legacy ? ACADEMY.courts : courtCount} />
+                <PreviewStat label="Juniors" value={legacy ? ACADEMY.juniors : '—'} />
+                <PreviewStat label="From" value={legacy ? `EGP ${ACADEMY.minPrice}` : '—'} />
               </div>
               <button className="sq-btn-gold" style={{ marginTop: 14, padding: '11px 16px', fontSize: 13, width: '100%' }} onClick={() => notify('Booking flow')}>Book a court</button>
             </div>
@@ -680,8 +686,10 @@ function AcademyProfile() {
 }
 
 // ── Create team training ─────────────────────────────────────────────
-function CreateClinic() {
+function CreateClinic({ orgId }) {
   const notify = useToast();
+  const state = useStore();
+  const orgName = orgInfo(state, orgId).name || (orgId === 'ramyashour' ? ACADEMY.name : 'Your academy');
   return (
     <>
       <Topbar title="Create a team training" sub="Group training" trailing={
@@ -724,7 +732,7 @@ function CreateClinic() {
             <div style={{ padding: 18 }}>
               <span className="sq-chip" style={{ color: 'var(--sq-blue)', borderColor: 'rgba(78,168,255,0.25)', background: 'rgba(78,168,255,0.1)' }}><Icons.Users size={11} /> Team Training · 8 players</span>
               <h2 className="sq-display" style={{ margin: '10px 0 4px', fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>Friday Night Drill Squad</h2>
-              <div style={{ color: 'var(--sq-text-2)', fontSize: 12.5 }}>{ACADEMY.name} · Court 1 (glass)</div>
+              <div style={{ color: 'var(--sq-text-2)', fontSize: 12.5 }}>{orgName} · Court 1 (glass)</div>
               <div style={{ paddingTop: 14, marginTop: 14, borderTop: '1px solid var(--sq-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-gold)' }}>3 OF 8 SPOTS LEFT</div>
@@ -741,8 +749,10 @@ function CreateClinic() {
 }
 
 // ── Setup wizard (5 steps, fully steppable, pre-filled) ──────────────
-function Wizard({ onExit }) {
+function Wizard({ onExit, orgId }) {
   const notify = useToast();
+  const state = useStore();
+  const orgName = orgInfo(state, orgId).name || (orgId === 'ramyashour' ? ACADEMY.name : 'Your academy');
   const [step, setStep] = useState(0);
   const cur = SETUP_STEPS[step];
   const pct = ((step + 1) / SETUP_STEPS.length) * 100;
@@ -765,7 +775,7 @@ function Wizard({ onExit }) {
       <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '280px 1fr', minHeight: 0 }}>
         <div style={{ padding: '32px 24px', borderRight: '1px solid var(--sq-border)', background: 'var(--sq-surface)', overflowY: 'auto' }}>
           <h2 className="sq-display" style={{ margin: 0, fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em' }}>Set up your academy</h2>
-          <p style={{ margin: '4px 0 20px', fontSize: 12, color: 'var(--sq-text-3)' }}>{ACADEMY.name}</p>
+          <p style={{ margin: '4px 0 20px', fontSize: 12, color: 'var(--sq-text-3)' }}>{orgName}</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {SETUP_STEPS.map((s, i) => (
               <button key={s.key} onClick={() => setStep(i)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 8px', borderRadius: 8, background: i === step ? 'color-mix(in srgb, var(--sq-gold) 8%, transparent)' : 'transparent', border: 0, cursor: 'pointer', textAlign: 'left', fontFamily: 'var(--sq-body)' }}>
@@ -782,7 +792,7 @@ function Wizard({ onExit }) {
             <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-gold)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 12 }}>0{cur.n} — {cur.label}</div>
             <AnimatePresence mode="wait">
               <motion.div key={cur.key} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: DUR_FAST }}>
-                <WizardStep step={cur.key} notify={notify} />
+                <WizardStep step={cur.key} notify={notify} orgId={orgId} orgName={orgName} />
               </motion.div>
             </AnimatePresence>
           </div>
@@ -798,21 +808,22 @@ function Wizard({ onExit }) {
   );
 }
 
-function WizardStep({ step }) {
+function WizardStep({ step, orgId, orgName }) {
+  const legacy = orgId === 'ramyashour';
   if (step === 'details') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 560 }}>
         <h1 className="sq-display" style={{ margin: 0, fontSize: 30, fontWeight: 700, letterSpacing: '-0.025em' }}>Tell us about your academy.</h1>
         <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-          <div style={{ width: 80, flexShrink: 0 }}><UploadSlot value={store.get().images.academyLogo} onChange={(d) => store.setImage('academyLogo', d)} label="Logo" height={80} radius={16} maxDim={512} /></div>
-          <div style={{ flex: 1 }}><Field label="Academy name" value={ACADEMY.name} /></div>
+          <div style={{ width: 80, flexShrink: 0 }}><UploadSlot value={orgInfo(store.get(), orgId).logo} onChange={(d) => store.updateOrg(orgId, { logo: d })} label="Logo" height={80} radius={16} maxDim={512} /></div>
+          <div style={{ flex: 1 }}><Field label="Academy name" value={legacy ? ACADEMY.name : orgName} /></div>
         </div>
-        <Field label="Tagline" value={ACADEMY.tagline} />
+        <Field label="Tagline" value={legacy ? ACADEMY.tagline : ''} />
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
           <Field label="City" value="Cairo" />
-          <Field label="District" value={ACADEMY.district} />
+          <Field label="District" value={legacy ? ACADEMY.district : ''} />
         </div>
-        <Field label="Contact" value={ACADEMY.contact} mono />
+        <Field label="Contact" value={legacy ? ACADEMY.contact : ''} mono />
       </div>
     );
   }
@@ -877,7 +888,7 @@ function WizardStep({ step }) {
       </div>
       <h1 className="sq-display" style={{ margin: 0, fontSize: 30, fontWeight: 700, letterSpacing: '-0.025em' }}>You're ready to go live.</h1>
       <p style={{ margin: 0, color: 'var(--sq-text-2)', fontSize: 14, lineHeight: 1.55 }}>
-        {ACADEMY.name} will be visible to players across Cairo. They can book courts, join training, and follow your academy on SERVE.
+        {orgName} will be visible to players across Cairo. They can book courts, join training, and follow your academy on SERVE.
       </p>
     </div>
   );
@@ -944,8 +955,8 @@ function Payments() {
 }
 
 // ── shell ────────────────────────────────────────────────────────────
-function Branches() {
-  return <BranchesPanel orgId="ramyashour" Topbar={Topbar} />;
+function Branches({ orgId }) {
+  return <BranchesPanel orgId={orgId} Topbar={Topbar} />;
 }
 
 const SECTIONS = {
@@ -953,28 +964,28 @@ const SECTIONS = {
   courts: Courts, coaches: Coaches, players: Players, clinics: CreateClinic, branches: Branches, payments: Payments, revenue: Revenue,
 };
 
-function ConsoleInner() {
+function ConsoleInner({ orgId }) {
   const state = useStore();
   const [active, setActive] = useState('dashboard');
-  const body = active === 'setup' ? <Wizard onExit={() => setActive('dashboard')} /> : (
+  const body = active === 'setup' ? <Wizard onExit={() => setActive('dashboard')} orgId={orgId} /> : (
     <div className="sq-app" style={{ display: 'flex', width: '100%', height: '100%', overflow: 'hidden' }}>
-      <Sidebar active={active} onNav={setActive} />
+      <Sidebar active={active} onNav={setActive} orgId={orgId} />
       <div style={{ flex: 1, minWidth: 0, height: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
         <AnimatePresence mode="wait">
           <motion.div key={active} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: DUR_FAST }}>
-            {(() => { const Section = SECTIONS[active] || Dashboard; return <Section />; })()}
+            {(() => { const Section = SECTIONS[active] || Dashboard; return <Section orgId={orgId} />; })()}
           </motion.div>
         </AnimatePresence>
       </div>
     </div>
   );
-  return <ThemeScope accent={state.academyTheme}>{body}</ThemeScope>;
+  return <ThemeScope accent={orgInfo(state, orgId).accent}>{body}</ThemeScope>;
 }
 
-export default function AdminConsole() {
+export default function AdminConsole({ orgId = 'ramyashour' }) {
   return (
     <ToastProvider>
-      <ConsoleInner />
+      <ConsoleInner orgId={orgId} />
     </ToastProvider>
   );
 }

@@ -12,6 +12,7 @@ const courtFromRow = (r) => ({ branch: r.club_id, court: r.court_no, type: r.typ
 const sessionFromRow = (r) => ({ id: r.id, branch: r.club_id, day: r.day, time: r.time, type: r.type, title: r.title, coach: r.coach, court: r.court, players: r.players || [], mine: false });
 const bookingFromRow = (r) => ({ id: r.id, branch: r.branch, court: r.court, title: r.title, venue: r.venue, type: r.type, day: r.day, time: r.time, endTime: r.end_time, price: r.price, method: r.method, status: r.status });
 const branchFromRow = (r) => ({ id: r.id, org_id: r.org_id, name: r.name, location: r.location, courts: r.court_count });
+const orgFromRow = (r) => ({ id: r.id, type: r.type, name: r.name, accent: r.accent, logo: r.logo, cover: r.cover, crest: r.crest, owner_phone: r.owner_phone, coach_phone: r.coach_phone, owner_id: r.owner_id });
 const paymentFromRow = (r) => ({ id: r.id, player: r.player, item: r.item, amount: r.amount, status: r.status, method: r.method });
 const staffFromRow = (r) => ({ id: r.id, org_id: r.org_id, name: r.name, role: r.role, initials: r.initials, squads: r.squads });
 const parentLinkFromRow = (r) => ({ id: r.id, parent_identifier: r.parent_identifier, parent_name: r.parent_name, child_name: r.child_name, status: r.status || 'pending' });
@@ -59,6 +60,7 @@ export async function hydrate() {
     patch.playerCards = cards;
   }
   if (settings.data) {
+    patch.orgs = settings.data.map(orgFromRow); // every org, incl. dynamic ones
     const hel = settings.data.find((s) => s.id === CLUB);
     const aca = settings.data.find((s) => s.id === ACADEMY);
     if (hel?.accent) patch.clubTheme = hel.accent;
@@ -123,6 +125,21 @@ export async function addBooking(b) {
     user_id: data?.user?.id ?? null, venue: b.venue, court: String(b.court ?? ''), branch: b.branch ?? null, title: b.title ?? null,
     type: b.type ?? null, day: b.day, time: b.time, end_time: b.endTime ?? null, price: b.price, method: b.method, status: b.status || 'confirmed',
   });
+}
+// a brand-new org, owned by the signed-in admin from birth (RLS gates on it)
+export async function createOrg(o) {
+  const { data } = await supabase.auth.getUser();
+  await supabase.from('org_settings').insert({
+    id: o.id, type: o.type, name: o.name, accent: o.accent ?? null, logo: o.logo ?? null, cover: o.cover ?? null,
+    owner_phone: o.owner_phone || null, coach_phone: o.coach_phone || null, owner_id: data?.user?.id ?? null,
+  });
+}
+export async function upsertOrg(id, patch) {
+  const row = { updated_at: new Date().toISOString() };
+  for (const k of ['name', 'accent', 'logo', 'cover', 'crest', 'owner_phone', 'coach_phone']) {
+    if (patch[k] !== undefined) row[k] = patch[k];
+  }
+  await supabase.from('org_settings').update(row).eq('id', id);
 }
 export async function addBranch(br) {
   await supabase.from('branches').insert({ id: br.id, org_id: br.org_id, name: br.name, location: br.location ?? null, court_count: br.courts ?? 0 });

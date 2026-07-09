@@ -26,7 +26,24 @@ export default function DiscoverScreen() {
   const t = useT();
   const [sort, setSort] = useState('near'); // near | best | courts
 
-  const academies = [...ACADEMIES_DIR].sort((a, b) => {
+  // dynamic orgs — every console signup creates its own org; once it has a
+  // name it shows up here alongside the seeded directory
+  const dynOrgs = (state.orgs || []).filter((o) => (o.name || '').trim() && o.id !== 'heliopolis' && o.id !== 'ramyashour');
+  const orgTile = (o) => {
+    const myBranches = state.branches.filter((b) => b.org_id === o.id);
+    const branchIds = new Set(myBranches.map((b) => b.id));
+    return {
+      id: o.id, short: o.name, name: o.name, dynamic: true,
+      city: myBranches[0]?.location || 'Egypt',
+      courts: state.courts.filter((c) => branchIds.has(c.branch)).length,
+      accent: o.accent || '#f5453b', logo: o.logo || null,
+    };
+  };
+  const dynAcademies = dynOrgs.filter((o) => o.type === 'academy').map(orgTile);
+  const dynClubs = dynOrgs.filter((o) => o.type === 'club').map(orgTile);
+  const clubs = [...CLUBS_DIR, ...dynClubs];
+
+  const academies = [...ACADEMIES_DIR, ...dynAcademies].sort((a, b) => {
     if (sort === 'best') return venueRating(state.reviews, b.id).avg - venueRating(state.reviews, a.id).avg;
     if (sort === 'courts') return courtNum(b.courts) - courtNum(a.courts);
     // "near me": Cairo-area venues first (no geolocation yet), stable otherwise
@@ -45,7 +62,7 @@ export default function DiscoverScreen() {
   }
   function openClub(c) {
     if (c.id === 'heliopolis') nav.push('clubBio');
-    else nav.push('joinClub');
+    else nav.push('joinClub', c.dynamic ? { club: c } : undefined);
   }
 
   return (
@@ -138,7 +155,7 @@ export default function DiscoverScreen() {
                 return (
                 <button key={a.id} onClick={() => openAcademy(a)} className="sq-card" style={{ textAlign: 'left', cursor: 'pointer', padding: 12, display: 'flex', flexDirection: 'column', gap: 5 }}>
                   <div style={{ width: 34, height: 34, borderRadius: 9, overflow: 'hidden', background: 'color-mix(in srgb, var(--sq-gold) 14%, transparent)', border: '1px solid color-mix(in srgb, var(--sq-gold) 28%, transparent)', color: 'var(--sq-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {a.id === 'ramyashour' && state.images?.academyLogo ? <img src={state.images.academyLogo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Icons.Trophy size={17} />}
+                    {a.logo ? <img src={a.logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : a.id === 'ramyashour' && state.images?.academyLogo ? <img src={state.images.academyLogo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Icons.Trophy size={17} />}
                   </div>
                   <div className="sq-display" style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.2 }}>{t(a.short)}</div>
                   {r.count > 0 ? <Stars value={r.avg} size={11} count={r.count} /> : <span className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)' }}>{a.courts} {t('courts')} · {t('book')}</span>}
@@ -150,14 +167,14 @@ export default function DiscoverScreen() {
           <div>
             <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-blue)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>{t('Clubs')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {CLUBS_DIR.map((c) => (
+              {clubs.map((c) => (
                 <button key={c.id} onClick={() => openClub(c)} className="sq-card" style={{ textAlign: 'left', cursor: 'pointer', padding: 12, display: 'flex', flexDirection: 'column', gap: 5 }}>
                   <div style={{ width: 34, height: 34, borderRadius: 9, overflow: 'hidden', background: `color-mix(in srgb, ${c.accent} 16%, transparent)`, border: `1px solid color-mix(in srgb, ${c.accent} 30%, transparent)`, color: c.accent, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {c.id === 'heliopolis' && state.images?.clubCrest ? <img src={state.images.clubCrest} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Icons.Club size={17} />}
+                    {c.logo ? <img src={c.logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : c.id === 'heliopolis' && state.images?.clubCrest ? <img src={state.images.clubCrest} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Icons.Club size={17} />}
                   </div>
                   <div className="sq-display" style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.2 }}>{t(c.short)}</div>
                   <div className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                    {c.guestPass ? t('Guest passes') : <><Icons.Lock size={9} /> {t('members')}</>}
+                    {c.dynamic ? <>{c.courts} {t('courts')}</> : c.guestPass ? t('Guest passes') : <><Icons.Lock size={9} /> {t('members')}</>}
                   </div>
                 </button>
               ))}

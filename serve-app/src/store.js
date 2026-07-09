@@ -84,6 +84,7 @@ function seed() {
     },
     playerCards: {},        // real player cards by lowercase name (backend)
     openJoins: {},          // open-session signups made here: { sessionId: [names] }
+    orgs: [],               // dynamic orgs (every console signup creates one)
     undo: null,             // { kind, label, expiresAt, ...snapshot } — one-slot undo
     images: {}, // { academyLogo, academyCover, clubCrest } → data URLs
   };
@@ -128,6 +129,19 @@ if (hasBackend) {
 function subscribe(l) { listeners.add(l); return () => listeners.delete(l); }
 export function useStore() {
   return useSyncExternalStore(subscribe, () => state, () => state);
+}
+
+// One org shape for every consumer. The two demo orgs live in the legacy
+// singleton fields (kept so the player app + live DB stay untouched);
+// dynamic orgs (created at signup) live in state.orgs.
+export function orgInfo(s, orgId) {
+  if (orgId === 'heliopolis') {
+    return { id: orgId, type: 'club', name: s.clubName, accent: s.clubTheme, logo: s.images?.clubCrest, cover: s.images?.clubCover, owner_phone: s.contacts?.heliopolis?.owner || '', coach_phone: s.contacts?.heliopolis?.coach || '' };
+  }
+  if (orgId === 'ramyashour') {
+    return { id: orgId, type: 'academy', name: s.academyName, accent: s.academyTheme, logo: s.images?.academyLogo, cover: s.images?.academyCover, owner_phone: s.contacts?.ramyashour?.owner || '', coach_phone: s.contacts?.ramyashour?.coach || '' };
+  }
+  return s.orgs?.find((o) => o.id === orgId) || { id: orgId, type: '', name: '', accent: '#f5453b', logo: null, cover: null, owner_phone: '', coach_phone: '' };
 }
 
 // Every mutation updates the screen instantly (optimistic). In backend mode it
@@ -223,6 +237,41 @@ export const store = {
   removeCourt: (branch, court) => {
     commit({ ...state, courts: state.courts.filter((c) => !(c.branch === branch && c.court === court)) });
     if (hasBackend) backend.removeCourtRow(branch, court);
+  },
+  // ── orgs (multi-tenant: every console signup creates its own) ──
+  // Creates the org row + a Main Branch with n free courts. Returns the id.
+  createOrg: ({ type, name, accent, logo, cover, owner_phone, coach_phone, courts, location }) => {
+    const clean = (name || '').trim();
+    if (!clean) return null;
+    const slug = clean.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 24) || 'org';
+    const id = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
+    const org = { id, type: type === 'academy' ? 'academy' : 'club', name: clean, accent: accent || '#f5453b', logo: logo || null, cover: cover || null, owner_phone: owner_phone || '', coach_phone: coach_phone || '' };
+    const n = Math.max(1, Math.min(40, parseInt(courts, 10) || 4));
+    const branch = { id: `${id}-main`, org_id: id, name: 'Main Branch', location: location || '', courts: n };
+    const newCourts = Array.from({ length: n }, (_, i) => ({ branch: branch.id, court: i + 1, type: 'Standard', status: 'free', who: null, coach: null, next: 'open' }));
+    commit({ ...state, orgs: [...state.orgs, org], branches: [...state.branches, branch], courts: [...state.courts, ...newCourts] });
+    if (hasBackend) { backend.createOrg(org); backend.addBranch(branch); newCourts.forEach((c) => backend.addCourtRow(c)); }
+    return id;
+  },
+  // Generic org edit (name/accent/logo/cover/owner_phone/coach_phone).
+  // Demo orgs route to their legacy fields so nothing existing changes shape.
+  updateOrg: (orgId, patch) => {
+    if (orgId === 'heliopolis' || orgId === 'ramyashour') {
+      const club = orgId === 'heliopolis';
+      if (patch.name) store.setOrgName(club ? 'club' : 'academy', patch.name);
+      if (patch.accent) (club ? store.setClubTheme : store.setAcademyTheme)(patch.accent);
+      if (patch.logo !== undefined) store.setImage(club ? 'clubCrest' : 'academyLogo', patch.logo);
+      if (patch.cover !== undefined) store.setImage(club ? 'clubCover' : 'academyCover', patch.cover);
+      if (patch.owner_phone !== undefined || patch.coach_phone !== undefined) {
+        const c = {};
+        if (patch.owner_phone !== undefined) c.owner = patch.owner_phone;
+        if (patch.coach_phone !== undefined) c.coach = patch.coach_phone;
+        store.setContact(orgId, c);
+      }
+      return;
+    }
+    commit({ ...state, orgs: state.orgs.map((o) => (o.id === orgId ? { ...o, ...patch } : o)) });
+    if (hasBackend) backend.upsertOrg(orgId, patch);
   },
   // ── branches (locations under a club/academy) ──
   addBranch: (org_id, { name, location, courts }) => {

@@ -9,10 +9,9 @@ import SQLogo from '../../components/SQLogo';
 import { Icons } from '../../components/Icons';
 import UploadSlot from '../../components/UploadSlot';
 import { DUR_FAST } from '../../motion';
-import { useStore, store } from '../../store';
+import { store } from '../../store';
 import { hasBackend } from '../../lib/supabase';
 import { signUp, signIn, saveAdmin, loadAdmin } from '../../lib/auth';
-import { claimOrg } from '../../lib/backend';
 import { useT } from '../../i18n';
 import { BRAND_COLORS } from '../../data';
 
@@ -34,7 +33,6 @@ function Shell({ children, sub }) {
 }
 
 export default function AdminAuth({ onLive }) {
-  const state = useStore();
   const t = useT();
   const [stage, setStage] = useState('auth'); // auth | choose | details
   const [mode, setMode] = useState('signup'); // signup | login
@@ -48,6 +46,13 @@ export default function AdminAuth({ onLive }) {
   const [orgType, setOrgType] = useState('club');
   const [adminName, setAdminName] = useState('');
   const [orgName, setOrgName] = useState('');
+  // onboarding drafts stay LOCAL until the org exists — a fresh signup must
+  // never stamp its logo/colour onto the shared demo orgs.
+  const [logo, setLogo] = useState(null);
+  const [cover, setCover] = useState(null);
+  const [accent, setAccent] = useState('#f5453b');
+  const [courts, setCourts] = useState('4');
+  const [location, setLocation] = useState('');
 
   const identifier = method === 'phone' ? phone : email;
 
@@ -66,7 +71,7 @@ export default function AdminAuth({ onLive }) {
 
     if (mode === 'login') {
       const admin = hasBackend ? await loadAdmin() : null;
-      if (admin?.orgType) { onLive(admin.orgType); return; }
+      if (admin?.orgType) { onLive(admin.orgType, admin.orgId || null); return; }
       setStage('choose'); // no saved org yet → set one up
     } else {
       setStage('choose');
@@ -83,16 +88,12 @@ export default function AdminAuth({ onLive }) {
     setErr('');
     if (adminName.trim().length < 2) return setErr(t('Enter your name.'));
     if (orgName.trim().length < 2) return setErr(t('Enter your name.'));
-    await claimOrg(orgType); // bind this org to the owner before writing to it
-    store.setOrgName(orgType, orgName);
-    await saveAdmin({ adminName, orgType, orgName });
-    onLive(orgType);
+    // every signup spins up its OWN org (row + Main Branch + free courts),
+    // owned by this account from birth — the demo orgs are never touched.
+    const orgId = store.createOrg({ type: orgType, name: orgName, accent, logo, cover, courts, location });
+    await saveAdmin({ adminName, orgType, orgName, orgId });
+    onLive(orgType, orgId);
   }
-
-  const logoKey = orgType === 'club' ? 'clubCrest' : 'academyLogo';
-  const coverKey = orgType === 'club' ? 'clubCover' : 'academyCover';
-  const theme = orgType === 'club' ? state.clubTheme : state.academyTheme;
-  const setTheme = orgType === 'club' ? store.setClubTheme : store.setAcademyTheme;
 
   return (
     <AnimatePresence mode="wait">
@@ -155,22 +156,26 @@ export default function AdminAuth({ onLive }) {
             <div className="sq-card" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 18 }}>
               <div><Label>{t('Your name')}</Label><input style={fieldCss} value={adminName} placeholder="e.g. Ahmed Hassan" onChange={(e) => setAdminName(e.target.value)} /></div>
               <div><Label>{orgType === 'club' ? t('Club name') : t('Academy name')}</Label><input style={fieldCss} value={orgName} placeholder={orgType === 'club' ? 'e.g. Heliopolis Sporting Club' : 'e.g. Ramy Ashour Squash Academy'} onChange={(e) => setOrgName(e.target.value)} /></div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px', gap: 12 }}>
+                <div><Label>{t('Location')}</Label><input style={fieldCss} value={location} placeholder="e.g. New Cairo · Cairo" onChange={(e) => setLocation(e.target.value)} /></div>
+                <div><Label>{t('Courts')}</Label><input style={fieldCss} type="number" min="1" max="40" value={courts} onChange={(e) => setCourts(e.target.value)} /></div>
+              </div>
               <div style={{ display: 'flex', gap: 16 }}>
                 <div style={{ width: 120, flexShrink: 0 }}>
                   <Label>{orgType === 'club' ? t('Crest') : t('Logo')}</Label>
-                  <UploadSlot value={state.images[logoKey]} onChange={(d) => store.setImage(logoKey, d)} label="Drop image" height={120} radius={16} maxDim={512} />
+                  <UploadSlot value={logo} onChange={setLogo} label="Drop image" height={120} radius={16} maxDim={512} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <Label>{t('Cover photo')}</Label>
-                  <UploadSlot value={state.images[coverKey]} onChange={(d) => store.setImage(coverKey, d)} label="Drop a cover photo of your courts" height={120} radius={12} />
+                  <UploadSlot value={cover} onChange={setCover} label="Drop a cover photo of your courts" height={120} radius={12} />
                 </div>
               </div>
               <div>
                 <Label>{t('Brand colour')}</Label>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                   {BRAND_COLORS.map((c) => {
-                    const on = (theme || '').toLowerCase() === c.hex.toLowerCase();
-                    return <button key={c.hex} title={c.name} onClick={() => setTheme(c.hex)} style={{ width: 40, height: 40, borderRadius: 11, background: c.hex, cursor: 'pointer', border: 0, color: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: on ? `0 0 0 2px var(--sq-bg), 0 0 0 4px ${c.hex}` : 'none' }}>{on && <Icons.Check size={16} />}</button>;
+                    const on = accent.toLowerCase() === c.hex.toLowerCase();
+                    return <button key={c.hex} title={c.name} onClick={() => setAccent(c.hex)} style={{ width: 40, height: 40, borderRadius: 11, background: c.hex, cursor: 'pointer', border: 0, color: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: on ? `0 0 0 2px var(--sq-bg), 0 0 0 4px ${c.hex}` : 'none' }}>{on && <Icons.Check size={16} />}</button>;
                   })}
                 </div>
               </div>

@@ -16,11 +16,12 @@ import { orgOwnership } from '../lib/backend';
 export default function ConsoleSurface() {
   const [stage, setStage] = useState('auth'); // 'auth' | 'live'
   const [orgType, setOrgType] = useState('club');
+  const [orgId, setOrgId] = useState(null); // dynamic org; null = legacy demo org
   const [checking, setChecking] = useState(hasBackend);
   const [readOnly, setReadOnly] = useState(false);
 
-  async function checkOwnership(type) {
-    if (!hasBackend) return;
+  async function checkOwnership(type, id) {
+    if (!hasBackend || id) return; // a dynamic org is owned by its creator
     try { const { mine } = await orgOwnership(type); setReadOnly(!mine); } catch { /* ignore */ }
   }
 
@@ -31,12 +32,18 @@ export default function ConsoleSurface() {
     (async () => {
       try {
         const u = await getSessionUser();
-        if (u) { const a = await loadAdmin(); if (alive && a?.orgType) { setOrgType(a.orgType); await checkOwnership(a.orgType); setStage('live'); } }
+        if (u) {
+          const a = await loadAdmin();
+          if (alive && a?.orgType) { setOrgType(a.orgType); setOrgId(a.orgId || null); await checkOwnership(a.orgType, a.orgId); setStage('live'); }
+        }
       } catch { /* ignore */ }
       if (alive) setChecking(false);
     })();
     return () => { alive = false; };
   }, []);
+
+  // legacy admins (pre-multi-tenant) fall back to the demo org for their type
+  const effectiveOrg = orgId || (orgType === 'academy' ? 'ramyashour' : 'heliopolis');
 
   return (
     <DesktopFrame>
@@ -51,10 +58,10 @@ export default function ConsoleSurface() {
               This {orgType} is managed by another account — you have read-only access.
             </div>
           )}
-          {orgType === 'academy' ? <AdminConsole /> : <CoachConsole />}
+          {orgType === 'academy' ? <AdminConsole orgId={effectiveOrg} /> : <CoachConsole orgId={effectiveOrg} />}
         </>
       ) : (
-        <AdminAuth onLive={async (t) => { setOrgType(t); await checkOwnership(t); setStage('live'); }} />
+        <AdminAuth onLive={async (t, id) => { setOrgType(t); setOrgId(id || null); await checkOwnership(t, id); setStage('live'); }} />
       )}
     </DesktopFrame>
   );

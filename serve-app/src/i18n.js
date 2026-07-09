@@ -266,6 +266,9 @@ const AR = {
   'Manage': 'الإدارة',
   'Branch': 'الفرع',
   'Branches': 'الفروع',
+  'Location': 'الموقع',
+  'Your academy': 'أكاديميتك',
+  'Your club': 'ناديك',
 
   // ── admin auth ──
   'Create account': 'إنشاء حساب',
