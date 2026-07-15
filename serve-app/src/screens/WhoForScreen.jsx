@@ -70,7 +70,7 @@ export default function WhoForScreen() {
           <Pill onClick={() => nav.pop()}>
             <Icons.Chevron dir="left" size={16} />
           </Pill>
-          <SQLogo size={18} accent />
+          <SQLogo size={18} />
         </div>
       }
     >

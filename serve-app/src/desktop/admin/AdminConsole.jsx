@@ -44,7 +44,7 @@ function Sidebar({ active, onNav, orgId }) {
   return (
     <div style={{ width: SIDEBAR_W, flexShrink: 0, height: '100%', background: '#0a0a0a', borderRight: '1px solid var(--sq-border)', display: 'flex', flexDirection: 'column', padding: '18px 12px' }}>
       <div style={{ padding: '4px 8px 18px' }}>
-        <SQLogo size={20} accent />
+        <SQLogo size={20} />
       </div>
       <div className="sq-card" style={{ padding: '10px 12px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{ width: 30, height: 30, borderRadius: 8, overflow: 'hidden', flexShrink: 0, background: 'color-mix(in srgb, var(--sq-gold) 14%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--sq-gold)' }}>
@@ -811,7 +811,7 @@ function Wizard({ onExit, orgId }) {
   return (
     <div className="sq-app" style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '20px 32px', borderBottom: '1px solid var(--sq-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <SQLogo size={20} accent />
+        <SQLogo size={20} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-3)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Step {step + 1} of {SETUP_STEPS.length}</span>
           <div style={{ width: 160, height: 4, borderRadius: 2, background: 'var(--sq-surface-2)' }}>

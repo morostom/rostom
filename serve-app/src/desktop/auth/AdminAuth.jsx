@@ -23,7 +23,7 @@ function Shell({ children, sub }) {
     <div style={{ minHeight: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 24px', background: 'radial-gradient(1200px 600px at 50% -10%, color-mix(in srgb, var(--sq-gold) 8%, transparent), transparent), var(--sq-bg)' }}>
       <div style={{ width: '100%', maxWidth: 560 }}>
         <div style={{ textAlign: 'center', marginBottom: 26 }}>
-          <SQLogo size={30} accent est align="center" />
+          <SQLogo size={30} align="center" />
           {sub && <p style={{ margin: '12px 0 0', color: 'var(--sq-text-2)', fontSize: 13.5 }}>{sub}</p>}
         </div>
         {children}

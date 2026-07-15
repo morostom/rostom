@@ -49,7 +49,7 @@ export default function BookingsScreen() {
       header={
         <div style={{ padding: '4px 20px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <h1 className="sq-display" style={{ margin: 0, fontSize: 30, fontWeight: 700, letterSpacing: '-0.03em' }}>{t('Bookings')}</h1>
-          <SQLogo size={18} accent />
+          <SQLogo size={18} />
         </div>
       }
     >

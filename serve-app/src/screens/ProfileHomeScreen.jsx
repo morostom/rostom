@@ -43,7 +43,7 @@ export default function ProfileHomeScreen({ justCreated }) {
       tabBar={<MTabBar active="profile" onTab={nav.switchTab} />}
       header={
         <div style={{ padding: '4px 20px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <SQLogo size={20} accent />
+          <SQLogo size={20} />
           <div style={{ display: 'flex', gap: 8 }}>
             <Pill onClick={editCard}><Icons.Edit size={15} /></Pill>
             <Pill onClick={() => nav.push('settings')}><Icons.Settings size={15} /></Pill>

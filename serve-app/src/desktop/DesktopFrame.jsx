@@ -21,7 +21,7 @@ function MobileNotice() {
         zIndex: 5,
       }}
     >
-      <SQLogo size={30} accent est align="center" />
+      <SQLogo size={30} align="center" />
       <div
         style={{
           width: 64,

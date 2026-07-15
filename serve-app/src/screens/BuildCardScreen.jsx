@@ -120,7 +120,7 @@ export default function BuildCardScreen() {
             <Pill onClick={() => nav.pop()}>
               <Icons.Chevron dir="left" size={16} />
             </Pill>
-            <SQLogo size={18} accent />
+            <SQLogo size={18} />
           </div>
           <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.14em', marginTop: 14 }}>
             {t('Step 3 of 3')} · {recreational ? t('Recreational') : t('Competitive')}

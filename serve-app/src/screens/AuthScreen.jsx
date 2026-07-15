@@ -120,7 +120,7 @@ export default function AuthScreen() {
   if (checking) {
     return (
       <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--sq-bg)' }}>
-        <SQLogo size={26} accent />
+        <SQLogo size={26} />
       </div>
     );
   }
@@ -129,7 +129,7 @@ export default function AuthScreen() {
     <MScreen
       header={
         <div style={{ padding: '10px 22px 6px' }}>
-          <SQLogo size={26} accent est />
+          <SQLogo size={26} />
         </div>
       }
       tabBar={

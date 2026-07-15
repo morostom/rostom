@@ -36,7 +36,7 @@ export default function ParentLinkScreen() {
       header={
         <div style={{ padding: '6px 16px 6px', display: 'flex', alignItems: 'center', gap: 12 }}>
           <Pill onClick={() => nav.pop()}><Icons.Chevron dir="left" size={16} /></Pill>
-          <SQLogo size={18} accent />
+          <SQLogo size={18} />
         </div>
       }
       tabBar={

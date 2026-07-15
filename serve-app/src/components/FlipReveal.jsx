@@ -25,7 +25,7 @@ function CardBack() {
         WebkitBackfaceVisibility: 'hidden',
       }}
     >
-      <SQLogo size={34} accent align="center" est />
+      <SQLogo size={34} align="center" />
     </div>
   );
 }

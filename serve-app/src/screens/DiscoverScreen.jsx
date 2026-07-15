@@ -88,7 +88,7 @@ export default function DiscoverScreen() {
             <h1 className="sq-display" style={{ margin: 0, fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em' }}>{t('Discover')}</h1>
             <div style={{ fontSize: 12.5, color: 'var(--sq-text-2)', marginTop: 2 }}>{t('Book a court anywhere in Egypt')}</div>
           </div>
-          <SQLogo size={18} accent />
+          <SQLogo size={18} />
         </div>
       }
     >

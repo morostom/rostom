@@ -43,7 +43,7 @@ function Sidebar({ active, onNav, branches = [], branch, setBranch, orgId }) {
   const branchCourts = state.courts.filter((c) => c.branch === branch).length;
   return (
     <div style={{ width: SIDEBAR_W, flexShrink: 0, height: '100%', background: '#0a0a0a', borderRight: '1px solid var(--sq-border)', display: 'flex', flexDirection: 'column', padding: '18px 12px' }}>
-      <div style={{ padding: '4px 8px 16px' }}><SQLogo size={20} accent /></div>
+      <div style={{ padding: '4px 8px 16px' }}><SQLogo size={20} /></div>
       <div className="sq-card" style={{ padding: '10px 12px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{ width: 32, height: 32, borderRadius: 8, flexShrink: 0, overflow: 'hidden', background: 'color-mix(in srgb, var(--sq-gold) 14%, transparent)', border: '1px solid color-mix(in srgb, var(--sq-gold) 28%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--sq-gold)' }}>
           {org.logo ? <img src={org.logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Icons.Club size={17} />}

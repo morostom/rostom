@@ -49,7 +49,7 @@ export default function ConsoleSurface() {
     <DesktopFrame>
       {checking ? (
         <div style={{ minHeight: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--sq-bg)' }}>
-          <SQLogo size={26} accent />
+          <SQLogo size={26} />
         </div>
       ) : stage === 'live' ? (
         <>
