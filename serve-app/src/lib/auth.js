@@ -55,6 +55,16 @@ export async function loadCard() {
   return data?.card || null;
 }
 
+// Everything needed to restore a signed-in player/parent without re-typing
+// credentials: their card plus the identity they signed up with.
+export async function loadProfile() {
+  if (!hasBackend) return null;
+  const { data: u } = await supabase.auth.getUser();
+  if (!u?.user) return null;
+  const { data } = await supabase.from('profiles').select('card, method, identifier, name').eq('id', u.user.id).single();
+  return data ? { card: data.card || null, method: data.method || 'phone', identifier: data.identifier || '', name: data.name || '' } : null;
+}
+
 // Normalize an identifier so "01005851199", "+20 100 585 1199" and
 // "0100-585-1199" all match: phones → digits only, emails → lowercased.
 export function normId(x) {

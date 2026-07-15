@@ -2,14 +2,14 @@
 // email + password. Sign up → onboarding (who-for → compete → build card).
 // Log in → straight into a populated demo profile (no typing needed to demo).
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import SQLogo from '../components/SQLogo';
 import { Icons } from '../components/Icons';
 import { MScreen } from '../components/mobile';
 import { useNav } from '../navigation/nav';
 import { DEMO_PLAYER } from '../data';
 import { hasBackend } from '../lib/supabase';
-import { signUp, signIn, loadCard, normId } from '../lib/auth';
+import { signUp, signIn, loadCard, loadProfile, normId, getSessionUser } from '../lib/auth';
 import { store } from '../store';
 import { useT } from '../i18n';
 
@@ -38,6 +38,35 @@ export default function AuthScreen() {
 
   const [busy, setBusy] = useState(false);
   const identifier = method === 'phone' ? phone : email;
+
+  // returning user: Supabase keeps the session on this device, so skip the
+  // form and restore their profile — no re-typing credentials on every open
+  const [checking, setChecking] = useState(hasBackend);
+  useEffect(() => {
+    if (!hasBackend) return;
+    let alive = true;
+    (async () => {
+      try {
+        const u = await getSessionUser();
+        if (u && alive) {
+          const prof = await loadProfile();
+          if (!alive) return;
+          setAccount({ method: prof?.method || 'phone', identifier: prof?.identifier || '', name: prof?.name || '' });
+          if (prof?.card?.kind === 'parent') {
+            setAccountType?.('parent');
+            setChild?.(prof.card.childName || null);
+          } else {
+            setAccountType?.('player');
+            setPlayer(prof?.card || { ...DEMO_PLAYER });
+          }
+          nav.replaceRoot('profile');
+          return;
+        }
+      } catch { /* fall through to the form */ }
+      if (alive) setChecking(false);
+    })();
+    return () => { alive = false; };
+  }, []);
 
   async function submit() {
     setErr('');
@@ -86,6 +115,14 @@ export default function AuthScreen() {
     } else {
       nav.push('whoFor');
     }
+  }
+
+  if (checking) {
+    return (
+      <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--sq-bg)' }}>
+        <SQLogo size={26} accent />
+      </div>
+    );
   }
 
   return (
