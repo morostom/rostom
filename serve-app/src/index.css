@@ -85,6 +85,7 @@ body {
   font-family: var(--sq-body);
   letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
 }
 
 /* hide scrollbars but keep scrolling (matches the prototype) */
@@ -331,6 +332,12 @@ body {
   height: env(safe-area-inset-bottom, 0px);
   flex-shrink: 0;
 }
+/* footer dock: pads the safe-area inside the bar's own surface */
+.serve-dock {
+  flex-shrink: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--sq-scrim);
+}
 @media (min-width: 480px) {
   .serve-phone-backdrop {
     position: static;
@@ -350,6 +357,9 @@ body {
   }
   .serve-safe-bottom {
     height: 26px;
+  }
+  .serve-dock {
+    padding-bottom: 26px;
   }
 }
 

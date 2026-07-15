@@ -37,8 +37,10 @@ export function MScreen({ children, bg = 'var(--sq-bg)', tabBar = null, header =
       <div className="serve-safe-top" />
       {header}
       <div style={{ flex: 1, overflowY: scroll ? 'auto' : 'hidden', overflowX: 'hidden' }}>{children}</div>
-      {tabBar}
-      <div className="serve-safe-bottom" />
+      {/* the dock carries the bottom safe-area INSIDE the bar surface, so the
+          bar visually reaches the physical bottom edge instead of ending on a
+          ledge above the home indicator */}
+      {tabBar ? <div className="serve-dock">{tabBar}</div> : <div className="serve-safe-bottom" />}
     </div>
   );
 }
