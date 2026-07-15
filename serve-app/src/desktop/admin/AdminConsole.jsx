@@ -685,60 +685,108 @@ function AcademyProfile({ orgId }) {
   );
 }
 
-// ── Create team training ─────────────────────────────────────────────
+// ── Create team training (publishes a real open session) ─────────────
 function CreateClinic({ orgId }) {
   const notify = useToast();
   const state = useStore();
   const orgName = orgInfo(state, orgId).name || (orgId === 'ramyashour' ? ACADEMY.name : 'Your academy');
+  const myBranches = state.branches.filter((b) => b.org_id === orgId);
+  const branch = myBranches[0]?.id || null;
+  const branchCourts = state.courts.filter((c) => c.branch === branch);
+  const coaches = state.staff.filter((s) => s.org_id === orgId);
+  const mySessions = state.sessions.filter((s) => myBranches.some((b) => b.id === s.branch));
+
+  const [title, setTitle] = useState('Friday Night Drill Squad');
+  const [type, setType] = useState('Drill clinic');
+  const [coach, setCoach] = useState(coaches[0]?.name || '');
+  const [court, setCourt] = useState(branchCourts[0]?.court || 1);
+  const [day, setDay] = useState('Fri');
+  const [time, setTime] = useState('18:00');
+  const [spots, setSpots] = useState('8');
+  const [price, setPrice] = useState('350');
+
+  const inputCss = { padding: '10px 12px', border: '1px solid var(--sq-border-2)', borderRadius: 8, background: 'rgba(255,255,255,0.02)', fontFamily: 'var(--sq-body)', fontSize: 13.5, color: 'var(--sq-text)', outline: 'none', width: '100%' };
+  const Lbl = ({ children }) => <label style={{ fontSize: 11, color: 'var(--sq-text-3)', fontFamily: 'var(--sq-mono)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 6 }}>{children}</label>;
+
+  function publish() {
+    if (!branch) return notify('Add a branch first');
+    if (!title.trim()) return notify('Give the session a title');
+    store.addSession({
+      branch, day, time, type: type || 'Group training', title: title.trim(), coach: coach || '', court: Number(court) || 1,
+      players: [], open: true, price: Math.max(0, Number(price) || 0), spots: Math.max(1, Number(spots) || 8),
+    });
+    notify(`${title.trim()} is live — players can join from the app`);
+  }
+
   return (
     <>
       <Topbar title="Create a team training" sub="Group training" trailing={
-        <>
-          <button className="sq-btn-ghost" style={{ padding: '9px 16px', fontSize: 12.5 }} onClick={() => notify('Draft saved')}>Save draft</button>
-          <button className="sq-btn-gold" style={{ padding: '9px 18px', fontSize: 12.5 }} onClick={() => notify('Published to players')}>Publish to players →</button>
-        </>
+        <button className="sq-btn-gold" style={{ padding: '9px 18px', fontSize: 12.5 }} onClick={publish}>Publish to players →</button>
       } />
       <div style={{ padding: '24px 32px 40px', display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 24 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
           <FormCard title="Session" step="1 / 3">
-            <Field label="Title" value="Friday Night Drill Squad" />
+            <div><Lbl>Title</Lbl><input style={inputCss} value={title} onChange={(e) => setTitle(e.target.value)} /></div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-              <Field label="Type" value="Drill clinic" />
-              <Field label="Level" value="Intermediate · 3.5–4.5" />
+              <div><Lbl>Type</Lbl><input style={inputCss} value={type} onChange={(e) => setType(e.target.value)} /></div>
+              <div><Lbl>Coach</Lbl>
+                {coaches.length
+                  ? <select style={inputCss} value={coach} onChange={(e) => setCoach(e.target.value)}>{coaches.map((c) => <option key={c.id}>{c.name}</option>)}</select>
+                  : <input style={inputCss} value={coach} onChange={(e) => setCoach(e.target.value)} placeholder="Coach name" />}
+              </div>
             </div>
           </FormCard>
           <FormCard title="Schedule" step="2 / 3">
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-              <Field label="Coach" value="Karim El-Hosary" />
-              <Field label="Court" value="Court 1 · Glass" />
-            </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
-              <Field label="Start" value="18:00" mono />
-              <Field label="Duration" value="90 min" mono />
-              <Field label="Sessions" value="8" mono />
+              <div><Lbl>Day</Lbl><select style={inputCss} value={day} onChange={(e) => setDay(e.target.value)}>{['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => <option key={d}>{d}</option>)}</select></div>
+              <div><Lbl>Start</Lbl><input style={{ ...inputCss, fontFamily: 'var(--sq-mono)' }} value={time} onChange={(e) => setTime(e.target.value)} /></div>
+              <div><Lbl>Court</Lbl>
+                {branchCourts.length
+                  ? <select style={inputCss} value={court} onChange={(e) => setCourt(e.target.value)}>{branchCourts.map((c) => <option key={c.court} value={c.court}>Court {c.court}</option>)}</select>
+                  : <input style={{ ...inputCss, fontFamily: 'var(--sq-mono)' }} type="number" min="1" value={court} onChange={(e) => setCourt(e.target.value)} />}
+              </div>
             </div>
           </FormCard>
           <FormCard title="Players" step="3 / 3">
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-              <Field label="Max players" value="8" mono />
-              <Field label="Price / player (EGP)" value="350" mono />
+              <div><Lbl>Max players</Lbl><input style={{ ...inputCss, fontFamily: 'var(--sq-mono)' }} type="number" min="1" max="40" value={spots} onChange={(e) => setSpots(e.target.value)} /></div>
+              <div><Lbl>Price / player (EGP)</Lbl><input style={{ ...inputCss, fontFamily: 'var(--sq-mono)' }} type="number" min="0" value={price} onChange={(e) => setPrice(e.target.value)} /></div>
             </div>
           </FormCard>
+          {mySessions.length > 0 && (
+            <div className="sq-card" style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <h2 className="sq-display" style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>Published trainings</h2>
+              {mySessions.map((s) => (
+                <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid var(--sq-border)' }}>
+                  <div className="sq-mono" style={{ fontSize: 12.5, fontWeight: 600, minWidth: 64 }}>{s.day} {s.time}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 500 }}>{s.title}</div>
+                    <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)' }}>{s.coach} · Court {s.court} · {(s.players || []).length}{s.spots ? ` of ${s.spots}` : ''} joined</div>
+                  </div>
+                  <button onClick={() => { store.updateSession(s.id, { open: !s.open }); notify(s.open ? 'Session is now private' : 'Open on the app'); }}
+                    className={'sq-chip' + (s.open ? ' gold' : '')} style={{ cursor: 'pointer', fontSize: 9.5 }}>
+                    {s.open ? `Open${s.price ? ` · ${s.price}` : ''}` : 'Private'}
+                  </button>
+                  <button onClick={() => { store.removeSession(s.id); notify('Removed'); }} style={{ background: 'none', border: 0, color: 'var(--sq-text-3)', cursor: 'pointer', fontSize: 16, lineHeight: 1 }}>×</button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         <div>
           <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>Players see this →</div>
           <div className="sq-card" style={{ padding: 0, overflow: 'hidden' }}>
-            <ImgPlaceholder label="coach_karim_action.jpg" height={140} hue="navy" radius={0} style={{ borderRadius: 0, border: 0 }} />
+            <ImgPlaceholder label="cover" height={140} hue="navy" radius={0} style={{ borderRadius: 0, border: 0 }} />
             <div style={{ padding: 18 }}>
-              <span className="sq-chip" style={{ color: 'var(--sq-blue)', borderColor: 'rgba(78,168,255,0.25)', background: 'rgba(78,168,255,0.1)' }}><Icons.Users size={11} /> Team Training · 8 players</span>
-              <h2 className="sq-display" style={{ margin: '10px 0 4px', fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>Friday Night Drill Squad</h2>
-              <div style={{ color: 'var(--sq-text-2)', fontSize: 12.5 }}>{orgName} · Court 1 (glass)</div>
+              <span className="sq-chip" style={{ color: 'var(--sq-blue)', borderColor: 'rgba(78,168,255,0.25)', background: 'rgba(78,168,255,0.1)' }}><Icons.Users size={11} /> Team Training · {spots || 8} players</span>
+              <h2 className="sq-display" style={{ margin: '10px 0 4px', fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>{title || 'Team training'}</h2>
+              <div style={{ color: 'var(--sq-text-2)', fontSize: 12.5 }}>{orgName} · Court {court} · {day} {time}</div>
               <div style={{ paddingTop: 14, marginTop: 14, borderTop: '1px solid var(--sq-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-gold)' }}>3 OF 8 SPOTS LEFT</div>
-                  <div className="sq-display" style={{ fontSize: 18, fontWeight: 700, marginTop: 2 }}>EGP 350</div>
+                  <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-gold)' }}>{spots || 8} SPOTS</div>
+                  <div className="sq-display" style={{ fontSize: 18, fontWeight: 700, marginTop: 2 }}>EGP {price || 0}</div>
                 </div>
-                <button className="sq-btn-gold" style={{ padding: '10px 16px', fontSize: 12.5 }} onClick={() => notify('Joined (player view)')}>Join</button>
+                <button className="sq-btn-gold" style={{ padding: '10px 16px', fontSize: 12.5 }} onClick={() => notify('This is the player view')}>Join</button>
               </div>
             </div>
           </div>

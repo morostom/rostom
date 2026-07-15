@@ -9,7 +9,7 @@ const ACADEMY = 'ramyashour';
 
 // courts/sessions live under a branch — the branch id IS the club_id column.
 const courtFromRow = (r) => ({ branch: r.club_id, court: r.court_no, type: r.type, status: r.status, who: r.who, coach: r.coach, until: r.until, left: r.remaining, next: r.next });
-const sessionFromRow = (r) => ({ id: r.id, branch: r.club_id, day: r.day, time: r.time, type: r.type, title: r.title, coach: r.coach, court: r.court, players: r.players || [], mine: false });
+const sessionFromRow = (r) => ({ id: r.id, branch: r.club_id, day: r.day, time: r.time, type: r.type, title: r.title, coach: r.coach, court: r.court, players: r.players || [], price: r.price ?? null, spots: r.spots ?? null, open: !!r.open, mine: false });
 const bookingFromRow = (r) => ({ id: r.id, branch: r.branch, court: r.court, title: r.title, venue: r.venue, type: r.type, day: r.day, time: r.time, endTime: r.end_time, price: r.price, method: r.method, status: r.status });
 const branchFromRow = (r) => ({ id: r.id, org_id: r.org_id, name: r.name, location: r.location, courts: r.court_count });
 const orgFromRow = (r) => ({ id: r.id, type: r.type, name: r.name, accent: r.accent, logo: r.logo, cover: r.cover, crest: r.crest, owner_phone: r.owner_phone, coach_phone: r.coach_phone, owner_id: r.owner_id });
@@ -114,10 +114,22 @@ export async function writeCourt(c) {
   await supabase.from('courts').update({ status: c.status, who: c.who ?? null, coach: c.coach ?? null, until: c.until ?? null, remaining: c.left ?? null, next: c.next ?? null }).eq('club_id', c.branch).eq('court_no', c.court);
 }
 export async function addSession(s) {
-  await supabase.from('sessions').insert({ club_id: s.branch || CLUB, day: s.day, time: s.time, type: s.type, title: s.title, coach: s.coach, court: s.court, players: s.players || [] });
+  const base = { club_id: s.branch || CLUB, day: s.day, time: s.time, type: s.type, title: s.title, coach: s.coach, court: s.court, players: s.players || [] };
+  const { error } = await supabase.from('sessions').insert({ ...base, price: s.price ?? null, spots: s.spots ?? null, open: !!s.open });
+  if (error) await supabase.from('sessions').insert(base); // pre-migration DB: retry without the open-session columns
 }
 export async function removeSession(id) {
   await supabase.from('sessions').delete().eq('id', id);
+}
+export async function updateSession(id, patch) {
+  const row = {};
+  for (const k of ['day', 'time', 'type', 'title', 'coach', 'court', 'players', 'price', 'spots', 'open']) if (patch[k] !== undefined) row[k] = patch[k];
+  await supabase.from('sessions').update(row).eq('id', id);
+}
+// players aren't org owners, so joining goes through a security-definer RPC
+// that only appends a name (capacity- and dedup-guarded in SQL)
+export async function joinSession(id, player) {
+  await supabase.rpc('serve_join_session', { p_session: id, p_player: player });
 }
 export async function addBooking(b) {
   const { data } = await supabase.auth.getUser();

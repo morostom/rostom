@@ -217,12 +217,17 @@ function ScheduleBuilder({ branch, branches, orgId }) {
   const [type, setType] = useState('Group training');
   const [title, setTitle] = useState('U17 Squad');
   const [players, setPlayers] = useState([]);
+  // open sessions are visible in the player app — anyone can pay to join
+  const [open, setOpen] = useState(false);
+  const [price, setPrice] = useState('250');
+  const [spots, setSpots] = useState('8');
 
   const toggle = (n) => setPlayers((p) => (p.includes(n) ? p.filter((x) => x !== n) : [...p, n]));
   function add() {
-    if (!players.length) return notify('Pick at least one player');
-    store.addSession({ day, time, type, title: title || type, coach, court, players, branch, mine: players.includes('Nour Hassan') });
-    notify(`Added ${title} → published to ${players.length} player${players.length > 1 ? 's' : ''}`);
+    if (!open && !players.length) return notify('Pick at least one player — or open the session to the app');
+    const extra = open ? { open: true, price: Math.max(0, Number(price) || 0), spots: Math.max(players.length, Number(spots) || 8) } : {};
+    store.addSession({ day, time, type, title: title || type, coach, court, players, branch, mine: players.includes('Nour Hassan'), ...extra });
+    notify(open ? `${title || type} is live — players can join from the app` : `Added ${title} → published to ${players.length} player${players.length > 1 ? 's' : ''}`);
     setPlayers([]);
   }
 
@@ -305,6 +310,17 @@ function ScheduleBuilder({ branch, branches, orgId }) {
               })}
             </div>
           </div>
+          <div style={{ borderTop: '1px solid var(--sq-border)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <button onClick={() => setOpen((v) => !v)} className={'sq-chip' + (open ? ' gold' : '')} style={{ cursor: 'pointer', padding: '9px 14px', fontSize: 12.5, width: 'fit-content' }}>
+              {open && <Icons.Check size={12} />} Open to players — anyone can join from the app
+            </button>
+            {open && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div><Label>Price / player (EGP)</Label><input style={fieldCss} type="number" min="0" value={price} onChange={(e) => setPrice(e.target.value)} /></div>
+                <div><Label>Max players</Label><input style={fieldCss} type="number" min="1" max="40" value={spots} onChange={(e) => setSpots(e.target.value)} /></div>
+              </div>
+            )}
+          </div>
           <button className="sq-btn-gold serve-glow-soft" style={{ padding: '13px', fontSize: 14 }} onClick={add}>Publish session →</button>
         </div>
 
@@ -320,6 +336,10 @@ function ScheduleBuilder({ branch, branches, orgId }) {
                   <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)' }}>{s.coach} · Court {s.court} · {s.players.length} player{s.players.length !== 1 ? 's' : ''}</div>
                 </div>
                 <span className="sq-chip" style={{ fontSize: 9.5 }}>{s.type}</span>
+                <button onClick={() => { const patch = s.open ? { open: false } : { open: true, price: s.price ?? Math.max(0, Number(price) || 0), spots: s.spots ?? Math.max(s.players.length, Number(spots) || 8) }; store.updateSession(s.id, patch); notify(s.open ? 'Session is now private' : `Open on the app · EGP ${patch.price}`); }}
+                  className={'sq-chip' + (s.open ? ' gold' : '')} style={{ cursor: 'pointer', fontSize: 9.5 }} title={s.open ? 'Players can join from the app — click to make private' : 'Click to open this session to players on the app'}>
+                  {s.open ? <>Open{s.price ? ` · ${s.price}` : ''}</> : 'Private'}
+                </button>
                 <button onClick={() => { store.removeSession(s.id); notify('Removed'); }} style={{ background: 'none', border: 0, color: 'var(--sq-text-3)', cursor: 'pointer', fontSize: 16, lineHeight: 1 }}>×</button>
               </div>
             ))}

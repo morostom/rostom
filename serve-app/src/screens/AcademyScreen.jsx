@@ -25,7 +25,13 @@ export default function AcademyScreen({ academy }) {
   const state = useStore();
   const notify = useToast();
   const t = useT();
-  const sessions = OPEN_SESSIONS.filter((s) => s.venueId === academy.id);
+  // seeded demo sessions + real open sessions this org published from its console
+  const orgBranchIds = new Set(state.branches.filter((b) => b.org_id === academy.id).map((b) => b.id));
+  const liveSessions = state.sessions.filter((s) => s.open && orgBranchIds.has(s.branch)).map((s) => {
+    const left = s.spots ? s.spots - (s.players?.length || 0) : null;
+    return { id: s.id, title: s.title, coach: s.coach, price: s.price || 0, players: s.players || [], time: [s.day, s.time].filter(Boolean).join(' '), spots: left != null ? `${left} spot${left !== 1 ? 's' : ''} left` : 'Open', left };
+  }).filter((s) => s.left == null || s.left > 0);
+  const sessions = [...OPEN_SESSIONS.filter((s) => s.venueId === academy.id), ...liveSessions];
 
   // console-backed academies reflect their owner's branding live: the demo
   // (Ramy Ashour) reads the legacy store fields, dynamic sign-ups read their

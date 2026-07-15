@@ -8,7 +8,7 @@ import SQLogo from '../components/SQLogo';
 import { MScreen, MTabBar } from '../components/mobile';
 import Stars, { venueRating } from '../components/Stars';
 import { useNav } from '../navigation/nav';
-import { useStore } from '../store';
+import { useStore, orgInfo } from '../store';
 import { useT } from '../i18n';
 import { OPEN_COURTS, OPEN_SESSIONS, ACADEMIES_DIR, CLUBS_DIR } from '../data';
 
@@ -42,6 +42,20 @@ export default function DiscoverScreen() {
   const dynAcademies = dynOrgs.filter((o) => o.type === 'academy').map(orgTile);
   const dynClubs = dynOrgs.filter((o) => o.type === 'club').map(orgTile);
   const clubs = [...CLUBS_DIR, ...dynClubs];
+
+  // console-published open sessions (real rows, joinable) ride alongside the
+  // seeded demo rail; full ones drop off
+  const liveOpen = (state.sessions || []).filter((s) => s.open).map((s) => {
+    const b = state.branches.find((x) => x.id === s.branch);
+    const org = b ? orgInfo(state, b.org_id) : null;
+    const left = s.spots ? s.spots - (s.players?.length || 0) : null;
+    return {
+      id: s.id, title: s.title, coach: s.coach, price: s.price || 0, players: s.players || [],
+      time: [s.day, s.time].filter(Boolean).join(' '), venue: org?.name || b?.name || '',
+      spots: left != null ? `${left} spot${left !== 1 ? 's' : ''} left` : t('Open'), left,
+    };
+  }).filter((s) => s.left == null || s.left > 0);
+  const openRail = [...OPEN_SESSIONS, ...liveOpen];
 
   const academies = [...ACADEMIES_DIR, ...dynAcademies].sort((a, b) => {
     if (sort === 'best') return venueRating(state.reviews, b.id).avg - venueRating(state.reviews, a.id).avg;
@@ -106,7 +120,7 @@ export default function DiscoverScreen() {
       <div style={{ padding: '0 0 20px' }}>
         <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', padding: '0 20px', marginBottom: 10 }}>Open group sessions</div>
         <div style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '0 20px' }}>
-          {OPEN_SESSIONS.map((s) => {
+          {openRail.map((s) => {
             const joined = state.openJoins?.[s.id] || [];
             const count = (s.players?.length || 0) + joined.length;
             return (

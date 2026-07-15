@@ -17,7 +17,10 @@ export default function SessionPlayersScreen({ session }) {
   const { nav, player } = useNav();
   const state = useStore();
   const t = useT();
-  const s = session || {};
+  // real sessions live in the store — re-resolve so the roster stays current
+  // (someone may have joined since this screen was pushed)
+  const live = session?.id && state.sessions.find((x) => x.id === session.id);
+  const s = live ? { ...session, ...live } : (session || {});
   // include anyone who joined this open session from the app
   const joined = (s.id && state.openJoins?.[s.id]) || [];
   const names = [...new Set([...(s.players || []), ...joined])];

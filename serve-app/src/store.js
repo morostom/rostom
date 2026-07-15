@@ -179,6 +179,10 @@ export const store = {
     commit({ ...state, sessions: state.sessions.filter((s) => s.id !== id) });
     if (hasBackend) backend.removeSession(id);
   },
+  updateSession: (id, patch) => {
+    commit({ ...state, sessions: state.sessions.map((s) => (s.id === id ? { ...s, ...patch } : s)) });
+    if (hasBackend) backend.updateSession(id, patch);
+  },
   // book a club live court (marks it booked + records the reservation)
   bookCourt: (branch, court, booking) => {
     const b = { id: 'bk' + Date.now(), branch, ...booking };
@@ -356,10 +360,22 @@ export const store = {
     commit({ ...state, paymentRequests: state.paymentRequests.map((x) => (x.id === id ? { ...x, status: 'expired' } : x)) });
     if (hasBackend) backend.updatePaymentRequest(id, { status: 'expired' });
   },
-  // joining an open group session adds you to its visible roster
+  // joining an open group session adds you to its visible roster.
+  // Real (console-published) sessions get the name on the session row itself —
+  // synced for everyone via a security-definer RPC; the seeded demo sessions
+  // fall back to the local openJoins list.
   joinOpenSession: (sessionId, name) => {
     const clean = (name || '').trim();
     if (!sessionId || !clean) return;
+    const live = state.sessions.find((s) => s.id === sessionId);
+    if (live) {
+      const roster = live.players || [];
+      if (roster.some((n) => n.toLowerCase() === clean.toLowerCase())) return;
+      if (live.spots && roster.length >= live.spots) return; // full
+      commit({ ...state, sessions: state.sessions.map((s) => (s.id === sessionId ? { ...s, players: [...roster, clean] } : s)) });
+      if (hasBackend) backend.joinSession(sessionId, clean);
+      return;
+    }
     const cur = state.openJoins[sessionId] || [];
     if (cur.some((n) => n.toLowerCase() === clean.toLowerCase())) return;
     commit({ ...state, openJoins: { ...state.openJoins, [sessionId]: [...cur, clean] } });
