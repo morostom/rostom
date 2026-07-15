@@ -5,9 +5,6 @@
 import { Icons } from './Icons';
 import { useT } from '../i18n';
 
-export const STATUS_TOP = 58;
-export const HOME_BOTTOM = 26;
-
 export function PhoneFrame({ children }) {
   // Fills the screen on mobile; renders as a centered device mockup ≥480px.
   return (
@@ -35,11 +32,13 @@ export function MScreen({ children, bg = 'var(--sq-bg)', tabBar = null, header =
         flexDirection: 'column',
       }}
     >
-      <div style={{ height: STATUS_TOP, flexShrink: 0 }} />
+      {/* real phones use safe-area insets (no phantom gaps in a browser tab);
+          the ≥480px device mockup keeps its fixed status/home strips via CSS */}
+      <div className="serve-safe-top" />
       {header}
       <div style={{ flex: 1, overflowY: scroll ? 'auto' : 'hidden', overflowX: 'hidden' }}>{children}</div>
       {tabBar}
-      <div style={{ height: HOME_BOTTOM, flexShrink: 0 }} />
+      <div className="serve-safe-bottom" />
     </div>
   );
 }

@@ -5,6 +5,7 @@
 
 import { memo } from 'react';
 import { Icons } from './Icons';
+import SQLogo from './SQLogo';
 import { TIERS } from '../data';
 
 function rankOf(p) {
@@ -91,9 +92,7 @@ function PlayerCard({ player, accent, variant = 'full', tier }) {
     >
       {/* header strip */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: compact ? '9px 11px 0' : '13px 15px 0' }}>
-        <span className="serve-wordmark" style={{ fontSize: compact ? 12 : 15, WebkitTextStrokeWidth: '0.8px' }}>
-          SERVE
-        </span>
+        <SQLogo size={compact ? 12 : 15} />
         <span className="sq-mono" style={{ fontSize: compact ? 8.5 : 10, color: ac, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
           {tag}
         </span>

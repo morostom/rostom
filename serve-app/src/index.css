@@ -104,7 +104,35 @@ body {
   letter-spacing: -0.025em;
 }
 
-/* ── SERVE neon wordmark ── */
+/* ── SERVE brand mark (masked PNG — tint via background-color) ── */
+.serve-mark {
+  display: block;
+  flex-shrink: 0;
+  background-color: rgba(255, 255, 255, 0.95);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+.serve-mark.accent {
+  background-color: var(--sq-gold);
+}
+[data-theme='light'] .serve-mark {
+  background-color: rgba(23, 24, 28, 0.92);
+}
+[data-theme='light'] .serve-mark.accent {
+  background-color: var(--sq-gold);
+}
+[data-theme='light'] .sq-dark-scope .serve-mark {
+  background-color: rgba(255, 255, 255, 0.95);
+}
+[data-theme='light'] .sq-dark-scope .serve-mark.accent {
+  background-color: var(--sq-gold);
+}
+
+/* ── SERVE neon wordmark (text fallback, still used on the player card) ── */
 .serve-wordmark {
   font-family: var(--sq-display);
   font-weight: 700;
@@ -278,21 +306,37 @@ body {
    Mobile: the app fills the screen naturally (no device chrome, no scaling).
    ≥480px: a centered phone mockup so desktop demos look like a device. */
 .serve-phone-backdrop {
-  min-height: 100dvh;
+  /* pinned to the visual viewport: the shell hugs the true bottom edge and
+     tracks the browser chrome as it shows/hides — no floating tab bar */
+  position: fixed;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--sq-bg);
+  overscroll-behavior: none;
 }
 .serve-phone-device {
   position: relative;
   width: 100%;
-  height: 100dvh;
+  height: 100%;
   background: var(--sq-bg);
   overflow: hidden;
 }
+/* status / home strips: real phones use the safe-area insets so nothing
+   floats in a browser tab; standalone (home-screen) mode gets real values */
+.serve-safe-top {
+  height: max(env(safe-area-inset-top, 0px), 14px);
+  flex-shrink: 0;
+}
+.serve-safe-bottom {
+  height: env(safe-area-inset-bottom, 0px);
+  flex-shrink: 0;
+}
 @media (min-width: 480px) {
   .serve-phone-backdrop {
+    position: static;
+    min-height: 100dvh;
     padding: 24px;
     background: radial-gradient(120% 80% at 50% -10%, color-mix(in srgb, var(--sq-gold) 9%, transparent), transparent 60%), var(--sq-bg);
   }
@@ -302,6 +346,12 @@ body {
     border-radius: 44px;
     border: 1px solid var(--sq-border-2);
     box-shadow: 0 40px 120px rgba(0, 0, 0, 0.7);
+  }
+  .serve-safe-top {
+    height: 58px;
+  }
+  .serve-safe-bottom {
+    height: 26px;
   }
 }
 
