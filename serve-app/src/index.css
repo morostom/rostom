@@ -299,16 +299,11 @@ body {
    Mobile: the app fills the screen naturally (no device chrome, no scaling).
    ≥480px: a centered phone mockup so desktop demos look like a device. */
 .serve-phone-backdrop {
-  /* fixed (so the page never scrolls/bounces) but sized with dvh, which
-     tracks the browser chrome as it shows/hides. A plain inset:0 box gets
-     stuck at the SMALL layout viewport on iOS when the toolbar hides,
-     stranding the tab bar mid-screen. */
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 100vh; /* fallback */
-  height: 100dvh;
+  /* in-flow (NOT position:fixed) so iOS Safari's swipe still collapses its
+     toolbar; 100dvh then grows with it and the tab bar settles on the bottom
+     edge. A fixed shell gets stuck at the small layout viewport. */
+  min-height: 100vh; /* fallback */
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -318,7 +313,8 @@ body {
 .serve-phone-device {
   position: relative;
   width: 100%;
-  height: 100%;
+  height: 100vh; /* fallback */
+  height: 100dvh;
   background: var(--sq-bg);
   overflow: hidden;
 }
@@ -340,7 +336,6 @@ body {
 }
 @media (min-width: 480px) {
   .serve-phone-backdrop {
-    position: static;
     min-height: 100dvh;
     padding: 24px;
     background: radial-gradient(120% 80% at 50% -10%, color-mix(in srgb, var(--sq-gold) 9%, transparent), transparent 60%), var(--sq-bg);
