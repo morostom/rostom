@@ -128,6 +128,19 @@ export default function AdminAuth({ onLive }) {
                 {mode === 'signup' ? "Next you'll pick whether you run a club or an academy." : 'Log in to open your console.'}
               </p>
             </div>
+            {/* no-login preview of the two demo venues — always available, so a
+                walkthrough never depends on a specific account */}
+            <div style={{ marginTop: 18, textAlign: 'center' }}>
+              <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>Just here to look? Preview a demo console</div>
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+                <button className="sq-btn-ghost" style={{ padding: '11px 16px', fontSize: 12.5, display: 'flex', alignItems: 'center', gap: 8 }} onClick={() => onLive('club', null, { demo: true })}>
+                  <Icons.Club size={15} /> Heliopolis SC
+                </button>
+                <button className="sq-btn-ghost" style={{ padding: '11px 16px', fontSize: 12.5, display: 'flex', alignItems: 'center', gap: 8 }} onClick={() => onLive('academy', null, { demo: true })}>
+                  <Icons.Trophy size={15} /> Ramy Ashour Academy
+                </button>
+              </div>
+            </div>
           </Shell>
         </motion.div>
       )}
