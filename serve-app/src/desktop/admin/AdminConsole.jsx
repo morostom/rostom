@@ -16,6 +16,7 @@ import { useStore, store, orgInfo } from '../../store';
 import { useT } from '../../i18n';
 import { signOut } from '../../lib/auth';
 import BranchesPanel from '../BranchesPanel';
+import SchedulePanel from '../SchedulePanel';
 import {
   ACADEMY, ADMIN_COURTS, ADMIN_COACHES, ADMIN_PLAYERS,
   REVENUE_7D, REVENUE_DAYS, SETUP_STEPS, OPERATING_HOURS, REVENUE_BREAKDOWN, BRAND_COLORS,
@@ -33,6 +34,7 @@ function Sidebar({ active, onNav, orgId }) {
     { id: 'dashboard', icon: <Icons.Home size={16} />, label: 'Dashboard' },
     { id: 'profile', icon: <Icons.Trophy size={16} />, label: 'Academy profile' },
     { id: 'schedule', icon: <Icons.Calendar size={16} />, label: 'Court schedule' },
+    { id: 'builder', icon: <Icons.Bolt size={16} />, label: 'Schedule builder' },
     { id: 'courts', icon: <Icons.Court size={16} />, label: 'Courts', badge: String(ADMIN_COURTS.length) },
     { id: 'coaches', icon: <Icons.Users size={16} />, label: 'Coaches', badge: String(coachCount) },
     { id: 'players', icon: <Icons.User size={16} />, label: 'Players', badge: String(ADMIN_PLAYERS.length) },
@@ -1007,8 +1009,16 @@ function Branches({ orgId }) {
   return <BranchesPanel orgId={orgId} Topbar={Topbar} />;
 }
 
+// the shared schedule builder (manual bulk · auto · PDF import) scoped to
+// this academy's first branch
+function Builder({ orgId }) {
+  const state = useStore();
+  const myBranches = state.branches.filter((b) => b.org_id === orgId);
+  return <SchedulePanel orgId={orgId} branch={myBranches[0]?.id || null} branches={myBranches} Topbar={Topbar} />;
+}
+
 const SECTIONS = {
-  dashboard: Dashboard, profile: AcademyProfile, schedule: Schedule,
+  dashboard: Dashboard, profile: AcademyProfile, schedule: Schedule, builder: Builder,
   courts: Courts, coaches: Coaches, players: Players, clinics: CreateClinic, branches: Branches, payments: Payments, revenue: Revenue,
 };
 

@@ -12,6 +12,7 @@ import SQLogo from '../components/SQLogo';
 import { hasBackend } from '../lib/supabase';
 import { getSessionUser, loadAdmin } from '../lib/auth';
 import { orgOwnership } from '../lib/backend';
+import { store } from '../store';
 
 export default function ConsoleSurface() {
   const [stage, setStage] = useState('auth'); // 'auth' | 'live'
@@ -34,7 +35,12 @@ export default function ConsoleSurface() {
         const u = await getSessionUser();
         if (u) {
           const a = await loadAdmin();
-          if (alive && a?.orgType) { setOrgType(a.orgType); setOrgId(a.orgId || null); await checkOwnership(a.orgType, a.orgId); setStage('live'); }
+          if (alive && a?.orgType) {
+            // paint the org's real name/colour immediately — hydration
+            // replaces this with the server row moments later
+            if (a.orgId) store.seedOrg({ id: a.orgId, type: a.orgType, name: a.orgName || '', accent: a.accent || '#f5453b' });
+            setOrgType(a.orgType); setOrgId(a.orgId || null); await checkOwnership(a.orgType, a.orgId); setStage('live');
+          }
         }
       } catch { /* ignore */ }
       if (alive) setChecking(false);

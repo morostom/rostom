@@ -32,6 +32,7 @@ export async function signIn({ method, identifier, password }) {
 }
 
 export async function signOut() {
+  try { localStorage.removeItem('serve_admin_v1'); } catch { /* private mode */ }
   if (hasBackend) await supabase.auth.signOut();
 }
 
@@ -84,18 +85,45 @@ export async function saveParent({ childName }) {
 
 // ── admin (club/academy owner) profile ───────────────────────────────
 // Stored in the same profiles.card jsonb, tagged kind:'admin', so we know
-// which console to open on login without a schema change.
-export async function saveAdmin({ adminName, orgType, orgName, orgId }) {
-  if (!hasBackend) return;
+// which console to open on login without a schema change. A per-user local
+// copy backs it up so a transient fetch failure (tab restore, flaky
+// connection) can never bounce an admin onto the wrong org.
+const ADMIN_KEY = 'serve_admin_v1';
+function cacheAdmin(uid, card) {
+  try { localStorage.setItem(ADMIN_KEY, JSON.stringify({ uid, ...card })); } catch { /* private mode */ }
+}
+function cachedAdmin(uid) {
+  try {
+    const c = JSON.parse(localStorage.getItem(ADMIN_KEY) || 'null');
+    return c && c.kind === 'admin' && (!uid || c.uid === uid) ? c : null;
+  } catch { return null; }
+}
+
+export async function saveAdmin({ adminName, orgType, orgName, orgId, accent }) {
+  const card = { kind: 'admin', orgType, orgName, orgId: orgId || null, adminName, accent: accent || null };
+  if (!hasBackend) { cacheAdmin('local', card); return; }
   const { data } = await supabase.auth.getUser();
-  if (data?.user) await supabase.from('profiles').upsert({ id: data.user.id, name: adminName || null, card: { kind: 'admin', orgType, orgName, orgId: orgId || null, adminName } });
+  if (data?.user) {
+    cacheAdmin(data.user.id, card);
+    await supabase.from('profiles').upsert({ id: data.user.id, name: adminName || null, card });
+  }
 }
 export async function loadAdmin() {
-  if (!hasBackend) return null;
+  if (!hasBackend) return cachedAdmin('local');
   const { data: u } = await supabase.auth.getUser();
   if (!u?.user) return null;
-  const { data } = await supabase.from('profiles').select('card, name').eq('id', u.user.id).single();
-  const card = data?.card;
-  if (card?.kind === 'admin') return { ...card, adminName: card.adminName || data?.name };
-  return null;
+  try {
+    const { data, error } = await supabase.from('profiles').select('card, name').eq('id', u.user.id).single();
+    if (error) return cachedAdmin(u.user.id);
+    const card = data?.card;
+    if (card?.kind === 'admin') {
+      cacheAdmin(u.user.id, card);
+      return { ...card, adminName: card.adminName || data?.name };
+    }
+    // row exists but the admin card isn't readable yet (e.g. the signup's
+    // profile write raced this read) — trust the local copy for this user
+    return cachedAdmin(u.user.id);
+  } catch {
+    return cachedAdmin(u.user.id);
+  }
 }

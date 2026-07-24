@@ -13,12 +13,12 @@ import UploadSlot from '../../components/UploadSlot';
 import ClubCrest from '../../components/ClubCrest';
 import { ToastProvider, useToast } from '../../components/Toast';
 import BranchesPanel from '../BranchesPanel';
-import { parseSchedule } from '../../lib/scheduleImport';
+import SchedulePanel from '../SchedulePanel';
 import { DUR_FAST } from '../../motion';
 import { useStore, store, orgInfo } from '../../store';
 import { useT } from '../../i18n';
 import { signOut } from '../../lib/auth';
-import { CLUB, ROSTER, CODES, randomCode, SESSION_TYPES, TIME_SLOTS, WEEK_DAYS, BRAND_COLORS } from '../../data';
+import { CLUB, ROSTER, CODES, randomCode, BRAND_COLORS } from '../../data';
 
 const SIDEBAR_W = 240;
 
@@ -203,151 +203,9 @@ function LiveCourts({ branch, branches }) {
   );
 }
 
-// ── Schedule builder (mix & match) ───────────────────────────────────
+// ── Schedule builder — shared panel (manual bulk · auto · PDF) ──────
 function ScheduleBuilder({ branch, branches, orgId }) {
-  const notify = useToast();
-  const state = useStore();
-  const coaches = state.staff.filter((s) => s.org_id === orgId);
-  const branchCourts = state.courts.filter((c) => c.branch === branch);
-  const branchName = branches?.find((b) => b.id === branch)?.name || '';
-  const [coach, setCoach] = useState(coaches[0]?.name || '');
-  const [court, setCourt] = useState(branchCourts[0]?.court || 1);
-  const [day, setDay] = useState('Wed');
-  const [time, setTime] = useState('17:00');
-  const [type, setType] = useState('Group training');
-  const [title, setTitle] = useState('U17 Squad');
-  const [players, setPlayers] = useState([]);
-  // open sessions are visible in the player app — anyone can pay to join
-  const [open, setOpen] = useState(false);
-  const [price, setPrice] = useState('250');
-  const [spots, setSpots] = useState('8');
-
-  const toggle = (n) => setPlayers((p) => (p.includes(n) ? p.filter((x) => x !== n) : [...p, n]));
-  function add() {
-    if (!open && !players.length) return notify('Pick at least one player — or open the session to the app');
-    const extra = open ? { open: true, price: Math.max(0, Number(price) || 0), spots: Math.max(players.length, Number(spots) || 8) } : {};
-    store.addSession({ day, time, type, title: title || type, coach, court, players, branch, mine: players.includes('Nour Hassan'), ...extra });
-    notify(open ? `${title || type} is live — players can join from the app` : `Added ${title} → published to ${players.length} player${players.length > 1 ? 's' : ''}`);
-    setPlayers([]);
-  }
-
-  // smart import — paste a whole schedule; unknown coaches are auto-created
-  const [importing, setImporting] = useState(false);
-  const [importText, setImportText] = useState('');
-  function runImport() {
-    const { rows, skipped } = parseSchedule(importText);
-    if (!rows.length) return notify(skipped ? `No valid rows (${skipped} skipped) — check the format` : 'Paste your schedule first');
-    let newCoaches = 0;
-    const known = new Set(store.get().staff.filter((s) => s.org_id === orgId).map((s) => s.name.toLowerCase()));
-    for (const r of rows) {
-      if (!known.has(r.coach.toLowerCase())) {
-        store.addStaff(orgId, { name: r.coach, role: 'Coach' });
-        known.add(r.coach.toLowerCase());
-        newCoaches++;
-      }
-      store.addSession({ ...r, branch, mine: false });
-    }
-    notify(`Imported ${rows.length} session${rows.length !== 1 ? 's' : ''}${newCoaches ? ` · added ${newCoaches} coach${newCoaches !== 1 ? 'es' : ''}` : ''}${skipped ? ` · ${skipped} row${skipped !== 1 ? 's' : ''} skipped` : ''}`);
-    setImportText(''); setImporting(false);
-  }
-  const fieldCss = { padding: '10px 12px', border: '1px solid var(--sq-border-2)', borderRadius: 8, background: 'rgba(255,255,255,0.02)', fontSize: 13.5, color: 'var(--sq-text)', outline: 'none', width: '100%' };
-  const Label = ({ children }) => <label className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 6 }}>{children}</label>;
-
-  return (
-    <>
-      <Topbar title="Schedule builder" sub="Mix & match · publishes straight to players" trailing={
-        <>
-          <button className="sq-btn-ghost" style={{ padding: '9px 14px', fontSize: 12.5 }} onClick={() => setImporting((v) => !v)}><Icons.Upload size={13} style={{ marginRight: 6, verticalAlign: -2 }} /> Smart import</button>
-          <button className="sq-btn-gold" style={{ padding: '9px 18px', fontSize: 12.5 }} onClick={add}><Icons.Plus size={14} style={{ marginRight: 6, verticalAlign: -3 }} /> Add to schedule</button>
-        </>
-      } />
-      <AnimatePresence>
-        {importing && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: DUR_FAST }} style={{ overflow: 'hidden' }}>
-            <div style={{ padding: '20px 30px 0' }}>
-              <div className="sq-card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <div>
-                  <h2 className="sq-display" style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>Smart import</h2>
-                  <p style={{ margin: '4px 0 0', fontSize: 12.5, color: 'var(--sq-text-3)' }}>Paste your schedule (from Excel, Sheets, or CSV). Columns: Day, Time, Coach, Court, Title, Type, Players. Coaches SERVE doesn't know yet are created automatically.</p>
-                </div>
-                <textarea value={importText} onChange={(e) => setImportText(e.target.value)} rows={6}
-                  placeholder={'Day, Time, Coach, Court, Title, Type, Players\nMon, 17:00, Ali Ashmawy, 3, U15 Squad, Group training, Nour Hassan; Taha Ibrahim\nWed, 18:30, Karim Darwish, 1, Private lesson, Lesson, Mohamed Rostom'}
-                  style={{ resize: 'vertical', padding: '12px 14px', borderRadius: 10, border: '1px solid var(--sq-border-2)', background: 'rgba(255,255,255,0.02)', color: 'var(--sq-text)', fontFamily: 'var(--sq-mono)', fontSize: 12, outline: 'none', lineHeight: 1.6 }} />
-                <div style={{ display: 'flex', gap: 10 }}>
-                  <button className="sq-btn-gold" style={{ padding: '11px 18px', fontSize: 13 }} onClick={runImport}>Import schedule</button>
-                  <button className="sq-btn-ghost" style={{ padding: '11px 16px', fontSize: 13 }} onClick={() => setImporting(false)}>Cancel</button>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      <div style={{ padding: '22px 30px 36px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        {/* builder */}
-        <div className="sq-card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <h2 className="sq-display" style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>New session</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <div><Label>Session type</Label>
-              <select style={fieldCss} value={type} onChange={(e) => setType(e.target.value)}>{SESSION_TYPES.map((t) => <option key={t}>{t}</option>)}</select>
-            </div>
-            <div><Label>Title</Label><input style={fieldCss} value={title} onChange={(e) => setTitle(e.target.value)} /></div>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-            <div><Label>Coach</Label><select style={fieldCss} value={coach} onChange={(e) => setCoach(e.target.value)}>{coaches.map((c) => <option key={c.id}>{c.name}</option>)}</select></div>
-            <div><Label>Court</Label><select style={fieldCss} value={court} onChange={(e) => setCourt(Number(e.target.value))}>{branchCourts.map((c) => <option key={c.court} value={c.court}>Court {c.court}</option>)}</select></div>
-            <div><Label>Day</Label><select style={fieldCss} value={day} onChange={(e) => setDay(e.target.value)}>{WEEK_DAYS.map((d) => <option key={d[0]}>{d[0]}</option>)}</select></div>
-          </div>
-          <div><Label>Time</Label>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {TIME_SLOTS.map((t) => <button key={t} onClick={() => setTime(t)} className="sq-mono" style={{ padding: '7px 11px', borderRadius: 8, fontSize: 12, cursor: 'pointer', border: '1px solid ' + (t === time ? 'transparent' : 'var(--sq-border)'), background: t === time ? 'var(--sq-gold)' : 'var(--sq-surface)', color: t === time ? '#0a0a0a' : 'var(--sq-text-2)' }}>{t}</button>)}
-            </div>
-          </div>
-          <div><Label>Players ({players.length} selected)</Label>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {ROSTER.map((r) => {
-                const on = players.includes(r.name);
-                return <button key={r.name} onClick={() => toggle(r.name)} className={'sq-chip' + (on ? ' gold' : '')} style={{ cursor: 'pointer', padding: '6px 11px', fontSize: 12 }}>{on && <Icons.Check size={11} />}{r.name}</button>;
-              })}
-            </div>
-          </div>
-          <div style={{ borderTop: '1px solid var(--sq-border)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <button onClick={() => setOpen((v) => !v)} className={'sq-chip' + (open ? ' gold' : '')} style={{ cursor: 'pointer', padding: '9px 14px', fontSize: 12.5, width: 'fit-content' }}>
-              {open && <Icons.Check size={12} />} Open to players — anyone can join from the app
-            </button>
-            {open && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div><Label>Price / player (EGP)</Label><input style={fieldCss} type="number" min="0" value={price} onChange={(e) => setPrice(e.target.value)} /></div>
-                <div><Label>Max players</Label><input style={fieldCss} type="number" min="1" max="40" value={spots} onChange={(e) => setSpots(e.target.value)} /></div>
-              </div>
-            )}
-          </div>
-          <button className="sq-btn-gold serve-glow-soft" style={{ padding: '13px', fontSize: 14 }} onClick={add}>Publish session →</button>
-        </div>
-
-        {/* current schedule (this branch) */}
-        <div>
-          <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>{branchName} · {state.sessions.filter((s) => s.branch === branch).length}</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-            {state.sessions.filter((s) => s.branch === branch).map((s) => (
-              <div key={s.id} className="sq-card" style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div className="sq-mono" style={{ fontSize: 13, fontWeight: 600, minWidth: 64 }}>{s.day} {s.time}</div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div className="sq-display" style={{ fontSize: 13.5, fontWeight: 600 }}>{s.title}</div>
-                  <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)' }}>{s.coach} · Court {s.court} · {s.players.length} player{s.players.length !== 1 ? 's' : ''}</div>
-                </div>
-                <span className="sq-chip" style={{ fontSize: 9.5 }}>{s.type}</span>
-                <button onClick={() => { const patch = s.open ? { open: false } : { open: true, price: s.price ?? Math.max(0, Number(price) || 0), spots: s.spots ?? Math.max(s.players.length, Number(spots) || 8) }; store.updateSession(s.id, patch); notify(s.open ? 'Session is now private' : `Open on the app · EGP ${patch.price}`); }}
-                  className={'sq-chip' + (s.open ? ' gold' : '')} style={{ cursor: 'pointer', fontSize: 9.5 }} title={s.open ? 'Players can join from the app — click to make private' : 'Click to open this session to players on the app'}>
-                  {s.open ? <>Open{s.price ? ` · ${s.price}` : ''}</> : 'Private'}
-                </button>
-                <button onClick={() => { store.removeSession(s.id); notify('Removed'); }} style={{ background: 'none', border: 0, color: 'var(--sq-text-3)', cursor: 'pointer', fontSize: 16, lineHeight: 1 }}>×</button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </>
-  );
+  return <SchedulePanel orgId={orgId} branch={branch} branches={branches} Topbar={Topbar} />;
 }
 
 // ── Members ──────────────────────────────────────────────────────────

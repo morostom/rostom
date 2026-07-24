@@ -10,7 +10,6 @@ import { Icons } from '../../components/Icons';
 import UploadSlot from '../../components/UploadSlot';
 import { DUR_FAST } from '../../motion';
 import { store } from '../../store';
-import { hasBackend } from '../../lib/supabase';
 import { signUp, signIn, saveAdmin, loadAdmin } from '../../lib/auth';
 import { useT } from '../../i18n';
 import { BRAND_COLORS } from '../../data';
@@ -70,8 +69,12 @@ export default function AdminAuth({ onLive }) {
     if (res.error) return setErr(res.error);
 
     if (mode === 'login') {
-      const admin = hasBackend ? await loadAdmin() : null;
-      if (admin?.orgType) { onLive(admin.orgType, admin.orgId || null); return; }
+      const admin = await loadAdmin();
+      if (admin?.orgType) {
+        if (admin.orgId) store.seedOrg({ id: admin.orgId, type: admin.orgType, name: admin.orgName || '', accent: admin.accent || '#f5453b' });
+        onLive(admin.orgType, admin.orgId || null);
+        return;
+      }
       setStage('choose'); // no saved org yet → set one up
     } else {
       setStage('choose');
@@ -91,7 +94,7 @@ export default function AdminAuth({ onLive }) {
     // every signup spins up its OWN org (row + Main Branch + free courts),
     // owned by this account from birth — the demo orgs are never touched.
     const orgId = store.createOrg({ type: orgType, name: orgName, accent, logo, cover, courts, location });
-    await saveAdmin({ adminName, orgType, orgName, orgId });
+    await saveAdmin({ adminName, orgType, orgName, orgId, accent });
     onLive(orgType, orgId);
   }
 

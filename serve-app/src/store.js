@@ -244,6 +244,13 @@ export const store = {
   },
   // ── orgs (multi-tenant: every console signup creates its own) ──
   // Creates the org row + a Main Branch with n free courts. Returns the id.
+  // seed a known org into local state before hydration lands, so a resumed
+  // console renders its real name/accent instead of flashing the defaults.
+  // Local-only — hydrate replaces it with the server row.
+  seedOrg: (org) => {
+    if (!org?.id || state.orgs.some((o) => o.id === org.id)) return;
+    commit({ ...state, orgs: [...state.orgs, { accent: '#f5453b', logo: null, cover: null, owner_phone: '', coach_phone: '', ...org }] });
+  },
   createOrg: ({ type, name, accent, logo, cover, owner_phone, coach_phone, courts, location }) => {
     const clean = (name || '').trim();
     if (!clean) return null;
