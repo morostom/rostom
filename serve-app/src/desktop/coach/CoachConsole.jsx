@@ -366,12 +366,13 @@ function ClubProfile({ orgId, branches }) {
   const [name, setName] = useState(org.name || (legacy ? CLUB.name : ''));
   const [ownerPhone, setOwnerPhone] = useState(org.owner_phone || '');
   const [coachPhone, setCoachPhone] = useState(org.coach_phone || '');
+  const [mapsUrl, setMapsUrl] = useState(org.maps_url || org.address || '');
   const branchIds = new Set((branches || []).map((b) => b.id));
   const courtCount = state.courts.filter((c) => branchIds.has(c.branch)).length;
   const city = legacy ? CLUB.city : (branches?.[0]?.location || 'Egypt');
   const fieldCss = { padding: '11px 13px', border: '1px solid var(--sq-border-2)', borderRadius: 9, background: 'rgba(255,255,255,0.02)', fontSize: 14, color: 'var(--sq-text)', outline: 'none', width: '100%', fontFamily: 'var(--sq-body)' };
   const Label = ({ children }) => <label className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 6 }}>{children}</label>;
-  function save() { store.updateOrg(orgId, { name, owner_phone: ownerPhone, coach_phone: coachPhone }); notify('Profile saved'); }
+  function save() { store.updateOrg(orgId, { name, owner_phone: ownerPhone, coach_phone: coachPhone, maps_url: mapsUrl }); notify('Profile saved'); }
   return (
     <>
       <Topbar title="Club profile" sub="Branding · public page" trailing={<button className="sq-btn-gold" style={{ padding: '9px 16px', fontSize: 12.5 }} onClick={save}>Save changes</button>} />
@@ -397,6 +398,10 @@ function ClubProfile({ orgId, branches }) {
               <div><Label>Admin WhatsApp</Label><input style={fieldCss} value={ownerPhone} onChange={(e) => setOwnerPhone(e.target.value)} placeholder="+20 100 585 1199" /></div>
               <div><Label>Head coach WhatsApp</Label><input style={fieldCss} value={coachPhone} onChange={(e) => setCoachPhone(e.target.value)} placeholder="+20 10 1234 5678" /></div>
             </div>
+            <div><Label>Google Maps link or address</Label>
+              <input style={fieldCss} value={mapsUrl} onChange={(e) => setMapsUrl(e.target.value)} placeholder="https://maps.app.goo.gl/… or 'Masr El Gedida, Cairo'" />
+              <p style={{ margin: '6px 0 0', fontSize: 11.5, color: 'var(--sq-text-3)' }}>This is what puts you on the Discover map. Paste the Maps link for an exact pin.</p>
+            </div>
             <p style={{ margin: 0, fontSize: 11.5, color: 'var(--sq-text-3)', lineHeight: 1.5 }}>Members can message you here, and you'll be notified when a session is cancelled.</p>
           </div>
           <div className="sq-card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -406,7 +411,7 @@ function ClubProfile({ orgId, branches }) {
             </div>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
               {BRAND_COLORS.map((c) => {
-                const on = (org.accent || '#f5453b').toLowerCase() === c.hex.toLowerCase();
+                const on = (org.accent || '#ef4a2e').toLowerCase() === c.hex.toLowerCase();
                 return (
                   <button key={c.hex} onClick={() => { store.updateOrg(orgId, { accent: c.hex }); notify(`Theme set to ${c.name}`); }} title={c.name}
                     style={{ width: 44, height: 44, borderRadius: 12, background: c.hex, cursor: 'pointer', border: 0, boxShadow: on ? `0 0 0 2px var(--sq-bg), 0 0 0 4px ${c.hex}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0a0a0a' }}>

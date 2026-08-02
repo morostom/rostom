@@ -66,7 +66,7 @@ export default function PaymentScreen(params) {
   return (
     // Checkout runs in SERVE's own neon red — a distinct identity, never the
     // club/academy theme (it used to inherit Heliopolis blue everywhere).
-    <ThemeScope accent="#f5453b">
+    <ThemeScope accent="#ef4a2e">
       <MScreen
         header={phase === 'form' ? (
           <div style={{ padding: '6px 16px 10px', display: 'flex', alignItems: 'center', gap: 12 }}>

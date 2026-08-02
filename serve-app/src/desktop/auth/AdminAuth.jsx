@@ -49,7 +49,7 @@ export default function AdminAuth({ onLive }) {
   // never stamp its logo/colour onto the shared demo orgs.
   const [logo, setLogo] = useState(null);
   const [cover, setCover] = useState(null);
-  const [accent, setAccent] = useState('#f5453b');
+  const [accent, setAccent] = useState('#ef4a2e');
   const [courts, setCourts] = useState('4');
   const [location, setLocation] = useState('');
 
@@ -71,7 +71,7 @@ export default function AdminAuth({ onLive }) {
     if (mode === 'login') {
       const admin = await loadAdmin();
       if (admin?.orgType) {
-        if (admin.orgId) store.seedOrg({ id: admin.orgId, type: admin.orgType, name: admin.orgName || '', accent: admin.accent || '#f5453b' });
+        if (admin.orgId) store.seedOrg({ id: admin.orgId, type: admin.orgType, name: admin.orgName || '', accent: admin.accent || '#ef4a2e' });
         onLive(admin.orgType, admin.orgId || null);
         return;
       }

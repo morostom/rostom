@@ -31,8 +31,7 @@ function PhotoArea({ player, height, placeholder }) {
         fontSize: 10,
         textTransform: 'uppercase',
         letterSpacing: '0.1em',
-        background:
-          'repeating-linear-gradient(135deg, rgba(255,255,255,0.03) 0 6px, rgba(255,255,255,0) 6px 14px), linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%)',
+        background: 'transparent',
       }}
     >
       {placeholder}
@@ -42,7 +41,7 @@ function PhotoArea({ player, height, placeholder }) {
 
 function CardStat({ label, value, accent }) {
   return (
-    <div style={{ padding: '9px 10px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--sq-border)' }}>
+    <div style={{ padding: '9px 10px', borderRadius: 10, background: 'var(--sq-fill-2)', border: '1px solid var(--sq-border)' }}>
       <div className="sq-mono" style={{ fontSize: 8.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
         {label}
       </div>
@@ -75,17 +74,17 @@ function PlayerCard({ player, accent, variant = 'full', tier }) {
   const tr = tier || TIERS.find((t) => t.key === player.tierKey) || TIERS[0];
 
   return (
-    // sq-dark-scope: the card stays a dark collectible even in light mode, so
-    // it pins the dark text/border tokens locally (see index.css).
+    // sq-dark-scope supplies the star-field tint token; the card itself
+    // follows the active theme (dark slab / cream card).
     <div
       className="sq-dark-scope"
       style={{
         position: 'relative',
         borderRadius: 18,
         overflow: 'hidden',
-        background: 'linear-gradient(165deg, #161616 0%, #0b0b0b 60%, #070707 100%)',
+        background: 'var(--sq-surface)',
         border: `1px solid color-mix(in srgb, ${ac} 45%, transparent)`,
-        boxShadow: `0 0 0 1px color-mix(in srgb, ${ac} 12%, transparent), 0 18px 50px rgba(0,0,0,0.6), 0 0 40px color-mix(in srgb, ${ac} 14%, transparent)`,
+        boxShadow: `0 0 0 1px color-mix(in srgb, ${ac} 10%, transparent), 0 14px 40px color-mix(in srgb, var(--sq-bg) 55%, transparent), 0 0 34px color-mix(in srgb, ${ac} 10%, transparent)`,
         display: 'flex',
         flexDirection: 'column',
       }}
@@ -93,7 +92,7 @@ function PlayerCard({ player, accent, variant = 'full', tier }) {
       {/* header strip */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: compact ? '9px 11px 0' : '13px 15px 0' }}>
         <SQLogo size={compact ? 12 : 15} />
-        <span className="sq-mono" style={{ fontSize: compact ? 8.5 : 10, color: ac, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+        <span className="sq-mono" style={{ fontSize: compact ? 8.5 : 10, color: 'var(--sq-amber)', fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
           {tag}
         </span>
       </div>
@@ -109,8 +108,9 @@ function PlayerCard({ player, accent, variant = 'full', tier }) {
           background: 'var(--sq-surface-2)',
         }}
       >
+        <div className="sq-star-field" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
         <PhotoArea player={player} height={compact ? 132 : 230} placeholder={compact ? 'photo' : `${firstName}'s photo`} />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 40%, rgba(7,7,7,0.92) 100%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 38%, color-mix(in srgb, var(--sq-surface) 94%, transparent) 100%)', pointerEvents: 'none' }} />
         {/* rank badge — competitive + SERVE-verified only */}
         {!recreational && rank && player.rankVerified && (
           <div style={{ position: 'absolute', top: 10, right: 10, pointerEvents: 'none', lineHeight: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
@@ -134,7 +134,7 @@ function PlayerCard({ player, accent, variant = 'full', tier }) {
         )}
         {/* name + age */}
         <div style={{ position: 'absolute', left: 12, right: 12, bottom: 10, pointerEvents: 'none' }}>
-          <div className="sq-display" style={{ fontSize: compact ? 16 : 23, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.05 }}>
+          <div className="sq-display" style={{ fontSize: compact ? 17 : 27, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.02 }}>
             {player.name || 'Your name'}
           </div>
           <div className="sq-mono" style={{ fontSize: compact ? 9.5 : 11.5, color: 'var(--sq-text-2)', marginTop: 2 }}>

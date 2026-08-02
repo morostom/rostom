@@ -7,9 +7,9 @@
 export const CLUBS_DIR = [
   { id: 'heliopolis', name: 'Heliopolis Sporting Club', short: 'Heliopolis SC', type: 'club', courts: 7, city: 'Heliopolis · Cairo', est: '1910', accent: '#4ea8ff', joinable: true },
   { id: 'wadidegla', name: 'Wadi Degla', short: 'Wadi Degla', type: 'club', courts: 20, city: 'Maadi · Cairo', accent: '#4ade80' },
-  { id: 'blackball', name: 'Black Ball', short: 'Black Ball', type: 'club', courts: 16, city: 'New Cairo', accent: '#f5453b', guestPass: true },
+  { id: 'blackball', name: 'Black Ball', short: 'Black Ball', type: 'club', courts: 16, city: 'New Cairo', accent: '#ef4a2e', guestPass: true },
   { id: 'gezira', name: 'Gezira Sporting Club', short: 'Gezira SC', type: 'club', courts: 16, city: 'Zamalek · Cairo', accent: '#a779f0' },
-  { id: 'alahly', name: 'Al Ahly Sporting Club', short: 'Al Ahly', type: 'club', courts: 8, city: 'Nasr City · Cairo', accent: '#f5453b' },
+  { id: 'alahly', name: 'Al Ahly Sporting Club', short: 'Al Ahly', type: 'club', courts: 8, city: 'Nasr City · Cairo', accent: '#ef4a2e' },
   { id: 'smouha', name: 'Smouha', short: 'Smouha', type: 'club', courts: 6, city: 'Alexandria', accent: '#4ea8ff' },
   { id: 'sporting', name: 'Sporting', short: 'Sporting', type: 'club', courts: 13, city: 'Alexandria', accent: '#ff8a3d' },
 ];
@@ -80,10 +80,10 @@ export const YEARS_OPTIONS = ['Less than 1 year', '1–2 years', '3–5 years', 
 // Everyone starts Bronze. A tier up every 10 bookings until Semi-pro,
 // then every 20 bookings after that.
 export const TIERS = [
-  { key: 'beginner', label: 'Beginner', color: '#cd7f32', min: 0 },   // bronze
+  { key: 'beginner', label: 'Beginner', color: '#e0a64e', min: 0 },   // gold
   { key: 'amateur', label: 'Amateur', color: '#c0c0c0', min: 10 },    // silver
-  { key: 'semipro', label: 'Semi-pro', color: '#f5453b', min: 20 },   // red
-  { key: 'pro', label: 'Pro', color: '#d4a64f', min: 40 },            // gold
+  { key: 'semipro', label: 'Semi-pro', color: '#ef4a2e', min: 20 },   // red
+  { key: 'pro', label: 'Pro', color: '#9b6be0', min: 40 },            // amethyst
   { key: 'elite', label: 'Elite', color: '#1e40af', min: 60 },        // dark blue
 ];
 // tier from the player's booking count
@@ -108,7 +108,7 @@ const YEAR = String(new Date().getFullYear());
 
 export const EMPTY_COMPETITIVE = {
   id: 'me', cardType: 'competitive', forChild: false, name: '', age: '', division: '', club: '',
-  rankLabel: '', rankVerified: false, racket: '', fav: '', wins: 0, losses: 0, since: YEAR, accent: '#f5453b', photo: null,
+  rankLabel: '', rankVerified: false, racket: '', fav: '', wins: 0, losses: 0, since: YEAR, accent: '#ef4a2e', photo: null,
 };
 export const EMPTY_RECREATIONAL = {
   id: 'me', cardType: 'recreational', forChild: false, name: '', age: '', division: '', club: '',
@@ -196,7 +196,7 @@ export const ACADEMY = {
   id: 'ramyashour', name: 'Ramy Ashour Squash Academy', short: 'Ramy Ashour',
   city: 'New Cairo', district: 'New Cairo', owner: 'Ramy Ashour', ownerInitials: 'RA',
   tagline: 'Train where champions are made.', contact: 'play@ramyashouracademy.com',
-  courts: 7, juniors: 142, minPrice: 200, accent: '#f5453b',
+  courts: 7, juniors: 142, minPrice: 200, accent: '#ef4a2e',
 };
 
 export const REVENUE_7D = [2400, 3100, 2700, 4200, 3800, 5100, 4180];
@@ -250,8 +250,10 @@ export const OPERATING_HOURS = [
   { day: 'Sunday', open: '07:00', close: '22:00' },
 ];
 
+// Each academy picks one — it drives accents, CTAs and glow everywhere.
+// Ember is the SERVE house colour.
 export const BRAND_COLORS = [
-  { name: 'Neon red', hex: '#f5453b' }, { name: 'Electric blue', hex: '#4ea8ff' },
-  { name: 'Court green', hex: '#4ade80' }, { name: 'Violet', hex: '#a779f0' },
-  { name: 'Amber', hex: '#ff8a3d' }, { name: 'Gold', hex: '#d4a64f' },
+  { name: 'Ember', hex: '#ef4a2e' }, { name: 'Nile', hex: '#2e8cf0' },
+  { name: 'Palm', hex: '#2fb37a' }, { name: 'Gold', hex: '#e0a64e' },
+  { name: 'Amethyst', hex: '#9b6be0' }, { name: 'Saffron', hex: '#e8734a' },
 ];

@@ -65,7 +65,7 @@ function seedSessions() {
 function seed() {
   return {
     clubTheme: '#4ea8ff', // Heliopolis ships blue
-    academyTheme: '#f5453b',
+    academyTheme: '#ef4a2e',
     clubName: CLUB.name,
     academyName: ACADEMY.name,
     branches: seedBranches(),
@@ -141,7 +141,7 @@ export function orgInfo(s, orgId) {
   if (orgId === 'ramyashour') {
     return { id: orgId, type: 'academy', name: s.academyName, accent: s.academyTheme, logo: s.images?.academyLogo, cover: s.images?.academyCover, owner_phone: s.contacts?.ramyashour?.owner || '', coach_phone: s.contacts?.ramyashour?.coach || '' };
   }
-  return s.orgs?.find((o) => o.id === orgId) || { id: orgId, type: '', name: '', accent: '#f5453b', logo: null, cover: null, owner_phone: '', coach_phone: '' };
+  return s.orgs?.find((o) => o.id === orgId) || { id: orgId, type: '', name: '', accent: '#ef4a2e', logo: null, cover: null, owner_phone: '', coach_phone: '' };
 }
 
 // Every mutation updates the screen instantly (optimistic). In backend mode it
@@ -249,14 +249,14 @@ export const store = {
   // Local-only — hydrate replaces it with the server row.
   seedOrg: (org) => {
     if (!org?.id || state.orgs.some((o) => o.id === org.id)) return;
-    commit({ ...state, orgs: [...state.orgs, { accent: '#f5453b', logo: null, cover: null, owner_phone: '', coach_phone: '', ...org }] });
+    commit({ ...state, orgs: [...state.orgs, { accent: '#ef4a2e', logo: null, cover: null, owner_phone: '', coach_phone: '', ...org }] });
   },
   createOrg: ({ type, name, accent, logo, cover, owner_phone, coach_phone, courts, location }) => {
     const clean = (name || '').trim();
     if (!clean) return null;
     const slug = clean.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 24) || 'org';
     const id = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
-    const org = { id, type: type === 'academy' ? 'academy' : 'club', name: clean, accent: accent || '#f5453b', logo: logo || null, cover: cover || null, owner_phone: owner_phone || '', coach_phone: coach_phone || '' };
+    const org = { id, type: type === 'academy' ? 'academy' : 'club', name: clean, accent: accent || '#ef4a2e', logo: logo || null, cover: cover || null, owner_phone: owner_phone || '', coach_phone: coach_phone || '' };
     const n = Math.max(1, Math.min(40, parseInt(courts, 10) || 4));
     const branch = { id: `${id}-main`, org_id: id, name: 'Main Branch', location: location || '', courts: n };
     const newCourts = Array.from({ length: n }, (_, i) => ({ branch: branch.id, court: i + 1, type: 'Standard', status: 'free', who: null, coach: null, next: 'open' }));

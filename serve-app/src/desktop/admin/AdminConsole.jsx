@@ -593,12 +593,13 @@ function AcademyProfile({ orgId }) {
   const [name, setName] = useState(org.name || (legacy ? ACADEMY.name : ''));
   const [ownerPhone, setOwnerPhone] = useState(org.owner_phone || '');
   const [coachPhone, setCoachPhone] = useState(org.coach_phone || '');
+  const [mapsUrl, setMapsUrl] = useState(org.maps_url || org.address || '');
   const myBranches = state.branches.filter((b) => b.org_id === orgId);
   const branchIds = new Set(myBranches.map((b) => b.id));
   const courtCount = state.courts.filter((cr) => branchIds.has(cr.branch)).length;
   const city = legacy ? ACADEMY.city : (myBranches[0]?.location || 'Egypt');
   const inputCss = { padding: '10px 12px', border: '1px solid var(--sq-border-2)', borderRadius: 8, background: 'rgba(255,255,255,0.02)', fontFamily: 'var(--sq-body)', fontSize: 13.5, color: 'var(--sq-text)', outline: 'none', width: '100%' };
-  function save() { store.updateOrg(orgId, { name, owner_phone: ownerPhone, coach_phone: coachPhone }); notify('Changes saved'); }
+  function save() { store.updateOrg(orgId, { name, owner_phone: ownerPhone, coach_phone: coachPhone, maps_url: mapsUrl }); notify('Changes saved'); }
   return (
     <>
       <Topbar title="Academy profile" sub="Branding · public page" trailing={
@@ -637,6 +638,11 @@ function AcademyProfile({ orgId }) {
                 <input value={coachPhone} onChange={(e) => setCoachPhone(e.target.value)} placeholder="+20 10 1234 5678" style={inputCss} />
               </div>
             </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <label style={{ fontSize: 11, color: 'var(--sq-text-3)', fontFamily: 'var(--sq-mono)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Google Maps link or address</label>
+              <input value={mapsUrl} onChange={(e) => setMapsUrl(e.target.value)} placeholder="https://maps.app.goo.gl/… or 'New Cairo'" style={inputCss} />
+              <p style={{ margin: 0, fontSize: 11.5, color: 'var(--sq-text-3)' }}>This is what puts you on the Discover map. Paste the Maps link for an exact pin.</p>
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
               <Field label="City" value={legacy ? ACADEMY.city : city} />
               <Field label="District" value={legacy ? ACADEMY.district : ''} />
@@ -646,7 +652,7 @@ function AcademyProfile({ orgId }) {
           <FormCard title="Brand color" step="Accent">
             <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
               {BRAND_COLORS.map((c) => {
-                const on = (org.accent || '#f5453b').toLowerCase() === c.hex.toLowerCase();
+                const on = (org.accent || '#ef4a2e').toLowerCase() === c.hex.toLowerCase();
                 return (
                   <button key={c.hex} title={c.name} onClick={() => { store.updateOrg(orgId, { accent: c.hex }); notify(`Theme set to ${c.name}`); }} style={{ width: 38, height: 38, borderRadius: 10, background: c.hex, cursor: 'pointer', border: 0, color: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: on ? `0 0 0 2px var(--sq-bg), 0 0 0 4px ${c.hex}` : 'none' }}>
                     {on && <Icons.Check size={16} />}

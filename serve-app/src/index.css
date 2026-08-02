@@ -1,57 +1,61 @@
 @import 'tailwindcss';
 
 /* ──────────────────────────────────────────────────────────────────
-   SERVE design system — neon-on-black
-   Base black #070707 · neon red accent #f5453b
-   Display: Space Grotesk · Body: Geist · Mono: JetBrains Mono
+   SERVE design system
+   Warm ink #0e0b0a · warm paper #f1ebe1 · Ember accent #ef4a2e
+   Display: Bricolage Grotesque · UI/body/labels: Hanken Grotesk
+   The accent (--sq-gold) is themeable per org — see BRAND_COLORS.
    ────────────────────────────────────────────────────────────────── */
 :root {
-  --sq-bg: #070707;
-  --sq-surface: #121212;
-  --sq-surface-2: #1c1c1c;
-  --sq-gold: #f5453b; /* the single accent token — SERVE neon red */
-  --sq-gold-hi: #ff6258;
-  --sq-blue: #4ea8ff;
-  --sq-green: #4ade80;
-  --sq-text: #ffffff;
-  --sq-text-2: #b4b4b4;
-  --sq-text-3: #6e6e6e;
+  --sq-bg: #0e0b0a;
+  --sq-surface: #171311;
+  --sq-surface-2: #1e1917;
+  --sq-gold: #ef4a2e; /* the single accent token — Ember (house default) */
+  --sq-gold-hi: #ff6448;
+  --sq-blue: #2e8cf0;   /* Nile */
+  --sq-green: #2fb37a;  /* Palm — open / free / live */
+  --sq-amber: #e0a64e;  /* Gold — tier + seniority, never the accent */
+  --sq-text: #f6f1ea;
+  --sq-text-2: #a79d94;
+  --sq-text-3: #766c65;
   --sq-border: rgba(255, 255, 255, 0.08);
-  --sq-border-2: rgba(255, 255, 255, 0.14);
-  --sq-danger: #ef5560;
-  --sq-scrim: rgba(7, 7, 7, 0.95);      /* pinned bars / overlays */
-  --sq-scrim-2: rgba(18, 18, 18, 0.96); /* toasts / floating chrome */
+  --sq-border-2: rgba(255, 255, 255, 0.15);
+  --sq-danger: #ef4a2e;
+  --sq-scrim: rgba(14, 11, 10, 0.95);   /* pinned bars / overlays */
+  --sq-scrim-2: rgba(23, 19, 17, 0.96); /* toasts / floating chrome */
   --sq-fill: rgba(255, 255, 255, 0.05);   /* chip fill */
   --sq-fill-2: rgba(255, 255, 255, 0.025);/* field fill */
-  --sq-display: 'Space Grotesk', system-ui, sans-serif;
-  --sq-body: 'Geist', system-ui, sans-serif;
-  --sq-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --sq-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --sq-body: 'Hanken Grotesk', system-ui, sans-serif;
+  /* labels are tracked uppercase Hanken, not a monospace, in the new system */
+  --sq-mono: 'Hanken Grotesk', system-ui, sans-serif;
 }
 
 /* ── light mode (Settings → Appearance) ─────────────────────────────
    Accents stay SERVE red/blue/green; canvas, text and fills invert with
    enough contrast that every label stays clearly readable. */
 [data-theme='light'] {
-  --sq-bg: #f4f3ef;
-  --sq-surface: #ffffff;
-  --sq-surface-2: #eceae4;
-  --sq-gold-hi: #d63a31;
-  --sq-text: #17181c;
-  --sq-text-2: #4b5058;
-  --sq-text-3: #8a8f98;
-  --sq-border: rgba(20, 20, 25, 0.10);
-  --sq-border-2: rgba(20, 20, 25, 0.18);
-  --sq-scrim: rgba(250, 250, 248, 0.96);
-  --sq-scrim-2: rgba(255, 255, 255, 0.97);
-  --sq-fill: rgba(20, 20, 25, 0.05);
-  --sq-fill-2: rgba(20, 20, 25, 0.03);
+  --sq-bg: #f1ebe1;
+  --sq-surface: #fbf7f0;
+  --sq-surface-2: #f1ebe1;
+  --sq-gold-hi: #d43c22;
+  --sq-amber: #b8842f;
+  --sq-text: #1a1512;
+  --sq-text-2: #5b524b;
+  --sq-text-3: #8d837b;
+  --sq-border: rgba(26, 21, 18, 0.10);
+  --sq-border-2: rgba(26, 21, 18, 0.18);
+  --sq-scrim: rgba(241, 235, 225, 0.96);
+  --sq-scrim-2: rgba(251, 247, 240, 0.97);
+  --sq-fill: rgba(26, 21, 18, 0.05);
+  --sq-fill-2: rgba(26, 21, 18, 0.03);
 }
 
 /* Arabic / RTL: use Cairo for all three families so glyphs render cleanly */
 [dir='rtl'] {
-  --sq-display: 'Cairo', 'Space Grotesk', system-ui, sans-serif;
-  --sq-body: 'Cairo', 'Geist', system-ui, sans-serif;
-  --sq-mono: 'Cairo', 'JetBrains Mono', ui-monospace, monospace;
+  --sq-display: 'Cairo', 'Bricolage Grotesque', system-ui, sans-serif;
+  --sq-body: 'Cairo', 'Hanken Grotesk', system-ui, sans-serif;
+  --sq-mono: 'Cairo', 'Hanken Grotesk', system-ui, sans-serif;
 }
 
 @theme inline {
@@ -99,6 +103,7 @@ body {
 .sq-mono {
   font-family: var(--sq-mono);
   font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
 }
 .sq-display {
   font-family: var(--sq-display);
@@ -117,12 +122,9 @@ body {
   -webkit-mask-position: center;
   mask-position: center;
 }
-/* white on dark, brand red on light; the player card stays a dark island */
+/* white on dark, ember on light — the card follows the theme now */
 [data-theme='light'] .serve-mark {
   background-color: var(--sq-gold);
-}
-[data-theme='light'] .sq-dark-scope .serve-mark {
-  background-color: rgba(255, 255, 255, 0.95);
 }
 
 /* ── SERVE neon wordmark (text fallback, still used on the player card) ── */
@@ -391,30 +393,41 @@ body {
   text-shadow: 0 0 10px color-mix(in srgb, var(--sq-gold) 30%, transparent);
 }
 
-/* ── dark island: elements that stay dark in light mode (player card) ── */
+/* ── the player card follows the theme (light card in light mode) ──
+   .sq-dark-scope is kept as a hook but no longer pins dark tokens. */
 .sq-dark-scope {
-  --sq-text: #ffffff;
-  --sq-text-2: #b4b4b4;
-  --sq-text-3: #6e6e6e;
-  --sq-border: rgba(255, 255, 255, 0.08);
-  --sq-border-2: rgba(255, 255, 255, 0.14);
-  --sq-surface: #121212;
-  --sq-surface-2: #1c1c1c;
-  --sq-fill: rgba(255, 255, 255, 0.05);
-  --sq-fill-2: rgba(255, 255, 255, 0.025);
-  --sq-scrim: rgba(7, 7, 7, 0.95);
+  --sq-card-pattern: rgba(255, 255, 255, 0.05);
 }
-[data-theme='light'] .sq-dark-scope .serve-wordmark {
-  -webkit-text-stroke: 1.4px rgba(255, 255, 255, 0.92);
-  text-shadow:
-    0 0 4px rgba(255, 255, 255, 0.55),
-    0 0 14px rgba(255, 255, 255, 0.35),
-    0 0 30px rgba(255, 255, 255, 0.18);
+[data-theme='light'] .sq-dark-scope {
+  --sq-card-pattern: rgba(26, 21, 18, 0.05);
 }
-[data-theme='light'] .sq-dark-scope .serve-wordmark.accent {
-  -webkit-text-stroke-color: var(--sq-gold);
-  text-shadow:
-    0 0 4px color-mix(in srgb, var(--sq-gold) 60%, transparent),
-    0 0 16px color-mix(in srgb, var(--sq-gold) 40%, transparent),
-    0 0 34px color-mix(in srgb, var(--sq-gold) 22%, transparent);
+
+/* ── player-card star field (tints with the theme via --sq-card-pattern) ── */
+.sq-star-field {
+  background-color: var(--sq-card-pattern, rgba(255, 255, 255, 0.05));
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2064%2064%27%20width%3D%2764%27%20height%3D%2764%27%3E%3Cpath%20d%3D%27M32%208c2.8%2016.4%208.8%2022.4%2024%2024-15.2%202.8-21.2%208.8-24%2024-2.8-15.2-8.8-21.2-24-24%2015.2-1.6%2021.2-7.6%2024-24z%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.15%27%2F%3E%3C%2Fsvg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2064%2064%27%20width%3D%2764%27%20height%3D%2764%27%3E%3Cpath%20d%3D%27M32%208c2.8%2016.4%208.8%2022.4%2024%2024-15.2%202.8-21.2%208.8-24%2024-2.8-15.2-8.8-21.2-24-24%2015.2-1.6%2021.2-7.6%2024-24z%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.15%27%2F%3E%3C%2Fsvg%3E");
+  -webkit-mask-size: 64px 64px;
+  mask-size: 64px 64px;
+  -webkit-mask-repeat: repeat;
+  mask-repeat: repeat;
+}
+
+/* ── live indicator dot (open now / session running) ── */
+.sq-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--sq-green);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sq-green) 22%, transparent);
+  display: inline-block;
+  flex-shrink: 0;
+  animation: sq-pulse 2s ease-in-out infinite;
+}
+@keyframes sq-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sq-live-dot { animation: none; }
 }

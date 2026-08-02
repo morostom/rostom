@@ -40,7 +40,7 @@ export default function ConsoleSurface() {
           if (alive && a?.orgType) {
             // paint the org's real name/colour immediately — hydration
             // replaces this with the server row moments later
-            if (a.orgId) store.seedOrg({ id: a.orgId, type: a.orgType, name: a.orgName || '', accent: a.accent || '#f5453b' });
+            if (a.orgId) store.seedOrg({ id: a.orgId, type: a.orgType, name: a.orgName || '', accent: a.accent || '#ef4a2e' });
             setOrgType(a.orgType); setOrgId(a.orgId || null); await checkOwnership(a.orgType, a.orgId); setStage('live');
           }
         }

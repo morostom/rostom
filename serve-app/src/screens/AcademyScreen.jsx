@@ -40,7 +40,7 @@ export default function AcademyScreen({ academy }) {
   const legacy = academy.id === 'ramyashour';
   const cover = dyn?.cover || (legacy ? state.images?.academyCover : null);
   const logo = dyn?.logo || (legacy ? state.images?.academyLogo : null);
-  const accent = dyn?.accent || (legacy && state.academyTheme) || academy.accent || '#f5453b';
+  const accent = dyn?.accent || (legacy && state.academyTheme) || academy.accent || '#ef4a2e';
   const displayName = dyn?.name || (legacy && state.academyName) || academy.name;
 
   // dynamic academies list their real free courts; the seeded directory keeps

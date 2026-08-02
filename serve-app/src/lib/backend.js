@@ -12,7 +12,7 @@ const courtFromRow = (r) => ({ branch: r.club_id, court: r.court_no, type: r.typ
 const sessionFromRow = (r) => ({ id: r.id, branch: r.club_id, day: r.day, time: r.time, type: r.type, title: r.title, coach: r.coach, court: r.court, players: r.players || [], price: r.price ?? null, spots: r.spots ?? null, open: !!r.open, mine: false });
 const bookingFromRow = (r) => ({ id: r.id, branch: r.branch, court: r.court, title: r.title, venue: r.venue, type: r.type, day: r.day, time: r.time, endTime: r.end_time, price: r.price, method: r.method, status: r.status });
 const branchFromRow = (r) => ({ id: r.id, org_id: r.org_id, name: r.name, location: r.location, courts: r.court_count });
-const orgFromRow = (r) => ({ id: r.id, type: r.type, name: r.name, accent: r.accent, logo: r.logo, cover: r.cover, crest: r.crest, owner_phone: r.owner_phone, coach_phone: r.coach_phone, owner_id: r.owner_id });
+const orgFromRow = (r) => ({ id: r.id, type: r.type, name: r.name, accent: r.accent, logo: r.logo, cover: r.cover, crest: r.crest, owner_phone: r.owner_phone, coach_phone: r.coach_phone, maps_url: r.maps_url, address: r.address, owner_id: r.owner_id });
 const paymentFromRow = (r) => ({ id: r.id, player: r.player, item: r.item, amount: r.amount, status: r.status, method: r.method });
 const staffFromRow = (r) => ({ id: r.id, org_id: r.org_id, name: r.name, role: r.role, initials: r.initials, squads: r.squads });
 const parentLinkFromRow = (r) => ({ id: r.id, parent_identifier: r.parent_identifier, parent_name: r.parent_name, child_name: r.child_name, status: r.status || 'pending' });
