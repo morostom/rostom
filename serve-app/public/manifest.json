@@ -1,0 +1,17 @@
+{
+  "name": "SERVE — Egypt's squash home court",
+  "short_name": "SERVE",
+  "description": "Book courts, follow your club's schedule, and track your player card.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0e0b0a",
+  "theme_color": "#0e0b0a",
+  "categories": ["sports", "lifestyle"],
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

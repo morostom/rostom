@@ -6,8 +6,11 @@
 // especially once added to the home screen — so the parent gets a real banner
 // on their phone instead of the child having to call and say "check the app".
 //
-// Phase 2 (later): a service worker + Web Push + a Supabase Edge Function so the
-// alert also wakes a fully-closed app. The call sites here won't need to change.
+// Phase 2 (lib/push.js): a service worker + Web Push + a Supabase Edge Function
+// so the alert also wakes a fully-closed app. As promised, the call sites here
+// didn't need to change — phoneAlert now just prefers the service worker to
+// actually draw the banner, because iOS refuses `new Notification()` inside an
+// installed app and only accepts registration.showNotification().
 
 export function notifySupported() {
   return typeof window !== 'undefined' && 'Notification' in window;
@@ -53,9 +56,23 @@ export function phoneAlert(title, body) {
   if (typeof navigator !== 'undefined' && navigator.vibrate) {
     try { navigator.vibrate([140, 70, 140]); } catch { /* ignore */ }
   }
-  if (notifySupported() && Notification.permission === 'granted') {
-    try {
-      new Notification(title, { body, tag: 'serve-transfer', renotify: true, badge: undefined });
-    } catch { /* some browsers require a SW for Notification — ignore in phase 1 */ }
+  if (!notifySupported() || Notification.permission !== 'granted') return;
+
+  const opts = { body, tag: 'serve-transfer', renotify: true, vibrate: [140, 70, 140] };
+
+  // Prefer the service worker: it's the only path iOS allows in an installed
+  // app, and it draws the same banner a real push would.
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistration()
+      .then((reg) => {
+        if (reg) return reg.showNotification(title, opts);
+        throw new Error('no worker');
+      })
+      .catch(() => {
+        try { new Notification(title, opts); } catch { /* nothing more to try */ }
+      });
+    return;
   }
+
+  try { new Notification(title, opts); } catch { /* ignore */ }
 }

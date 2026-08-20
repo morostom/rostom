@@ -12,6 +12,7 @@ import { useNav } from '../navigation/nav';
 import { useStore, store } from '../store';
 import { useToast } from '../components/Toast';
 import { ensureNotifyPermission, notifyPermission, phoneAlert } from '../lib/notify';
+import { enablePush, pushState, iosNeedsInstall } from '../lib/push';
 import { useT } from '../i18n';
 import { normId } from '../lib/auth';
 import { tierForActivity } from '../data';
@@ -38,7 +39,16 @@ export default function ParentHomeScreen() {
 
   const [, setTick] = useState(0);
   const [perm, setPerm] = useState(notifyPermission());
+  // 'ready' means a fully-closed app will still get the alert
+  const [push, setPush] = useState('off');
   const seen = useRef(null);
+
+  // work out whether real push is available on this device/build
+  useEffect(() => {
+    let alive = true;
+    pushState().then((st) => { if (alive) setPush(st); }).catch(() => {});
+    return () => { alive = false; };
+  }, []);
 
   // tick every second for the countdowns
   useEffect(() => {
@@ -90,10 +100,22 @@ export default function ParentHomeScreen() {
   const childSessions = approved ? state.sessions.filter((s) => primaryChild && s.players?.includes(primaryChild)) : [];
 
   async function turnOnAlerts() {
+    // An iPhone in a Safari tab can never subscribe — Apple gives web push to
+    // home-screen apps only. Say so instead of asking for a permission that
+    // silently does nothing.
+    if (iosNeedsInstall()) { setPush('ios-needs-install'); return; }
+
     const res = await ensureNotifyPermission();
     setPerm(res);
-    if (res === 'granted') { phoneAlert('Alerts on', 'You’ll get a notification when your child asks you to pay.'); notify('Phone alerts enabled'); }
-    else if (res === 'denied') notify('Alerts blocked in browser settings');
+    if (res !== 'granted') { if (res === 'denied') notify(t('Alerts blocked in browser settings')); return; }
+
+    // Permission is in; now try for real push so a CLOSED app still alerts.
+    const st = await enablePush(account?.identifier);
+    setPush(st);
+    phoneAlert(t('Alerts on'), st === 'ready'
+      ? t('You’ll be alerted even when SERVE is closed.')
+      : t('You’ll get a notification when your child asks you to pay.'));
+    notify(t('Phone alerts enabled'));
   }
 
   function pay(r) { store.payRequest(r.id, 'card'); notify(`Paid — ${r.item} secured for ${r.child_name}`); }
@@ -113,17 +135,40 @@ export default function ParentHomeScreen() {
       }
     >
       <div style={{ padding: '8px 20px 28px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-        {/* enable phone alerts */}
-        {perm !== 'granted' && (
-          <button onClick={turnOnAlerts} className="sq-card serve-glow-soft" style={{ textAlign: 'left', cursor: 'pointer', padding: 15, display: 'flex', alignItems: 'center', gap: 13, borderColor: 'color-mix(in srgb, var(--sq-gold) 30%, transparent)' }}>
-            <div style={{ width: 42, height: 42, borderRadius: 11, background: 'color-mix(in srgb, var(--sq-gold) 14%, transparent)', color: 'var(--sq-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icons.Chat size={20} /></div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="sq-display" style={{ fontSize: 14.5, fontWeight: 600 }}>{t('Turn on phone alerts')}</div>
-              <div style={{ fontSize: 12, color: 'var(--sq-text-2)', marginTop: 2, lineHeight: 1.4 }}>{perm === 'denied' ? 'Blocked — enable notifications for this site in your browser.' : t('Get a banner + sound the moment your child asks you to pay.')}</div>
-            </div>
-            {perm !== 'denied' && <Icons.Chevron size={16} />}
-          </button>
-        )}
+        {/* enable phone alerts — hidden only once real push is live */}
+        {!(perm === 'granted' && push === 'ready') && (() => {
+          // iOS is the case worth spelling out: Safari never shows a prompt in
+          // a tab, so a parent tapping repeatedly would just see nothing.
+          const needsInstall = push === 'ios-needs-install';
+          const blocked = perm === 'denied';
+          const partial = perm === 'granted' && push !== 'ready';
+          const title = needsInstall ? t('Add SERVE to your Home Screen')
+            : blocked ? t('Alerts are blocked')
+            : partial ? t('Alerts on — while SERVE is open')
+            : t('Turn on phone alerts');
+          const line = needsInstall
+            ? t('iPhone only alerts installed apps. Tap Share, then “Add to Home Screen”, and open SERVE from there.')
+            : blocked ? t('Enable notifications for this site in your browser settings.')
+            : partial ? t('This build can’t wake a closed app. You’ll still get alerts with SERVE open.')
+            : t('Get a banner + sound the moment your child asks you to pay.');
+          const actionable = !needsInstall && !blocked && !partial;
+          return (
+            <button
+              onClick={actionable ? turnOnAlerts : undefined}
+              className="sq-card serve-glow-soft"
+              style={{ textAlign: 'left', cursor: actionable ? 'pointer' : 'default', padding: 15, display: 'flex', alignItems: 'center', gap: 13, borderColor: 'color-mix(in srgb, var(--sq-gold) 30%, transparent)' }}
+            >
+              <div style={{ width: 42, height: 42, borderRadius: 11, background: 'color-mix(in srgb, var(--sq-gold) 14%, transparent)', color: 'var(--sq-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                {needsInstall ? <Icons.Upload size={20} /> : <Icons.Chat size={20} />}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="sq-display" style={{ fontSize: 14.5, fontWeight: 600 }}>{title}</div>
+                <div style={{ fontSize: 12, color: 'var(--sq-text-2)', marginTop: 2, lineHeight: 1.4 }}>{line}</div>
+              </div>
+              {actionable && <Icons.Chevron size={16} />}
+            </button>
+          );
+        })()}
 
         {/* child */}
         <div>

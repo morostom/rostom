@@ -6,6 +6,7 @@ import { useSyncExternalStore } from 'react';
 import { PAYMENTS, COACHES, CLUB, ACADEMY } from './data';
 import { hasBackend } from './lib/supabase';
 import * as backend from './lib/backend';
+import { sendPush } from './lib/push';
 
 const KEY = 'serve_state_v5';
 
@@ -357,6 +358,17 @@ export const store = {
     };
     commit({ ...state, paymentRequests: [...state.paymentRequests, row] });
     if (hasBackend) backend.addPaymentRequest(row);
+    // wake the parent's phone even with SERVE closed. Fire-and-forget: the
+    // request is already made, so a failed push must never undo it.
+    if (row.parent_identifier) {
+      sendPush({
+        identifier: row.parent_identifier,
+        title: `${row.child_name} needs you to pay`,
+        body: `${row.item} \u00b7 EGP ${row.amount} \u2014 approve within 10 min`,
+        kind: 'payment',
+        urgent: true,
+      });
+    }
     return row;
   },
   // parent approves & pays — confirms the booking under the child's name.
@@ -461,6 +473,14 @@ export const store = {
     const row = { id: 'cx' + Date.now(), session_id: session.id, session_title: session.title, club_id: 'heliopolis', coach: session.coach, player: session.players?.[0] || '', parent_identifier, reason: reason || '', status: 'pending' };
     commit({ ...state, cancellations: [...state.cancellations, row] });
     if (hasBackend) backend.addCancellation(row);
+    if (parent_identifier) {
+      sendPush({
+        identifier: parent_identifier,
+        title: `${row.player} wants to cancel a session`,
+        body: `${row.session_title}${row.reason ? ' \u2014 ' + row.reason : ''}`,
+        kind: 'cancellation',
+      });
+    }
     return row;
   },
   approveCancellation: (id) => {
