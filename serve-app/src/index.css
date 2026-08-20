@@ -428,8 +428,13 @@ body {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.45; }
 }
+/* upload-in-progress spinner (UploadSlot) */
+.sq-spin { animation: sq-rotate 0.7s linear infinite; }
+@keyframes sq-rotate { to { transform: rotate(360deg); } }
+
 @media (prefers-reduced-motion: reduce) {
   .sq-live-dot { animation: none; }
+  .sq-spin { animation-duration: 2s; }
 }
 
 /* ── desktop console ────────────────────────────────────────────────

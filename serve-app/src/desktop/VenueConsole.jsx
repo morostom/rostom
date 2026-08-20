@@ -17,6 +17,7 @@ import SQLogo from '../components/SQLogo';
 import ThemeScope from '../components/ThemeScope';
 import ImgPlaceholder from '../components/ImgPlaceholder';
 import UploadSlot from '../components/UploadSlot';
+import { isStored } from '../lib/storage';
 import { ToastProvider, useToast } from '../components/Toast';
 import BranchesPanel from './BranchesPanel';
 import SchedulePanel from './SchedulePanel';
@@ -554,11 +555,11 @@ function PublicPage({ orgId, orgType, branches }) {
             <div style={{ display: 'flex', gap: 18 }}>
               <div style={{ display: 'flex', flexDirection: 'column', width: 118, flexShrink: 0 }}>
                 <Label>{t(isClub ? 'Crest' : 'Logo')}</Label>
-                <UploadSlot value={org.logo} onChange={(d) => { store.updateOrg(orgId, { logo: d }); notify(t('Logo updated')); }} label={t('Drop image')} height={118} radius={18} maxDim={512} />
+                <UploadSlot value={org.logo} folder={`org/${orgId}`} onChange={(d) => { store.updateOrg(orgId, { logo: d }); if (!isStored(d)) notify(t('Logo updated')); }} label={t('Drop image')} height={118} radius={18} maxDim={512} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                 <Label>{t('Cover photo')}</Label>
-                <UploadSlot value={org.cover} onChange={(d) => { store.updateOrg(orgId, { cover: d }); notify(t('Cover updated')); }} label={t('Drop a cover photo of your courts')} height={118} radius={14} />
+                <UploadSlot value={org.cover} folder={`org/${orgId}`} onChange={(d) => { store.updateOrg(orgId, { cover: d }); if (!isStored(d)) notify(t('Cover updated')); }} label={t('Drop a cover photo of your courts')} height={118} radius={14} />
               </div>
             </div>
           </div>
