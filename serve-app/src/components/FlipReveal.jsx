@@ -17,7 +17,7 @@ function CardBack() {
         alignItems: 'center',
         justifyContent: 'center',
         background:
-          'repeating-linear-gradient(135deg, rgba(245,69,59,0.08) 0 10px, transparent 10px 22px), linear-gradient(165deg, #161616 0%, #070707 100%)',
+          'repeating-linear-gradient(135deg, rgba(245,69,59,0.08) 0 10px, transparent 10px 22px), linear-gradient(165deg, #1e1917 0%, #0e0b0a 100%)',
         border: '1px solid color-mix(in srgb, var(--sq-gold) 45%, transparent)',
         // the back is the side facing us before the flip
         transform: 'rotateY(180deg)',

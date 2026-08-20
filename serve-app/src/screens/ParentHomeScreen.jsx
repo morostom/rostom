@@ -130,7 +130,7 @@ export default function ParentHomeScreen() {
           <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>{t('Your child')}</div>
           {primaryChild ? (
             <div className="sq-card" style={{ padding: 16, display: 'flex', alignItems: 'center', gap: 14 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 24, background: 'linear-gradient(135deg, #2a2a2a, #161616)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 700, flexShrink: 0 }}>{primaryChild.split(' ').map((w) => w[0]).slice(0, 2).join('')}</div>
+              <div style={{ width: 48, height: 48, borderRadius: 24, background: 'linear-gradient(135deg, #2a2a2a, #1e1917)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 700, flexShrink: 0 }}>{primaryChild.split(' ').map((w) => w[0]).slice(0, 2).join('')}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="sq-display" style={{ fontSize: 16, fontWeight: 700 }}>{primaryChild}</div>
                 <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-2)', marginTop: 2 }}>
@@ -254,7 +254,7 @@ export default function ParentHomeScreen() {
                     <div style={{ fontSize: 13.5, fontWeight: 500 }}>{r.item}</div>
                     <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', marginTop: 2 }}>{r.child_name} · EGP {r.amount}</div>
                   </div>
-                  <span className="sq-chip" style={{ fontSize: 10, color: r.status === 'paid' ? 'var(--sq-green)' : 'var(--sq-text-3)', borderColor: r.status === 'paid' ? 'rgba(74,222,128,0.25)' : undefined, background: r.status === 'paid' ? 'rgba(74,222,128,0.1)' : undefined }}>{r.status === 'paid' ? t('Paid') : r.status === 'declined' ? t('Declined') : t('Expired')}</span>
+                  <span className="sq-chip" style={{ fontSize: 10, color: r.status === 'paid' ? 'var(--sq-green)' : 'var(--sq-text-3)', borderColor: r.status === 'paid' ? 'rgba(47,179,122,0.25)' : undefined, background: r.status === 'paid' ? 'rgba(47,179,122,0.1)' : undefined }}>{r.status === 'paid' ? t('Paid') : r.status === 'declined' ? t('Declined') : t('Expired')}</span>
                 </div>
               ))}
             </div>

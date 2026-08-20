@@ -206,7 +206,7 @@ export default function SchedulePanel({ orgId, branch, branches, Topbar }) {
       <Topbar title="Schedule builder" sub="Manual · auto · PDF import" trailing={
         <div style={{ display: 'flex', gap: 4, padding: 3, background: 'var(--sq-surface)', borderRadius: 8, border: '1px solid var(--sq-border)' }}>
           {[['manual', 'Manual'], ['auto', 'Auto-schedule'], ['pdf', 'PDF import']].map(([id, label]) => (
-            <button key={id} onClick={() => setMode(id)} style={{ padding: '7px 14px', borderRadius: 6, fontSize: 12, fontFamily: 'var(--sq-display)', fontWeight: 600, border: 0, cursor: 'pointer', background: id === mode ? 'var(--sq-gold)' : 'transparent', color: id === mode ? '#0a0a0a' : 'var(--sq-text-2)' }}>{label}</button>
+            <button key={id} onClick={() => setMode(id)} style={{ padding: '7px 14px', borderRadius: 6, fontSize: 12, fontFamily: 'var(--sq-display)', fontWeight: 600, border: 0, cursor: 'pointer', background: id === mode ? 'var(--sq-gold)' : 'transparent', color: id === mode ? '#0e0b0a' : 'var(--sq-text-2)' }}>{label}</button>
           ))}
         </div>
       } />

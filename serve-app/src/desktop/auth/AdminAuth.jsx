@@ -106,7 +106,7 @@ export default function AdminAuth({ onLive }) {
             <div className="sq-card" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ display: 'flex', background: 'var(--sq-bg)', borderRadius: 12, padding: 4, border: '1px solid var(--sq-border)' }}>
                 {[['signup', 'Create account'], ['login', 'Log in']].map(([id, label]) => (
-                  <button key={id} onClick={() => { setMode(id); setErr(''); }} style={{ flex: 1, padding: '11px', borderRadius: 9, border: 0, cursor: 'pointer', fontFamily: 'var(--sq-display)', fontWeight: 600, fontSize: 13.5, background: mode === id ? 'var(--sq-gold)' : 'transparent', color: mode === id ? '#0a0a0a' : 'var(--sq-text-2)' }}>{t(label)}</button>
+                  <button key={id} onClick={() => { setMode(id); setErr(''); }} style={{ flex: 1, padding: '11px', borderRadius: 9, border: 0, cursor: 'pointer', fontFamily: 'var(--sq-display)', fontWeight: 600, fontSize: 13.5, background: mode === id ? 'var(--sq-gold)' : 'transparent', color: mode === id ? '#0e0b0a' : 'var(--sq-text-2)' }}>{t(label)}</button>
                 ))}
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
@@ -191,7 +191,7 @@ export default function AdminAuth({ onLive }) {
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                   {BRAND_COLORS.map((c) => {
                     const on = accent.toLowerCase() === c.hex.toLowerCase();
-                    return <button key={c.hex} title={c.name} onClick={() => setAccent(c.hex)} style={{ width: 40, height: 40, borderRadius: 11, background: c.hex, cursor: 'pointer', border: 0, color: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: on ? `0 0 0 2px var(--sq-bg), 0 0 0 4px ${c.hex}` : 'none' }}>{on && <Icons.Check size={16} />}</button>;
+                    return <button key={c.hex} title={c.name} onClick={() => setAccent(c.hex)} style={{ width: 40, height: 40, borderRadius: 11, background: c.hex, cursor: 'pointer', border: 0, color: '#0e0b0a', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: on ? `0 0 0 2px var(--sq-bg), 0 0 0 4px ${c.hex}` : 'none' }}>{on && <Icons.Check size={16} />}</button>;
                   })}
                 </div>
               </div>

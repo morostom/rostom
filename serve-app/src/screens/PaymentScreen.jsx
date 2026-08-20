@@ -1,5 +1,5 @@
 // PaymentScreen.jsx — pay for a court (or session) reservation. Apple Pay,
-// Credit/Debit card, and TELDA. On success the reservation is saved to the
+// Credit/Debit card, and InstaPay. On success the reservation is saved to the
 // store: a Heliopolis live court is also marked booked (secureCourt), academy &
 // guest-pass courts just record the booking.
 
@@ -15,7 +15,7 @@ import { useT } from '../i18n';
 const METHODS = [
   { id: 'applepay', label: 'Apple Pay', sub: 'One tap with Face ID' },
   { id: 'card', label: 'Credit / Debit card', sub: 'Visa · Mastercard · Meeza' },
-  { id: 'telda', label: 'TELDA', sub: 'Pay from your TELDA balance' },
+  { id: 'instapay', label: 'InstaPay', sub: 'Bank-to-bank transfer' },
 ];
 
 function CardForm() {
@@ -71,13 +71,13 @@ export default function PaymentScreen(params) {
         header={phase === 'form' ? (
           <div style={{ padding: '6px 16px 10px', display: 'flex', alignItems: 'center', gap: 12 }}>
             <Pill onClick={() => nav.pop()}><Icons.Chevron dir="left" size={16} /></Pill>
-            <span className="sq-display" style={{ fontSize: 17, fontWeight: 700 }}>{t('Checkout')}</span>
+            <span className="sq-display" style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.035em' }}>{t('Checkout')}</span>
           </div>
         ) : null}
         tabBar={phase === 'form' ? (
           <div style={{ padding: '12px 20px', borderTop: '1px solid var(--sq-border)', background: 'var(--sq-scrim)', display: 'flex', flexDirection: 'column', gap: 10 }}>
             <button className="sq-btn-gold serve-glow-soft" style={{ width: '100%', padding: '15px', fontSize: 14.5 }} onClick={pay}>
-              {method === 'applepay' ? <> Pay</> : `${t('Pay EGP')} ${price}`}
+              {`${t('Pay EGP')} ${price}`}
             </button>
             {parentLink && (
               <button className="sq-btn-ghost" style={{ width: '100%', padding: '13px', fontSize: 13.5, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }} onClick={transferToParent}>
@@ -142,10 +142,11 @@ export default function PaymentScreen(params) {
                 <Icons.Court size={22} />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="sq-display" style={{ fontSize: 15, fontWeight: 600 }}>{heading}</div>
-                <div className="sq-mono" style={{ fontSize: 11.5, color: 'var(--sq-text-2)', marginTop: 2 }}>{venue} · {day} {time}{endTime ? `–${endTime}` : ''}</div>
+                <div className="sq-display" style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em' }}>{heading}</div>
+                <div style={{ fontSize: 12.5, color: 'var(--sq-text-2)', marginTop: 3 }}>{venue}</div>
+                <div style={{ fontSize: 12.5, color: 'var(--sq-text-3)', marginTop: 1 }}>{day} · {time}{endTime ? `–${endTime}` : ''}</div>
               </div>
-              <div className="sq-display" style={{ fontSize: 18, fontWeight: 700 }}>EGP {price}</div>
+              <div className="sq-display" style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.02em', flexShrink: 0 }}>EGP {price}</div>
             </div>
             {guest && (
               <div style={{ display: 'flex', gap: 9, alignItems: 'center', padding: '10px 12px', borderRadius: 10, background: 'color-mix(in srgb, var(--sq-gold) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--sq-gold) 22%, transparent)', fontSize: 12, color: 'var(--sq-text-2)' }}>
@@ -160,7 +161,7 @@ export default function PaymentScreen(params) {
                   return (
                     <button key={m.id} onClick={() => setMethod(m.id)} style={{ textAlign: 'left', cursor: 'pointer', padding: '14px 16px', borderRadius: 13, display: 'flex', alignItems: 'center', gap: 13, background: on ? 'color-mix(in srgb, var(--sq-gold) 10%, var(--sq-surface))' : 'var(--sq-surface)', border: '1.5px solid ' + (on ? 'color-mix(in srgb, var(--sq-gold) 50%, transparent)' : 'var(--sq-border)') }}>
                       <span style={{ width: 30, display: 'flex', justifyContent: 'center', color: on ? 'var(--sq-gold)' : 'var(--sq-text-2)' }}>
-                        {m.id === 'applepay' ? <span style={{ fontWeight: 600, fontSize: 15, fontFamily: 'system-ui' }}> Pay</span> : m.id === 'telda' ? <span style={{ fontFamily: 'var(--sq-display)', fontWeight: 700, fontSize: 13 }}>telda</span> : <Icons.Wallet size={20} />}
+                        {m.id === 'applepay' ? <span style={{ fontWeight: 600, fontSize: 15, fontFamily: 'system-ui' }}> Pay</span> : m.id === 'instapay' ? <span style={{ fontFamily: 'var(--sq-display)', fontWeight: 700, fontSize: 12.5 }}>insta</span> : <Icons.Wallet size={20} />}
                       </span>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 14, fontWeight: 600 }}>{t(m.label)}</div>

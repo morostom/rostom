@@ -44,7 +44,7 @@ function Sidebar({ active, onNav, orgId }) {
     { id: 'revenue', icon: <Icons.TrendUp size={16} />, label: 'Revenue' },
   ];
   return (
-    <div style={{ width: SIDEBAR_W, flexShrink: 0, height: '100%', background: '#0a0a0a', borderRight: '1px solid var(--sq-border)', display: 'flex', flexDirection: 'column', padding: '18px 12px' }}>
+    <div style={{ width: SIDEBAR_W, flexShrink: 0, height: '100%', background: '#0e0b0a', borderRight: '1px solid var(--sq-border)', display: 'flex', flexDirection: 'column', padding: '18px 12px' }}>
       <div style={{ padding: '4px 8px 18px' }}>
         <SQLogo size={20} />
       </div>
@@ -111,7 +111,7 @@ function Seg({ options, value, onChange }) {
   return (
     <div style={{ display: 'flex', gap: 4, padding: 3, background: 'var(--sq-surface)', borderRadius: 8, border: '1px solid var(--sq-border)' }}>
       {options.map((o) => (
-        <button key={o} onClick={() => onChange(o)} style={{ padding: '6px 14px', borderRadius: 6, fontSize: 12, fontFamily: 'var(--sq-display)', fontWeight: 600, border: 0, cursor: 'pointer', background: o === value ? 'var(--sq-gold)' : 'transparent', color: o === value ? '#0a0a0a' : 'var(--sq-text-2)' }}>{o}</button>
+        <button key={o} onClick={() => onChange(o)} style={{ padding: '6px 14px', borderRadius: 6, fontSize: 12, fontFamily: 'var(--sq-display)', fontWeight: 600, border: 0, cursor: 'pointer', background: o === value ? 'var(--sq-gold)' : 'transparent', color: o === value ? '#0e0b0a' : 'var(--sq-text-2)' }}>{o}</button>
       ))}
     </div>
   );
@@ -144,9 +144,9 @@ function MiniSchedule() {
   const HOURS = 14, NOW = 1;
   const color = (t) => ({
     booked: { bg: 'color-mix(in srgb, var(--sq-gold) 18%, transparent)', border: 'color-mix(in srgb, var(--sq-gold) 35%, transparent)', color: 'var(--sq-gold)' },
-    coach: { bg: 'rgba(78,168,255,0.15)', border: 'rgba(78,168,255,0.35)', color: 'var(--sq-blue)' },
-    clinic: { bg: 'rgba(78,168,255,0.15)', border: 'rgba(78,168,255,0.35)', color: 'var(--sq-blue)' },
-    playing: { bg: 'rgba(74,222,128,0.18)', border: 'rgba(74,222,128,0.4)', color: 'var(--sq-green)' },
+    coach: { bg: 'rgba(46,140,240,0.15)', border: 'rgba(46,140,240,0.35)', color: 'var(--sq-blue)' },
+    clinic: { bg: 'rgba(46,140,240,0.15)', border: 'rgba(46,140,240,0.35)', color: 'var(--sq-blue)' },
+    playing: { bg: 'rgba(47,179,122,0.18)', border: 'rgba(47,179,122,0.4)', color: 'var(--sq-green)' },
     peak: { bg: 'repeating-linear-gradient(135deg, color-mix(in srgb, var(--sq-gold) 6%, transparent) 0 4px, transparent 4px 10px)', border: 'color-mix(in srgb, var(--sq-gold) 18%, transparent)', color: 'var(--sq-gold)' },
   })[t];
   return (
@@ -204,7 +204,7 @@ function RevenueChart({ range = '7d' }) {
         {[0, 0.5, 1].map((g) => <line key={g} x1={pl} x2={w} y1={pt + g * ch} y2={pt + g * ch} stroke="rgba(255,255,255,0.05)" />)}
         <path d={fill} fill="url(#rev-fill)" />
         <path d={path} fill="none" stroke="var(--sq-gold)" strokeWidth="1.6" />
-        {pts.map((p, i) => <circle key={i} cx={p[0]} cy={p[1]} r={i === pts.length - 1 ? 4 : 2.5} fill={i === pts.length - 1 ? 'var(--sq-gold)' : '#0a0a0a'} stroke="var(--sq-gold)" strokeWidth="1.4" />)}
+        {pts.map((p, i) => <circle key={i} cx={p[0]} cy={p[1]} r={i === pts.length - 1 ? 4 : 2.5} fill={i === pts.length - 1 ? 'var(--sq-gold)' : '#0e0b0a'} stroke="var(--sq-gold)" strokeWidth="1.4" />)}
         {REVENUE_DAYS.map((d, i) => <text key={i} x={pts[i][0]} y={h - 4} textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize="9.5" fontFamily="var(--sq-mono)">{d}</text>)}
       </svg>
     </div>
@@ -243,7 +243,7 @@ function Dashboard({ orgId }) {
             <div style={{ display: 'flex', gap: 14, fontSize: 11, color: 'var(--sq-text-3)', paddingTop: 10, borderTop: '1px solid var(--sq-border)' }}>
               <Legend dot="var(--sq-gold)">Booked</Legend>
               <Legend dot="var(--sq-blue)">Coach priority</Legend>
-              <Legend dot="rgba(74,222,128,0.7)">In-play</Legend>
+              <Legend dot="rgba(47,179,122,0.7)">In-play</Legend>
             </div>
           </div>
           <div className="sq-card" style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -294,10 +294,10 @@ function FullSchedule() {
   ];
   const color = (t) => ({
     booked: { bg: 'color-mix(in srgb, var(--sq-gold) 15%, transparent)', border: 'color-mix(in srgb, var(--sq-gold) 40%, transparent)', col: 'var(--sq-gold)' },
-    coach: { bg: 'rgba(78,168,255,0.15)', border: 'rgba(78,168,255,0.4)', col: 'var(--sq-blue)' },
-    clinic: { bg: 'rgba(78,168,255,0.12)', border: 'rgba(78,168,255,0.35)', col: 'var(--sq-blue)', dashed: true },
-    playing: { bg: 'rgba(74,222,128,0.18)', border: 'rgba(74,222,128,0.45)', col: 'var(--sq-green)' },
-    block: { bg: 'rgba(239,85,96,0.12)', border: 'rgba(239,85,96,0.4)', col: 'var(--sq-danger)', dashed: true },
+    coach: { bg: 'rgba(46,140,240,0.15)', border: 'rgba(46,140,240,0.4)', col: 'var(--sq-blue)' },
+    clinic: { bg: 'rgba(46,140,240,0.12)', border: 'rgba(46,140,240,0.35)', col: 'var(--sq-blue)', dashed: true },
+    playing: { bg: 'rgba(47,179,122,0.18)', border: 'rgba(47,179,122,0.45)', col: 'var(--sq-green)' },
+    block: { bg: 'rgba(239,74,46,0.12)', border: 'rgba(239,74,46,0.4)', col: 'var(--sq-danger)', dashed: true },
   })[t];
   const NOW = 8.5;
   return (
@@ -312,7 +312,7 @@ function FullSchedule() {
       </div>
       <div style={{ position: 'relative' }}>
         <div style={{ position: 'absolute', top: 0, bottom: 0, left: `calc(${COURT_W}px + ${(NOW / HOURS) * 100}% - ${(COURT_W * NOW) / HOURS}px)`, width: 2, background: 'var(--sq-gold)', zIndex: 5, opacity: 0.7 }}>
-          <div style={{ position: 'absolute', top: -5, left: -4, padding: '2px 5px', background: 'var(--sq-gold)', color: '#0a0a0a', borderRadius: 4, fontSize: 9, fontWeight: 700, fontFamily: 'var(--sq-mono)' }}>15:30</div>
+          <div style={{ position: 'absolute', top: -5, left: -4, padding: '2px 5px', background: 'var(--sq-gold)', color: '#0e0b0a', borderRadius: 4, fontSize: 9, fontWeight: 700, fontFamily: 'var(--sq-mono)' }}>15:30</div>
         </div>
         {courts.map((c, ci) => (
           <div key={c.n} style={{ display: 'flex', height: ROW_H, borderBottom: ci < courts.length - 1 ? '1px solid var(--sq-border)' : 'none' }}>
@@ -357,8 +357,8 @@ function Schedule() {
           <div style={{ display: 'flex', gap: 16, alignItems: 'center', fontSize: 11.5, color: 'var(--sq-text-2)' }}>
             <Legend dot="var(--sq-gold)">Paid booking</Legend>
             <Legend dot="var(--sq-blue)">Coach priority</Legend>
-            <Legend dot="rgba(74,222,128,0.7)">In play</Legend>
-            <Legend dot="rgba(239,85,96,0.6)">Blocked</Legend>
+            <Legend dot="rgba(47,179,122,0.7)">In play</Legend>
+            <Legend dot="rgba(239,74,46,0.6)">Blocked</Legend>
           </div>
           <Seg options={['Day', 'Week', 'Month']} value={view} onChange={(v) => { setView(v); notify(`${v} view`); }} />
         </div>
@@ -460,7 +460,7 @@ function Coaches({ orgId }) {
           {coaches.map((c) => (
             <div key={c.id} className="sq-card" style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 44, height: 44, borderRadius: 22, background: 'linear-gradient(135deg, #2a2a2a, #161616)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 600 }}>{c.initials}</div>
+                <div style={{ width: 44, height: 44, borderRadius: 22, background: 'linear-gradient(135deg, #2a2a2a, #1e1917)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 600 }}>{c.initials}</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div className="sq-display" style={{ fontSize: 15, fontWeight: 600 }}>{c.name}</div>
                   <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-gold)' }}>{c.role}</div>
@@ -510,7 +510,7 @@ function Players() {
           {rows.map((p, i) => (
             <div key={p.name} style={{ display: 'grid', gridTemplateColumns: GRID, gap: 12, padding: '13px 20px', alignItems: 'center', borderBottom: i < rows.length - 1 ? '1px solid var(--sq-border)' : 'none' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 16, background: 'linear-gradient(135deg, #2a2a2a, #161616)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11.5, fontWeight: 600 }}>{p.initials}</div>
+                <div style={{ width: 32, height: 32, borderRadius: 16, background: 'linear-gradient(135deg, #2a2a2a, #1e1917)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11.5, fontWeight: 600 }}>{p.initials}</div>
                 <div>
                   <div style={{ fontSize: 13.5, fontWeight: 500 }}>{p.name}</div>
                   <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)' }}>Joined {p.joined}</div>
@@ -518,7 +518,7 @@ function Players() {
               </div>
               <span style={{ fontSize: 12.5, color: 'var(--sq-text-2)' }}>{p.division}</span>
               <span style={{ fontSize: 12.5, color: 'var(--sq-text-2)' }}>{p.coach}</span>
-              <span className={'sq-chip ' + (pill(p.status) === 'gold' ? 'gold' : '')} style={{ width: 'fit-content', padding: '3px 10px', fontSize: 10.5, textTransform: 'capitalize', ...(pill(p.status) === 'green' ? { color: 'var(--sq-green)', borderColor: 'rgba(74,222,128,0.25)', background: 'rgba(74,222,128,0.1)' } : {}) }}>{p.status}</span>
+              <span className={'sq-chip ' + (pill(p.status) === 'gold' ? 'gold' : '')} style={{ width: 'fit-content', padding: '3px 10px', fontSize: 10.5, textTransform: 'capitalize', ...(pill(p.status) === 'green' ? { color: 'var(--sq-green)', borderColor: 'rgba(47,179,122,0.25)', background: 'rgba(47,179,122,0.1)' } : {}) }}>{p.status}</span>
               <span className="sq-mono" style={{ fontSize: 12.5 }}>{p.spend}</span>
             </div>
           ))}
@@ -654,7 +654,7 @@ function AcademyProfile({ orgId }) {
               {BRAND_COLORS.map((c) => {
                 const on = (org.accent || '#ef4a2e').toLowerCase() === c.hex.toLowerCase();
                 return (
-                  <button key={c.hex} title={c.name} onClick={() => { store.updateOrg(orgId, { accent: c.hex }); notify(`Theme set to ${c.name}`); }} style={{ width: 38, height: 38, borderRadius: 10, background: c.hex, cursor: 'pointer', border: 0, color: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: on ? `0 0 0 2px var(--sq-bg), 0 0 0 4px ${c.hex}` : 'none' }}>
+                  <button key={c.hex} title={c.name} onClick={() => { store.updateOrg(orgId, { accent: c.hex }); notify(`Theme set to ${c.name}`); }} style={{ width: 38, height: 38, borderRadius: 10, background: c.hex, cursor: 'pointer', border: 0, color: '#0e0b0a', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: on ? `0 0 0 2px var(--sq-bg), 0 0 0 4px ${c.hex}` : 'none' }}>
                     {on && <Icons.Check size={16} />}
                   </button>
                 );
@@ -668,7 +668,7 @@ function AcademyProfile({ orgId }) {
           <div className="sq-card" style={{ padding: 0, overflow: 'hidden' }}>
             <div style={{ position: 'relative', height: 150 }}>
               {org.cover ? <img src={org.cover} alt="" style={{ width: '100%', height: 150, objectFit: 'cover' }} /> : <ImgPlaceholder label="cover" height={150} radius={0} hue="gold" style={{ borderRadius: 0, border: 0 }} />}
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(7,7,7,0.95) 100%)' }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(14,11,10,0.95) 100%)' }} />
               <span className="sq-chip gold" style={{ position: 'absolute', top: 12, left: 12 }}><span className="sq-live-dot" /> Open now</span>
             </div>
             <div style={{ padding: '0 18px 18px', marginTop: -34, position: 'relative' }}>
@@ -786,7 +786,7 @@ function CreateClinic({ orgId }) {
           <div className="sq-card" style={{ padding: 0, overflow: 'hidden' }}>
             <ImgPlaceholder label="cover" height={140} hue="navy" radius={0} style={{ borderRadius: 0, border: 0 }} />
             <div style={{ padding: 18 }}>
-              <span className="sq-chip" style={{ color: 'var(--sq-blue)', borderColor: 'rgba(78,168,255,0.25)', background: 'rgba(78,168,255,0.1)' }}><Icons.Users size={11} /> Team Training · {spots || 8} players</span>
+              <span className="sq-chip" style={{ color: 'var(--sq-blue)', borderColor: 'rgba(46,140,240,0.25)', background: 'rgba(46,140,240,0.1)' }}><Icons.Users size={11} /> Team Training · {spots || 8} players</span>
               <h2 className="sq-display" style={{ margin: '10px 0 4px', fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>{title || 'Team training'}</h2>
               <div style={{ color: 'var(--sq-text-2)', fontSize: 12.5 }}>{orgName} · Court {court} · {day} {time}</div>
               <div style={{ paddingTop: 14, marginTop: 14, borderTop: '1px solid var(--sq-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -835,7 +835,7 @@ function Wizard({ onExit, orgId }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {SETUP_STEPS.map((s, i) => (
               <button key={s.key} onClick={() => setStep(i)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 8px', borderRadius: 8, background: i === step ? 'color-mix(in srgb, var(--sq-gold) 8%, transparent)' : 'transparent', border: 0, cursor: 'pointer', textAlign: 'left', fontFamily: 'var(--sq-body)' }}>
-                <div style={{ width: 26, height: 26, borderRadius: 13, flexShrink: 0, background: i < step ? 'var(--sq-gold)' : i === step ? 'color-mix(in srgb, var(--sq-gold) 15%, transparent)' : 'var(--sq-surface-2)', border: '1px solid', borderColor: i <= step ? 'color-mix(in srgb, var(--sq-gold) 40%, transparent)' : 'var(--sq-border)', color: i < step ? '#0a0a0a' : i === step ? 'var(--sq-gold)' : 'var(--sq-text-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--sq-display)', fontSize: 11.5, fontWeight: 700 }}>
+                <div style={{ width: 26, height: 26, borderRadius: 13, flexShrink: 0, background: i < step ? 'var(--sq-gold)' : i === step ? 'color-mix(in srgb, var(--sq-gold) 15%, transparent)' : 'var(--sq-surface-2)', border: '1px solid', borderColor: i <= step ? 'color-mix(in srgb, var(--sq-gold) 40%, transparent)' : 'var(--sq-border)', color: i < step ? '#0e0b0a' : i === step ? 'var(--sq-gold)' : 'var(--sq-text-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--sq-display)', fontSize: 11.5, fontWeight: 700 }}>
                   {i < step ? <Icons.Check size={13} /> : s.n}
                 </div>
                 <span style={{ fontSize: 13, color: i === step ? 'var(--sq-text)' : i < step ? 'var(--sq-text-2)' : 'var(--sq-text-3)', fontWeight: i === step ? 500 : 400 }}>{s.label}</span>
@@ -892,7 +892,7 @@ function WizardStep({ step, orgId, orgName }) {
             <div key={d.day} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 18px', borderBottom: i < OPERATING_HOURS.length - 1 ? '1px solid var(--sq-border)' : 'none' }}>
               <span style={{ flex: 1, fontSize: 13.5, fontWeight: 500 }}>{d.day}</span>
               <span className="sq-mono" style={{ fontSize: 13, color: 'var(--sq-text-2)' }}>{d.open} — {d.close}</span>
-              <span className="sq-chip" style={{ color: 'var(--sq-green)', borderColor: 'rgba(74,222,128,0.25)', background: 'rgba(74,222,128,0.1)', fontSize: 10.5 }}>Open</span>
+              <span className="sq-chip" style={{ color: 'var(--sq-green)', borderColor: 'rgba(47,179,122,0.25)', background: 'rgba(47,179,122,0.1)', fontSize: 10.5 }}>Open</span>
             </div>
           ))}
         </div>
@@ -925,7 +925,7 @@ function WizardStep({ step, orgId, orgName }) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           {ADMIN_COACHES.slice(0, 4).map((c) => (
             <div key={c.name} className="sq-card" style={{ padding: 14, display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 38, height: 38, borderRadius: 19, background: 'linear-gradient(135deg, #2a2a2a, #161616)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600 }}>{c.initials}</div>
+              <div style={{ width: 38, height: 38, borderRadius: 19, background: 'linear-gradient(135deg, #2a2a2a, #1e1917)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600 }}>{c.initials}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13, fontWeight: 600 }}>{c.name}</div>
                 <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-gold)' }}>{c.role}</div>
@@ -982,14 +982,14 @@ function Payments() {
           {rows.map((p, i) => (
             <div key={p.id} style={{ display: 'grid', gridTemplateColumns: GRID, gap: 12, padding: '13px 20px', alignItems: 'center', borderBottom: i < rows.length - 1 ? '1px solid var(--sq-border)' : 'none' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
-                <div style={{ width: 30, height: 30, borderRadius: 15, background: 'linear-gradient(135deg, #2a2a2a, #161616)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10.5, fontWeight: 600 }}>{p.player.split(' ').map((w) => w[0]).slice(0, 2).join('')}</div>
+                <div style={{ width: 30, height: 30, borderRadius: 15, background: 'linear-gradient(135deg, #2a2a2a, #1e1917)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10.5, fontWeight: 600 }}>{p.player.split(' ').map((w) => w[0]).slice(0, 2).join('')}</div>
                 <span style={{ fontSize: 13.5, fontWeight: 500 }}>{p.player}</span>
               </div>
               <span style={{ fontSize: 12.5, color: 'var(--sq-text-2)' }}>{p.item}</span>
               <span className="sq-mono" style={{ fontSize: 13 }}>EGP {p.amount}</span>
               <div>
                 {p.status === 'paid'
-                  ? <span className="sq-chip" style={{ fontSize: 10.5, color: 'var(--sq-green)', borderColor: 'rgba(74,222,128,0.25)', background: 'rgba(74,222,128,0.1)' }}><Icons.Check size={11} /> {p.method === 'cash' ? 'Cash' : 'Card'}</span>
+                  ? <span className="sq-chip" style={{ fontSize: 10.5, color: 'var(--sq-green)', borderColor: 'rgba(47,179,122,0.25)', background: 'rgba(47,179,122,0.1)' }}><Icons.Check size={11} /> {p.method === 'cash' ? 'Cash' : 'Card'}</span>
                   : <span className="sq-chip" style={{ fontSize: 10.5 }}>Unpaid</span>}
               </div>
               <div style={{ display: 'flex', gap: 6 }}>

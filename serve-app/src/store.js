@@ -64,7 +64,7 @@ function seedSessions() {
 
 function seed() {
   return {
-    clubTheme: '#4ea8ff', // Heliopolis ships blue
+    clubTheme: '#2e8cf0', // Heliopolis ships blue
     academyTheme: '#ef4a2e',
     clubName: CLUB.name,
     academyName: ACADEMY.name,

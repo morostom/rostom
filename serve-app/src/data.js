@@ -5,13 +5,13 @@
 // ── clubs & academies directory ──────────────────────────────────────
 // Clubs are members-only (access code). Academies are open booking.
 export const CLUBS_DIR = [
-  { id: 'heliopolis', name: 'Heliopolis Sporting Club', short: 'Heliopolis SC', type: 'club', courts: 7, city: 'Heliopolis · Cairo', est: '1910', accent: '#4ea8ff', joinable: true },
-  { id: 'wadidegla', name: 'Wadi Degla', short: 'Wadi Degla', type: 'club', courts: 20, city: 'Maadi · Cairo', accent: '#4ade80' },
+  { id: 'heliopolis', name: 'Heliopolis Sporting Club', short: 'Heliopolis SC', type: 'club', courts: 7, city: 'Heliopolis · Cairo', est: '1910', accent: '#2e8cf0', joinable: true },
+  { id: 'wadidegla', name: 'Wadi Degla', short: 'Wadi Degla', type: 'club', courts: 20, city: 'Maadi · Cairo', accent: '#2fb37a' },
   { id: 'blackball', name: 'Black Ball', short: 'Black Ball', type: 'club', courts: 16, city: 'New Cairo', accent: '#ef4a2e', guestPass: true },
-  { id: 'gezira', name: 'Gezira Sporting Club', short: 'Gezira SC', type: 'club', courts: 16, city: 'Zamalek · Cairo', accent: '#a779f0' },
+  { id: 'gezira', name: 'Gezira Sporting Club', short: 'Gezira SC', type: 'club', courts: 16, city: 'Zamalek · Cairo', accent: '#9b6be0' },
   { id: 'alahly', name: 'Al Ahly Sporting Club', short: 'Al Ahly', type: 'club', courts: 8, city: 'Nasr City · Cairo', accent: '#ef4a2e' },
-  { id: 'smouha', name: 'Smouha', short: 'Smouha', type: 'club', courts: 6, city: 'Alexandria', accent: '#4ea8ff' },
-  { id: 'sporting', name: 'Sporting', short: 'Sporting', type: 'club', courts: 13, city: 'Alexandria', accent: '#ff8a3d' },
+  { id: 'smouha', name: 'Smouha', short: 'Smouha', type: 'club', courts: 6, city: 'Alexandria', accent: '#2e8cf0' },
+  { id: 'sporting', name: 'Sporting', short: 'Sporting', type: 'club', courts: 13, city: 'Alexandria', accent: '#e8734a' },
 ];
 
 export const ACADEMIES_DIR = [
@@ -34,7 +34,7 @@ export const HELIOPOLIS_BIO = {
   courts: 7,
   formerChampions: ['Ramy Ashour', 'Ali Farag', 'Omar Mosaad', 'Mohamed Reda', 'Nour El Tayeb', 'Hania El Hammamy'],
   headCoaches: ['Ali Ashmawy', 'Abdel Rahman ElSergany'],
-  accent: '#4ea8ff',
+  accent: '#2e8cf0',
 };
 
 // ── Discover: a glimpse of what's bookable right now ─────────────────
@@ -84,7 +84,7 @@ export const TIERS = [
   { key: 'amateur', label: 'Amateur', color: '#c0c0c0', min: 10 },    // silver
   { key: 'semipro', label: 'Semi-pro', color: '#ef4a2e', min: 20 },   // red
   { key: 'pro', label: 'Pro', color: '#9b6be0', min: 40 },            // amethyst
-  { key: 'elite', label: 'Elite', color: '#1e40af', min: 60 },        // dark blue
+  { key: 'elite', label: 'Elite', color: '#2e8cf0', min: 60 },        // dark blue
 ];
 // tier from the player's booking count
 export function tierForActivity(count) {
@@ -112,13 +112,13 @@ export const EMPTY_COMPETITIVE = {
 };
 export const EMPTY_RECREATIONAL = {
   id: 'me', cardType: 'recreational', forChild: false, name: '', age: '', division: '', club: '',
-  favShot: '', yearsPlaying: '', accent: '#4ea8ff', photo: null,
+  favShot: '', yearsPlaying: '', accent: '#2e8cf0', photo: null,
 };
 // the demo (login) player — Mohamed Rostom, a Heliopolis member.
 export const DEMO_PLAYER = {
   id: 'me', cardType: 'competitive', forChild: false, name: 'Mohamed Rostom', age: '15', division: 'U17',
   club: 'Heliopolis Sporting Club', rankLabel: '#3 · U17 National', rankVerified: true, racket: 'Tecnifibre',
-  fav: 'Ali Farag', wins: 38, losses: 9, since: '2023', accent: '#4ea8ff', photo: null,
+  fav: 'Ali Farag', wins: 38, losses: 9, since: '2023', accent: '#2e8cf0', photo: null,
 };
 
 export const SEASON_STATS = [

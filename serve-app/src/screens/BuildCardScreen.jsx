@@ -155,7 +155,7 @@ export default function BuildCardScreen() {
               </div>
             )}
           </div>
-          <div style={{ position: 'absolute', right: -2, bottom: -2, width: 28, height: 28, borderRadius: '50%', background: accent, color: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid var(--sq-bg)' }}>
+          <div style={{ position: 'absolute', right: -2, bottom: -2, width: 28, height: 28, borderRadius: '50%', background: accent, color: '#0e0b0a', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid var(--sq-bg)' }}>
             <Icons.Camera size={13} />
           </div>
         </button>

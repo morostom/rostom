@@ -172,7 +172,7 @@ export default function AuthScreen() {
                 flex: 1, padding: '10px', borderRadius: 9, border: 0, cursor: 'pointer',
                 fontFamily: 'var(--sq-display)', fontWeight: 600, fontSize: 13.5,
                 background: mode === id ? 'var(--sq-gold)' : 'transparent',
-                color: mode === id ? '#0a0a0a' : 'var(--sq-text-2)',
+                color: mode === id ? '#0e0b0a' : 'var(--sq-text-2)',
                 transition: 'background 0.15s, color 0.15s',
               }}
             >

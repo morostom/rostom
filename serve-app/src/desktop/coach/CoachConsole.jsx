@@ -42,7 +42,7 @@ function Sidebar({ active, onNav, branches = [], branch, setBranch, orgId }) {
   const inUse = state.courts.filter((c) => c.branch === branch && c.status !== 'free').length;
   const branchCourts = state.courts.filter((c) => c.branch === branch).length;
   return (
-    <div style={{ width: SIDEBAR_W, flexShrink: 0, height: '100%', background: '#0a0a0a', borderRight: '1px solid var(--sq-border)', display: 'flex', flexDirection: 'column', padding: '18px 12px' }}>
+    <div style={{ width: SIDEBAR_W, flexShrink: 0, height: '100%', background: '#0e0b0a', borderRight: '1px solid var(--sq-border)', display: 'flex', flexDirection: 'column', padding: '18px 12px' }}>
       <div style={{ padding: '4px 8px 16px' }}><SQLogo size={20} /></div>
       <div className="sq-card" style={{ padding: '10px 12px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{ width: 32, height: 32, borderRadius: 8, flexShrink: 0, overflow: 'hidden', background: 'color-mix(in srgb, var(--sq-gold) 14%, transparent)', border: '1px solid color-mix(in srgb, var(--sq-gold) 28%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--sq-gold)' }}>
@@ -116,7 +116,7 @@ function StatusPill({ status }) {
   const map = { active: 'green', pending: 'gold', redeemed: 'green', sent: 'blue', open: 'gold' };
   const label = { active: 'Active', pending: 'Pending', redeemed: 'Redeemed', sent: 'Sent', open: 'Unused' }[status] || status;
   const cls = map[status];
-  const extra = cls === 'blue' ? { color: 'var(--sq-blue)', borderColor: 'rgba(78,168,255,0.25)', background: 'rgba(78,168,255,0.1)' } : cls === 'green' ? { color: 'var(--sq-green)', borderColor: 'rgba(74,222,128,0.25)', background: 'rgba(74,222,128,0.1)' } : {};
+  const extra = cls === 'blue' ? { color: 'var(--sq-blue)', borderColor: 'rgba(46,140,240,0.25)', background: 'rgba(46,140,240,0.1)' } : cls === 'green' ? { color: 'var(--sq-green)', borderColor: 'rgba(47,179,122,0.25)', background: 'rgba(47,179,122,0.1)' } : {};
   return <span className={'sq-chip ' + (cls === 'gold' ? 'gold' : '')} style={{ padding: '3px 10px', fontSize: 10.5, ...extra }}>{label}</span>;
 }
 
@@ -134,7 +134,7 @@ function CourtCard({ c }) {
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div className="sq-display" style={{ fontSize: 18, fontWeight: 700 }}>Court {c.court}</div>
-        <span className={'sq-chip ' + (c.status === 'lesson' || c.status === 'booked' ? 'gold' : '')} style={c.status === 'playing' ? { fontSize: 10, color: 'var(--sq-green)', borderColor: 'rgba(74,222,128,0.25)', background: 'rgba(74,222,128,0.1)' } : { fontSize: 10 }}>
+        <span className={'sq-chip ' + (c.status === 'lesson' || c.status === 'booked' ? 'gold' : '')} style={c.status === 'playing' ? { fontSize: 10, color: 'var(--sq-green)', borderColor: 'rgba(47,179,122,0.25)', background: 'rgba(47,179,122,0.1)' } : { fontSize: 10 }}>
           {c.status === 'playing' && <span className="sq-live-dot" style={{ background: 'var(--sq-green)' }} />}{label}
         </span>
       </div>
@@ -232,7 +232,7 @@ function Members() {
           {rows.map((m, i) => (
             <div key={m.name} style={{ display: 'grid', gridTemplateColumns: GRID, gap: 12, padding: '13px 20px', alignItems: 'center', borderBottom: i < rows.length - 1 ? '1px solid var(--sq-border)' : 'none', cursor: 'pointer' }} onClick={() => notify(`Opened ${m.name}`)}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 11, minWidth: 0 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 16, background: 'linear-gradient(135deg, #2a2a2a, #161616)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11.5, fontWeight: 600, flexShrink: 0 }}>{m.initials}</div>
+                <div style={{ width: 32, height: 32, borderRadius: 16, background: 'linear-gradient(135deg, #2a2a2a, #1e1917)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11.5, fontWeight: 600, flexShrink: 0 }}>{m.initials}</div>
                 <div style={{ fontSize: 13.5, fontWeight: 500 }}>{m.name}</div>
               </div>
               <span style={{ fontSize: 12.5, color: 'var(--sq-text-2)' }}>{m.group}</span>
@@ -290,7 +290,7 @@ function CoachesTab({ orgId }) {
           {coaches.map((c) => (
             <div key={c.id} className="sq-card" style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 44, height: 44, borderRadius: 22, background: 'linear-gradient(135deg, #2a2a2a, #161616)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 600 }}>{c.initials}</div>
+                <div style={{ width: 44, height: 44, borderRadius: 22, background: 'linear-gradient(135deg, #2a2a2a, #1e1917)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 600 }}>{c.initials}</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div className="sq-display" style={{ fontSize: 15, fontWeight: 600 }}>{c.name}</div>
                   <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-gold)' }}>{c.role}</div>
@@ -414,7 +414,7 @@ function ClubProfile({ orgId, branches }) {
                 const on = (org.accent || '#ef4a2e').toLowerCase() === c.hex.toLowerCase();
                 return (
                   <button key={c.hex} onClick={() => { store.updateOrg(orgId, { accent: c.hex }); notify(`Theme set to ${c.name}`); }} title={c.name}
-                    style={{ width: 44, height: 44, borderRadius: 12, background: c.hex, cursor: 'pointer', border: 0, boxShadow: on ? `0 0 0 2px var(--sq-bg), 0 0 0 4px ${c.hex}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0a0a0a' }}>
+                    style={{ width: 44, height: 44, borderRadius: 12, background: c.hex, cursor: 'pointer', border: 0, boxShadow: on ? `0 0 0 2px var(--sq-bg), 0 0 0 4px ${c.hex}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0e0b0a' }}>
                     {on && <Icons.Check size={18} />}
                   </button>
                 );
@@ -429,7 +429,7 @@ function ClubProfile({ orgId, branches }) {
           <div className="sq-card" style={{ padding: 0, overflow: 'hidden' }}>
             <div style={{ position: 'relative', height: 150 }}>
               {org.cover ? <img src={org.cover} alt="" style={{ width: '100%', height: 150, objectFit: 'cover' }} /> : <ImgPlaceholder label="cover" height={150} radius={0} hue="gold" style={{ borderRadius: 0, border: 0 }} />}
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(7,7,7,0.95) 100%)' }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(14,11,10,0.95) 100%)' }} />
               <span className="sq-chip gold" style={{ position: 'absolute', top: 12, left: 12 }}><span className="sq-live-dot" /> Live courts</span>
             </div>
             <div style={{ padding: '0 18px 18px', marginTop: -34, position: 'relative' }}>

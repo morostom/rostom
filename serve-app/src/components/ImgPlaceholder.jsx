@@ -6,8 +6,8 @@ export default function ImgPlaceholder({ label, height = 120, width = '100%', ra
     hue === 'gold'
       ? 'linear-gradient(135deg, color-mix(in srgb, var(--sq-gold) 18%, transparent) 0%, rgba(0,0,0,0.6) 100%), #0d0d0d'
       : hue === 'navy'
-      ? 'linear-gradient(135deg, rgba(78,168,255,0.12) 0%, rgba(13,21,37,0.8) 100%), #0d1424'
-      : 'linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%)';
+      ? 'linear-gradient(135deg, rgba(46,140,240,0.12) 0%, rgba(13,21,37,0.8) 100%), #0d1424'
+      : 'linear-gradient(135deg, #1a1a1a 0%, #0e0b0a 100%)';
   return (
     <div
       style={{

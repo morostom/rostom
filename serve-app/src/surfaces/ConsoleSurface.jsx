@@ -62,12 +62,12 @@ export default function ConsoleSurface() {
       ) : stage === 'live' ? (
         <>
           {readOnly && !demo && (
-            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, padding: '8px 16px', textAlign: 'center', fontSize: 12.5, background: 'color-mix(in srgb, var(--sq-gold) 16%, #0a0a0a)', borderBottom: '1px solid color-mix(in srgb, var(--sq-gold) 30%, transparent)', color: 'var(--sq-text)' }}>
+            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, padding: '8px 16px', textAlign: 'center', fontSize: 12.5, background: 'color-mix(in srgb, var(--sq-gold) 16%, #0e0b0a)', borderBottom: '1px solid color-mix(in srgb, var(--sq-gold) 30%, transparent)', color: 'var(--sq-text)' }}>
               This {orgType} is managed by another account — you have read-only access.
             </div>
           )}
           {demo && bannerOpen && (
-            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, fontSize: 12.5, background: 'color-mix(in srgb, var(--sq-gold) 16%, #0a0a0a)', borderBottom: '1px solid color-mix(in srgb, var(--sq-gold) 30%, transparent)', color: 'var(--sq-text)' }}>
+            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, fontSize: 12.5, background: 'color-mix(in srgb, var(--sq-gold) 16%, #0e0b0a)', borderBottom: '1px solid color-mix(in srgb, var(--sq-gold) 30%, transparent)', color: 'var(--sq-text)' }}>
               <span>Demo preview — you're viewing a live console. Changes won't be saved. Use “Log out” to return.</span>
               <button onClick={() => setBannerOpen(false)} style={{ background: 'none', border: 0, color: 'var(--sq-text-2)', cursor: 'pointer', fontSize: 15, lineHeight: 1 }}>×</button>
             </div>

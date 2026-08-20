@@ -73,7 +73,7 @@ export default function UploadSlot({ value, onChange, label = 'Upload', height =
         </span>
       )}
       {value && (
-        <span style={{ position: 'absolute', right: 6, bottom: 6, width: 24, height: 24, borderRadius: '50%', background: 'var(--sq-gold)', color: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--sq-bg)' }}>
+        <span style={{ position: 'absolute', right: 6, bottom: 6, width: 24, height: 24, borderRadius: '50%', background: 'var(--sq-gold)', color: '#0e0b0a', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--sq-bg)' }}>
           <Icons.Camera size={11} />
         </span>
       )}

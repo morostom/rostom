@@ -65,7 +65,7 @@ export default function SessionPlayersScreen({ session }) {
                   const me = player?.name && n.toLowerCase() === player.name.toLowerCase();
                   return (
                     <div key={n} className="sq-card" style={{ padding: 14, display: 'flex', alignItems: 'center', gap: 13, borderColor: me ? 'color-mix(in srgb, var(--sq-gold) 35%, transparent)' : undefined }}>
-                      <div style={{ width: 44, height: 44, borderRadius: 22, flexShrink: 0, background: 'linear-gradient(135deg, #2a2a2a, #161616)', border: '1px solid var(--sq-border-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700 }}>
+                      <div style={{ width: 44, height: 44, borderRadius: 22, flexShrink: 0, background: 'linear-gradient(135deg, #2a2a2a, #1e1917)', border: '1px solid var(--sq-border-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700 }}>
                         {initials(n)}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>

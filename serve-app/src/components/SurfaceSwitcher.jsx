@@ -43,7 +43,7 @@ export default function SurfaceSwitcher({ surface, onChange }) {
               fontSize: 12.5,
               letterSpacing: '-0.01em',
               background: on ? 'var(--sq-gold)' : 'transparent',
-              color: on ? '#0a0a0a' : 'var(--sq-text-2)',
+              color: on ? '#0e0b0a' : 'var(--sq-text-2)',
               transition: 'background 0.15s, color 0.15s',
             }}
           >

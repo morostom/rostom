@@ -100,7 +100,7 @@ export default function BookCourtScreen({ court: preCourt, branch }) {
                     padding: '10px 14px', borderRadius: 10, fontSize: 13.5, fontWeight: 500, cursor: 'pointer',
                     border: '1px solid ' + (on ? 'transparent' : 'var(--sq-border)'),
                     background: on ? 'var(--sq-gold)' : 'var(--sq-surface)',
-                    color: on ? '#0a0a0a' : 'var(--sq-text)',
+                    color: on ? '#0e0b0a' : 'var(--sq-text)',
                   }}>{t}</button>
                 );
               })}

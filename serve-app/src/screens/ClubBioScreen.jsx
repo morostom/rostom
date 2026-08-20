@@ -83,7 +83,7 @@ export default function ClubBioScreen() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
               {c.headCoaches.map((co) => (
                 <div key={co} className="sq-card" style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ width: 38, height: 38, borderRadius: 19, background: 'linear-gradient(135deg, #2a2a2a, #161616)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600 }}>{co.split(' ').map((w) => w[0]).slice(0, 2).join('')}</div>
+                  <div style={{ width: 38, height: 38, borderRadius: 19, background: 'linear-gradient(135deg, #2a2a2a, #1e1917)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600 }}>{co.split(' ').map((w) => w[0]).slice(0, 2).join('')}</div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 14, fontWeight: 600 }}>{co}</div>
                     <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-gold)' }}>{t('Head Coach')}</div>

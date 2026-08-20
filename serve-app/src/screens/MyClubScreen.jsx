@@ -37,7 +37,7 @@ function CourtTile({ c, onBook }) {
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', letterSpacing: '0.06em' }}>COURT {c.court}</span>
-        <span className={'sq-chip ' + (m.cls === 'green' ? '' : m.cls)} style={m.cls === 'green' ? { fontSize: 9.5, padding: '2px 8px', color: 'var(--sq-green)', borderColor: 'rgba(74,222,128,0.25)', background: 'rgba(74,222,128,0.1)' } : { fontSize: 9.5, padding: '2px 8px' }}>
+        <span className={'sq-chip ' + (m.cls === 'green' ? '' : m.cls)} style={m.cls === 'green' ? { fontSize: 9.5, padding: '2px 8px', color: 'var(--sq-green)', borderColor: 'rgba(47,179,122,0.25)', background: 'rgba(47,179,122,0.1)' } : { fontSize: 9.5, padding: '2px 8px' }}>
           {c.status === 'playing' && <span className="sq-live-dot" style={{ background: 'var(--sq-green)' }} />}{m.tag}
         </span>
       </div>
@@ -121,7 +121,7 @@ export default function MyClubScreen() {
                   <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', marginTop: 2 }}>{t('SQUASH SECTION')}</div>
                 </div>
               </div>
-              <span className="sq-chip" style={{ fontSize: 10.5, color: 'var(--sq-green)', borderColor: 'rgba(74,222,128,0.25)', background: 'rgba(74,222,128,0.1)' }}>
+              <span className="sq-chip" style={{ fontSize: 10.5, color: 'var(--sq-green)', borderColor: 'rgba(47,179,122,0.25)', background: 'rgba(47,179,122,0.1)' }}>
                 <Icons.Check size={11} /> {t('Member')}
               </span>
             </div>
@@ -133,7 +133,7 @@ export default function MyClubScreen() {
           <div style={{ padding: '0 20px 14px' }}>
             <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', height: 118, border: '1px solid var(--sq-border)' }}>
               <img src={state.images.clubCover} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(7,7,7,0.85), rgba(0,0,0,0.05))' }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(14,11,10,0.85), rgba(0,0,0,0.05))' }} />
             </div>
           </div>
         )}
