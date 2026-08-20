@@ -74,6 +74,34 @@ export function mapsLink({ maps_url, name, address, location, city } = {}) {
 
 // Project lat/lng into 0..1 box coordinates for the stylised map.
 // Fits everything passed in, with padding, so the pins always fill the frame.
+// Build the lat/lng → 0..1 transform for a set of points, and hand it back
+// so the MAP BACKGROUND can be projected through the same maths. Without
+// this the Nile and the pins live in different coordinate systems and the
+// map is just a decorative grid.
+export function makeProjection(points, pad = 0.14) {
+  const pts = points.filter((p) => p.lat != null && p.lng != null);
+  if (!pts.length) return null;
+  const q = (arr, f) => {
+    const s = [...arr].sort((a, b) => a - b);
+    return s[Math.min(s.length - 1, Math.max(0, Math.round((s.length - 1) * f)))];
+  };
+  const lats = pts.map((p) => p.lat);
+  const lngs = pts.map((p) => p.lng);
+  const cLat = q(lats, 0.5);
+  const cLng = q(lngs, 0.5);
+  const spanLat = Math.min(Math.max((q(lats, 0.9) - q(lats, 0.1)) * 1.6, 0.05), 0.45);
+  const spanLng = Math.min(Math.max((q(lngs, 0.9) - q(lngs, 0.1)) * 1.6, 0.05), 0.55);
+  const minLat = cLat - spanLat / 2, maxLat = cLat + spanLat / 2;
+  const minLng = cLng - spanLng / 2, maxLng = cLng + spanLng / 2;
+  // clamp=false lets background geography run off the edge and be clipped,
+  // instead of piling up on the border
+  return (lat, lng, clamp_ = true) => {
+    const x = pad + ((lng - minLng) / (maxLng - minLng)) * (1 - pad * 2);
+    const y = pad + ((maxLat - lat) / (maxLat - minLat)) * (1 - pad * 2);
+    return clamp_ ? { x: clamp(x, 0.04, 0.96), y: clamp(y, 0.06, 0.94) } : { x, y };
+  };
+}
+
 export function projectPins(pins, pad = 0.14) {
   const pts = pins.filter((p) => p.lat != null && p.lng != null);
   if (!pts.length) return [];

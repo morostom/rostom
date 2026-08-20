@@ -8,7 +8,7 @@ import { MScreen, Pill } from '../components/mobile';
 import ThemeScope from '../components/ThemeScope';
 import { useNav } from '../navigation/nav';
 import { useStore } from '../store';
-import { TIME_SLOTS } from '../data';
+import { TIME_SLOTS, TIME_PERIODS, slotsInPeriod, periodForHour } from '../data';
 
 export function priceFor(court) {
   return court?.type?.includes('Glass') ? 300 : 200;
@@ -26,6 +26,10 @@ export default function BookCourtScreen({ court: preCourt, branch }) {
   const freeCourts = state.courts.filter((c) => c.status === 'free' && c.branch === activeBranch);
   const [courtNo, setCourtNo] = useState(preCourt?.court ?? freeCourts[0]?.court ?? null);
   const [time, setTime] = useState('18:00');
+  // 24/7 — one period at a time so the picker stays a picker, opening on
+  // whichever contains the current hour
+  const [period, setPeriod] = useState(() => periodForHour(new Date().getHours()).key);
+  const shownSlots = slotsInPeriod(TIME_PERIODS.find((p) => p.key === period) || TIME_PERIODS[3]);
 
   const court = state.courts.find((c) => c.branch === activeBranch && c.court === courtNo);
   const price = priceFor(court);
@@ -92,8 +96,16 @@ export default function BookCourtScreen({ court: preCourt, branch }) {
 
           <div>
             <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>Start time · today</div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+              {TIME_PERIODS.map((p) => (
+                <button key={p.key} onClick={() => setPeriod(p.key)}
+                  style={{ padding: '6px 12px', borderRadius: 999, fontSize: 12, cursor: 'pointer', fontFamily: 'var(--sq-body)', border: '1px solid ' + (p.key === period ? 'transparent' : 'var(--sq-border)'), background: p.key === period ? 'var(--sq-gold)' : 'transparent', color: p.key === period ? '#0e0b0a' : 'var(--sq-text-2)', fontWeight: p.key === period ? 600 : 400 }}>
+                  {p.label}
+                </button>
+              ))}
+            </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {TIME_SLOTS.map((t) => {
+              {shownSlots.map((t) => {
                 const on = t === time;
                 return (
                   <button key={t} onClick={() => setTime(t)} className="sq-mono" style={{

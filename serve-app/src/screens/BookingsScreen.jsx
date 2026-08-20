@@ -6,7 +6,7 @@ import { Icons } from '../components/Icons';
 import SQLogo from '../components/SQLogo';
 import { MScreen, MTabBar } from '../components/mobile';
 import { useNav } from '../navigation/nav';
-import { useStore, store } from '../store';
+import { useStore, store, sessionAccent } from '../store';
 import { useToast } from '../components/Toast';
 import { useT } from '../i18n';
 import { normId } from '../lib/auth';
@@ -90,12 +90,13 @@ export default function BookingsScreen() {
               {mine.map((s) => {
                 const Ic = TYPE_ICON[s.type] || Icons.Calendar;
                 const open = cancelId === s.id;
+                const ac = sessionAccent(state, s); // the club's own colour
                 return (
-                  <div key={s.id} className="sq-card" style={{ padding: 15 }}>
+                  <div key={s.id} className="sq-card" style={{ padding: 15, borderInlineStart: `3px solid ${ac}` }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 13 }}>
                       <div onClick={(s.players?.length || 0) > 0 ? () => nav.push('sessionPlayers', { session: s }) : undefined}
                         style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 13, cursor: (s.players?.length || 0) > 0 ? 'pointer' : 'default' }}>
-                        <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--sq-surface-2)', color: 'var(--sq-text-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <div style={{ width: 44, height: 44, borderRadius: 12, background: `color-mix(in srgb, ${ac} 13%, var(--sq-surface-2))`, color: ac, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                           <Ic size={19} />
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>

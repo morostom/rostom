@@ -7,7 +7,7 @@ import { Icons } from '../components/Icons';
 import { MScreen, Pill } from '../components/mobile';
 import ThemeScope from '../components/ThemeScope';
 import { useNav } from '../navigation/nav';
-import { useStore } from '../store';
+import { useStore, sessionAccent } from '../store';
 import { useT } from '../i18n';
 import { PLAYER_DIRECTORY } from '../data';
 
@@ -24,6 +24,8 @@ export default function SessionPlayersScreen({ session }) {
   // include anyone who joined this open session from the app
   const joined = (s.id && state.openJoins?.[s.id]) || [];
   const names = [...new Set([...(s.players || []), ...joined])];
+  // the session wears its own club's colour, not the demo club's
+  const accent = sessionAccent(state, s);
 
   const info = (name) =>
     state.playerCards?.[name.toLowerCase()] ||
@@ -31,7 +33,7 @@ export default function SessionPlayersScreen({ session }) {
     { name };
 
   return (
-    <ThemeScope accent={state.clubTheme}>
+    <ThemeScope accent={accent}>
       <MScreen
         header={
           <div style={{ padding: '6px 16px 10px', display: 'flex', alignItems: 'center', gap: 12 }}>

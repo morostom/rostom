@@ -11,7 +11,7 @@ import { MScreen, MTabBar } from '../components/mobile';
 import ThemeScope from '../components/ThemeScope';
 import ClubCrest from '../components/ClubCrest';
 import { useNav } from '../navigation/nav';
-import { useStore } from '../store';
+import { useStore, sessionAccent } from '../store';
 import { useT } from '../i18n';
 import { CLUB } from '../data';
 
@@ -94,6 +94,9 @@ function MySessionRow({ s, onOpen }) {
 export default function MyClubScreen() {
   const { nav, player, accountType, child } = useNav();
   const state = useStore();
+  // whichever club this member actually belongs to drives the colour
+  const myFirst = state.sessions.find((x) => x.mine || (player?.name && x.players?.includes(player.name)));
+  const clubAccent = myFirst ? sessionAccent(state, myFirst) : state.clubTheme;
   const t = useT();
   // a parent views their child's schedule; a player views their own
   const isParent = accountType === 'parent';
@@ -108,7 +111,7 @@ export default function MyClubScreen() {
   const free = branchCourts.filter((c) => c.status === 'free').length;
 
   return (
-    <ThemeScope accent={state.clubTheme}>
+    <ThemeScope accent={clubAccent}>
       <MScreen
         tabBar={<MTabBar active="clubs" onTab={nav.switchTab} />}
         header={

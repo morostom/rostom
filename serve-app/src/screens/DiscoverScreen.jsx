@@ -13,14 +13,13 @@ import { MScreen, MTabBar } from '../components/mobile';
 import VenueMap from '../components/VenueMap';
 import Stars, { venueRating } from '../components/Stars';
 import { useNav } from '../navigation/nav';
-import { useStore, orgInfo } from '../store';
+import { useStore, orgInfo, sessionAccent } from '../store';
 import { useT } from '../i18n';
 import { venueCoords, mapsLink, distanceKm } from '../lib/geo';
+import { useLocation, areaOf, NEAR_KM } from '../lib/location';
 import { useNow, isOpenNow, closesInLabel, nextSlot, fmtHHMM, sessionTiming, dayId } from '../lib/live';
 import { OPEN_COURTS, OPEN_SESSIONS, ACADEMIES_DIR, CLUBS_DIR } from '../data';
 
-// where "near me" measures from until we ask for real geolocation
-const HOME = { lat: 30.0880, lng: 31.3240 }; // Heliopolis · Cairo
 const FILTERS = [['open', 'Open now'], ['academies', 'Academies'], ['near', 'Near me'], ['juniors', 'Juniors']];
 
 // '20–30+' → 20 (take the first number, not every digit mashed together)
@@ -31,6 +30,7 @@ export default function DiscoverScreen() {
   const state = useStore();
   const t = useT();
   const now = useNow(30000);
+  const { coords: me, exact: haveFix, status: geo, request: askLocation } = useLocation();
 
   const [filter, setFilter] = useState('open');
   const [query, setQuery] = useState('');
@@ -74,14 +74,14 @@ export default function DiscoverScreen() {
       return {
         ...v,
         lat: c?.lat, lng: c?.lng,
-        km: c ? distanceKm(HOME, c) : null,
+        km: c ? distanceKm(me, c) : null,
         open,
         // seeded venues don't have live court rows — show a plausible count
         freeNow: v.freeNow != null ? v.freeNow : open ? Math.max(1, Math.round(v.courts * 0.35)) : 0,
         rating: venueRating(state.reviews, v.id),
       };
     });
-  }, [state.orgs, state.branches, state.courts, state.reviews, now]);
+  }, [state.orgs, state.branches, state.courts, state.reviews, now, me]);
 
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -91,10 +91,13 @@ export default function DiscoverScreen() {
     if (filter === 'academies') list = list.filter((v) => v.type === 'academy');
     if (filter === 'juniors') list = list.filter((v) => v.type === 'academy');
     const sorted = [...list];
-    if (filter === 'near') sorted.sort((a, b) => (a.km ?? 999) - (b.km ?? 999));
+    if (filter === 'near') {
+      sorted.sort((a, b) => (a.km ?? 999) - (b.km ?? 999));
+      if (haveFix) return sorted.filter((v) => (v.km ?? 999) <= NEAR_KM);
+    }
     else sorted.sort((a, b) => (b.freeNow || 0) - (a.freeNow || 0));
     return sorted;
-  }, [venues, filter, query]);
+  }, [venues, filter, query, haveFix]);
 
   const hero = shown.find((v) => v.id === picked) || shown[0] || null;
   const rest = shown.filter((v) => v.id !== hero?.id);
@@ -129,11 +132,12 @@ export default function DiscoverScreen() {
         id: s.id, title: s.title, coach: s.coach, price: s.price || 0,
         players: s.players || [], day: s.day, time: s.time,
         venue: org?.name || br?.name || '', left,
+        branch: s.branch, accent: org?.accent || 'var(--sq-gold)',
       };
     }).filter((s) => s.left == null || s.left > 0);
 
     const demo = OPEN_SESSIONS.map((s) => ({
-      ...s, day: (s.time || '').startsWith('Today') ? dayId(now) : (s.time || '').slice(0, 3),
+      ...s, accent: sessionAccent(state, s), day: (s.time || '').startsWith('Today') ? dayId(now) : (s.time || '').slice(0, 3),
       time: (s.time.match(/\d{1,2}:\d{2}/) || ['18:00'])[0],
       left: parseInt(s.spots, 10) || null,
     }));
@@ -164,10 +168,16 @@ export default function DiscoverScreen() {
             <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.16em' }}>Cairo</div>
             <h1 className="sq-display" style={{ margin: '2px 0 0', fontSize: 32, fontWeight: 800, letterSpacing: '-0.035em', lineHeight: 1 }}>{t('Discover')}</h1>
           </div>
-          <span className="sq-chip" style={{ flexShrink: 0, padding: '8px 13px', fontSize: 12 }}>
-            <span style={{ color: 'var(--sq-gold)', display: 'inline-flex' }}><Icons.Pin size={12} /></span>
-            {hero?.city?.split('·')[0]?.trim() || 'Egypt'}
-          </span>
+          <button onClick={askLocation} disabled={geo === 'asking'}
+            className={'sq-chip' + (haveFix ? ' gold' : '')}
+            style={{ flexShrink: 0, padding: '8px 13px', fontSize: 12, cursor: geo === 'asking' ? 'wait' : 'pointer' }}
+            title={haveFix ? t('Using your location') : t('Use my location')}>
+            <span style={{ color: haveFix ? 'inherit' : 'var(--sq-gold)', display: 'inline-flex' }}><Icons.Pin size={12} /></span>
+            {geo === 'asking' ? t('Locating…')
+              : haveFix ? t('Near you')
+              : geo === 'denied' ? t('Location off')
+              : t('Use my location')}
+          </button>
         </div>
       }
     >
@@ -189,7 +199,7 @@ export default function DiscoverScreen() {
         </div>
 
         {/* the map */}
-        <VenueMap venues={shown} height={196} activeId={hero?.id} onPick={(p) => setPicked(p.id)} />
+        <VenueMap venues={shown} height={196} activeId={hero?.id} onPick={(p) => setPicked(p.id)} me={haveFix ? me : null} />
 
         {/* hero venue */}
         {hero && (
@@ -207,6 +217,9 @@ export default function DiscoverScreen() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 5, fontSize: 12, color: 'var(--sq-text-2)', flexWrap: 'wrap' }}>
                 <Icons.Pin size={12} /> {hero.city}
                 {hero.km != null && <span>· {hero.km.toFixed(1)} km</span>}
+                {haveFix && areaOf(hero.km) === 'far' && (
+                  <span className="sq-chip" style={{ fontSize: 10, padding: '2px 8px' }}>{t('Out of area')}</span>
+                )}
                 {hero.rating?.count > 0 && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>· <Stars value={hero.rating.avg} size={11} /> {hero.rating.avg.toFixed(1)}</span>}
               </div>
               <div className="sq-mono" style={{ fontSize: 10.5, color: hero.open ? 'var(--sq-green)' : 'var(--sq-text-3)', marginTop: 6, letterSpacing: '0.08em' }}>{closesInLabel(now, undefined, t)}</div>
@@ -244,6 +257,7 @@ export default function DiscoverScreen() {
                   <div className="sq-display" style={{ fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{v.name}</div>
                   <div style={{ fontSize: 11.5, color: 'var(--sq-text-2)', display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
                     <Icons.Pin size={10} /> {v.city}{v.km != null ? ` · ${v.km.toFixed(1)} km` : ''}
+                    {haveFix && areaOf(v.km) === 'far' && <span style={{ color: 'var(--sq-text-3)' }}>· {t('out of area')}</span>}
                   </div>
                 </div>
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
@@ -294,7 +308,7 @@ export default function DiscoverScreen() {
                 : st === 'soon' ? { text: `Starts in ${s.t.startsIn}m`, col: 'var(--sq-gold)' }
                 : { text: `${s.day || ''} ${s.time}`.trim(), col: 'var(--sq-text-2)' };
               return (
-                <div key={s.id} className="sq-card" style={{ padding: 13, display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div key={s.id} className="sq-card" style={{ padding: 13, display: 'flex', alignItems: 'center', gap: 12, borderInlineStart: `3px solid ${s.accent || 'var(--sq-gold)'}` }}>
                   <div onClick={() => nav.push('sessionPlayers', { session: s })} style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                       <span className="sq-mono" style={{ fontSize: 9.5, color: badge.col, textTransform: 'uppercase', letterSpacing: '0.1em', display: 'inline-flex', alignItems: 'center', gap: 5 }}>

@@ -7,7 +7,7 @@ import { MScreen, MTabBar, Pill } from '../components/mobile';
 import PlayerCard from '../components/PlayerCard';
 import FlipReveal from '../components/FlipReveal';
 import { useNav } from '../navigation/nav';
-import { useStore, store } from '../store';
+import { useStore, store, sessionAccent } from '../store';
 import { useToast } from '../components/Toast';
 import { tierForActivity } from '../data';
 import { useT } from '../i18n';
@@ -22,6 +22,8 @@ export default function ProfileHomeScreen({ justCreated }) {
 
   const mine = state.sessions.filter((s) => s.mine || (player?.name && s.players?.includes(player.name)));
   const next = mine[0];
+  // a session wears its club's brand colour wherever it shows up
+  const nextAccent = next ? sessionAccent(state, next) : 'var(--sq-gold)';
   // Tier levels up with bookings only: every 10 to Semi-pro, then every 20.
   const tier = tierForActivity(state.bookings.length);
 
@@ -88,9 +90,9 @@ export default function ProfileHomeScreen({ justCreated }) {
       {next && (
         <div style={{ padding: '0 20px 16px' }}>
           <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8 }}>{t('Up next')}</div>
-          <button onClick={() => nav.switchTab('clubs')} style={{ width: '100%', textAlign: 'left', cursor: 'pointer', padding: 15, borderRadius: 14, display: 'flex', alignItems: 'center', gap: 14, background: 'linear-gradient(135deg, color-mix(in srgb, var(--sq-gold) 14%, transparent) 0%, color-mix(in srgb, var(--sq-gold) 3%, transparent) 50%, var(--sq-surface) 100%)', border: '1px solid color-mix(in srgb, var(--sq-gold) 25%, transparent)' }}>
-            <div style={{ width: 50, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 0', borderRadius: 10, background: 'var(--sq-scrim)', border: '1px solid color-mix(in srgb, var(--sq-gold) 20%, transparent)' }}>
-              <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-gold)', letterSpacing: '0.1em' }}>{next.day.toUpperCase()}</div>
+          <button onClick={() => nav.switchTab('clubs')} style={{ width: '100%', textAlign: 'left', cursor: 'pointer', padding: 15, borderRadius: 14, display: 'flex', alignItems: 'center', gap: 14, background: `linear-gradient(135deg, color-mix(in srgb, ${nextAccent} 14%, transparent) 0%, color-mix(in srgb, ${nextAccent} 3%, transparent) 50%, var(--sq-surface) 100%)`, border: `1px solid color-mix(in srgb, ${nextAccent} 25%, transparent)` }}>
+            <div style={{ width: 50, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 0', borderRadius: 10, background: 'var(--sq-scrim)', border: `1px solid color-mix(in srgb, ${nextAccent} 20%, transparent)` }}>
+              <div className="sq-mono" style={{ fontSize: 10, color: nextAccent, letterSpacing: '0.1em' }}>{next.day.toUpperCase()}</div>
               <div className="sq-display" style={{ fontSize: 18, fontWeight: 700, lineHeight: 1 }}>{next.time.split(':')[0]}</div>
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>

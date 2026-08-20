@@ -16,7 +16,7 @@ import { DUR_FAST } from '../motion';
 import { useStore, store } from '../store';
 import { useT } from '../i18n';
 import { parsePdfSchedule } from '../lib/pdfImport';
-import { ROSTER, SESSION_TYPES, TIME_SLOTS, WEEK_DAYS } from '../data';
+import { ROSTER, SESSION_TYPES, TIME_SLOTS, TIME_PERIODS, slotsInPeriod, periodForHour, WEEK_DAYS } from '../data';
 
 const DAY_IDS = WEEK_DAYS.map((d) => d[0]);
 const fieldCss = { padding: '10px 12px', border: '1px solid var(--sq-border-2)', borderRadius: 8, background: 'rgba(255,255,255,0.02)', fontSize: 13.5, color: 'var(--sq-text)', outline: 'none', width: '100%', fontFamily: 'var(--sq-body)' };
@@ -72,16 +72,20 @@ export default function SchedulePanel({ orgId, branch, branches, Topbar }) {
   const [coach, setCoach] = useState(coaches[0]?.name || '');
   const [court, setCourt] = useState(courtNos[0] || 1);
   const [days, setDays] = useState(['Wed']);
-  const [times, setTimes] = useState(['17:00']);
+  const [times, setTimes] = useState([]);
+  // 48 half-hour slots is the whole point of 24/7, but not all at once —
+  // show one period at a time, opening on whichever contains "now"
+  const [period, setPeriod] = useState(() => periodForHour(new Date().getHours()).key);
+  const shownSlots = slotsInPeriod(TIME_PERIODS.find((p) => p.key === period) || TIME_PERIODS[3]);
   const [type, setType] = useState('Group training');
-  const [title, setTitle] = useState('U17 Squad');
+  const [title, setTitle] = useState('');
   const [open, setOpen] = useState(false);
   const [price, setPrice] = useState('250');
   const [spots, setSpots] = useState('8');
   const toggleIn = (set) => (v) => set((xs) => (xs.includes(v) ? xs.filter((x) => x !== v) : [...xs, v]));
 
   function addManual() {
-    if (!days.length || !times.length) return notify('Pick at least one day and one time');
+    if (!days.length || !times.length) return notify(t('Pick at least one day and one time'));
     if (!open && !players.length) return notify('Pick at least one player — or open the session to the app');
     const extra = open ? { open: true, price: Math.max(0, Number(price) || 0), spots: Math.max(players.length, Number(spots) || 8) } : {};
     let n = 0;
@@ -101,6 +105,15 @@ export default function SchedulePanel({ orgId, branch, branches, Topbar }) {
   const [perPlayer, setPerPlayer] = useState('1');
   const [preview, setPreview] = useState(null); // null | rows[]
   const slotKey = (d, tm) => `${d}|${tm}`;
+  // block or clear every slot in the period on screen — 48 slots one at a
+  // time is not a real workflow
+  const blockPeriod = (on) => setBlocked((b) => {
+    const next = new Set(b);
+    for (const tm of shownSlots) for (const d of DAY_IDS) {
+      if (on) next.add(slotKey(d, tm)); else next.delete(slotKey(d, tm));
+    }
+    return next;
+  });
   const toggleBlock = (d, tm) => setBlocked((b) => {
     const next = new Set(b);
     const k = slotKey(d, tm);
@@ -113,9 +126,20 @@ export default function SchedulePanel({ orgId, branch, branches, Topbar }) {
     if (!picked.length) return notify('Pick the players to schedule');
     const coachName = autoCoach || coaches[0]?.name || 'Coach';
     const per = Math.max(1, Math.min(7, Number(perPlayer) || 1));
-    // free slots in week order, skipping blocked ones
+    // Free slots, skipping blocked ones. 24/7 means 00:00 Monday is now a
+    // legal slot — so order candidates by how normal the hour is (daytime
+    // first, small hours last). Night still gets used if nothing else is
+    // free, but it is never the scheduler's first choice.
+    const sanity = (tm) => {
+      const h = parseInt(tm, 10);
+      if (h >= 7 && h < 22) return 0;   // the normal training day
+      if (h >= 22 || h < 1) return 1;   // late evening
+      if (h >= 5 && h < 7) return 2;    // very early
+      return 3;                         // 01:00–05:00
+    };
     const slots = [];
     for (const tm of TIME_SLOTS) for (const d of DAY_IDS) if (!blocked.has(slotKey(d, tm))) slots.push({ day: d, time: tm });
+    slots.sort((a, b) => sanity(a.time) - sanity(b.time));
     // round-robin: walk the slots, giving each player one session per pass so
     // the week fills evenly instead of front-loading Monday
     const rows = [];
@@ -225,7 +249,7 @@ export default function SchedulePanel({ orgId, branch, branches, Topbar }) {
                     <div><Label>{t('Session type')}</Label>
                       <select style={fieldCss} value={type} onChange={(e) => setType(e.target.value)}>{SESSION_TYPES.map((t) => <option key={t}>{t}</option>)}</select>
                     </div>
-                    <div><Label>{t('Title')}</Label><input style={fieldCss} value={title} onChange={(e) => setTitle(e.target.value)} /></div>
+                    <div><Label>{t('Title')}</Label><input style={fieldCss} value={title} onChange={(e) => setTitle(e.target.value)} placeholder={type} /></div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                     <div><Label>{t('Coach')}</Label>{coachField(coach, setCoach)}</div>
@@ -241,8 +265,17 @@ export default function SchedulePanel({ orgId, branch, branches, Topbar }) {
                     </div>
                   </div>
                   <div><Label>{t('Times — every day × time becomes a session')}</Label>
+                    <div style={{ display: 'flex', gap: 5, marginBottom: 9, flexWrap: 'wrap' }}>
+                      {TIME_PERIODS.map((p) => (
+                        <button key={p.key} onClick={() => setPeriod(p.key)}
+                          style={{ padding: '5px 11px', borderRadius: 999, fontSize: 11.5, cursor: 'pointer', fontFamily: 'var(--sq-body)', border: '1px solid ' + (p.key === period ? 'transparent' : 'var(--sq-border)'), background: p.key === period ? 'var(--sq-gold)' : 'transparent', color: p.key === period ? '#0e0b0a' : 'var(--sq-text-2)', fontWeight: p.key === period ? 600 : 400 }}>
+                          {t(p.label)}
+                        </button>
+                      ))}
+                      {times.length > 0 && <span style={{ fontSize: 11.5, color: 'var(--sq-text-3)', alignSelf: 'center', marginInlineStart: 4 }}>{times.length} {t('selected')}</span>}
+                    </div>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                      {TIME_SLOTS.map((tm) => <Chip key={tm} on={times.includes(tm)} onClick={() => toggleIn(setTimes)(tm)}>{tm}</Chip>)}
+                      {shownSlots.map((tm) => <Chip key={tm} on={times.includes(tm)} onClick={() => toggleIn(setTimes)(tm)}>{tm}</Chip>)}
                     </div>
                   </div>
                   {playerPicker}
@@ -274,7 +307,17 @@ export default function SchedulePanel({ orgId, branch, branches, Topbar }) {
                     <div><Label>{t('Sessions per player / week')}</Label><input style={fieldCss} type="number" min="1" max="7" value={perPlayer} onChange={(e) => setPerPlayer(e.target.value)} /></div>
                   </div>
                   <div>
-                    <Label>Coach availability — tap the slots they DON'T work ({blocked.size} blocked)</Label>
+                    <Label>{t('Coach availability — tap the slots they DON’T work')} ({blocked.size})</Label>
+                    <div style={{ display: 'flex', gap: 5, marginBottom: 9, flexWrap: 'wrap' }}>
+                      {TIME_PERIODS.map((p) => (
+                        <button key={p.key} onClick={() => setPeriod(p.key)}
+                          style={{ padding: '5px 11px', borderRadius: 999, fontSize: 11.5, cursor: 'pointer', fontFamily: 'var(--sq-body)', border: '1px solid ' + (p.key === period ? 'transparent' : 'var(--sq-border)'), background: p.key === period ? 'var(--sq-gold)' : 'transparent', color: p.key === period ? '#0e0b0a' : 'var(--sq-text-2)', fontWeight: p.key === period ? 600 : 400 }}>
+                          {t(p.label)}
+                        </button>
+                      ))}
+                      <button onClick={() => blockPeriod(true)} className="sq-btn-ghost" style={{ padding: '5px 11px', fontSize: 11 }}>{t('Block all')}</button>
+                      <button onClick={() => blockPeriod(false)} className="sq-btn-ghost" style={{ padding: '5px 11px', fontSize: 11 }}>{t('Clear')}</button>
+                    </div>
                     <div style={{ overflowX: 'auto' }}>
                       <table style={{ borderCollapse: 'separate', borderSpacing: 3 }}>
                         <thead>
@@ -284,7 +327,7 @@ export default function SchedulePanel({ orgId, branch, branches, Topbar }) {
                           </tr>
                         </thead>
                         <tbody>
-                          {TIME_SLOTS.map((tm) => (
+                          {shownSlots.map((tm) => (
                             <tr key={tm}>
                               <td className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', paddingRight: 6 }}>{tm}</td>
                               {DAY_IDS.map((d) => {

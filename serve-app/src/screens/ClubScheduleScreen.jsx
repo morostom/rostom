@@ -6,16 +6,19 @@ import { Icons } from '../components/Icons';
 import { MScreen, Pill } from '../components/mobile';
 import ThemeScope from '../components/ThemeScope';
 import { useNav } from '../navigation/nav';
-import { useStore } from '../store';
+import { useStore, sessionAccent } from '../store';
 import { CLUB, WEEK_DAYS } from '../data';
 
 export default function ClubScheduleScreen() {
-  const { nav } = useNav();
+  const { nav, player } = useNav();
   const state = useStore();
+  // whichever club this member actually belongs to drives the colour
+  const myFirst = state.sessions.find((x) => x.mine || (player?.name && x.players?.includes(player.name)));
+  const clubAccent = myFirst ? sessionAccent(state, myFirst) : state.clubTheme;
   const days = [...new Set(state.sessions.map((s) => s.day))];
 
   return (
-    <ThemeScope accent={state.clubTheme}>
+    <ThemeScope accent={clubAccent}>
       <MScreen
         header={
           <div style={{ padding: '6px 16px 10px', display: 'flex', alignItems: 'center', gap: 12 }}>

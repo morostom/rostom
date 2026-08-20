@@ -189,7 +189,26 @@ export const WEEK_DAYS = [
   ['Fri', '16'], ['Sat', '17'], ['Sun', '18'],
 ];
 export const SESSION_TYPES = ['Lesson', 'Group training', 'Fitness'];
-export const TIME_SLOTS = ['17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00'];
+// SERVE runs 24/7 — courts get booked at 06:00 before work and at 23:00
+// after it, and weekend squads train early. Every half hour is bookable.
+export const TIME_SLOTS = Array.from({ length: 48 }, (_, i) =>
+  `${String(Math.floor(i / 2)).padStart(2, '0')}:${i % 2 ? '30' : '00'}`);
+
+// …but 48 chips at once is unusable, so the pickers group them.
+export const TIME_PERIODS = [
+  { key: 'early', label: 'Early', from: 5, to: 9 },      // 05:00–08:30
+  { key: 'morning', label: 'Morning', from: 9, to: 12 },
+  { key: 'afternoon', label: 'Afternoon', from: 12, to: 17 },
+  { key: 'evening', label: 'Evening', from: 17, to: 22 },
+  { key: 'night', label: 'Night', from: 22, to: 29 },     // 22:00–04:30 (wraps)
+];
+export const slotsInPeriod = (p) => TIME_SLOTS.filter((s) => {
+  const h = parseInt(s, 10);
+  const hh = h < p.from && p.to > 24 ? h + 24 : h;        // night wraps past midnight
+  return hh >= p.from && hh < p.to;
+});
+export const periodForHour = (h) =>
+  TIME_PERIODS.find((p) => (h < p.from && p.to > 24 ? h + 24 : h) >= p.from && (h < p.from && p.to > 24 ? h + 24 : h) < p.to) || TIME_PERIODS[3];
 
 // ── academy admin (Ramy Ashour Squash Academy — a real academy) ──────
 export const ACADEMY = {

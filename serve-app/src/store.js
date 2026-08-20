@@ -138,6 +138,19 @@ export function useStore() {
   return useSyncExternalStore(subscribe, () => state, () => state);
 }
 
+// The brand colour a session belongs to: session → branch → org accent.
+// A Heliopolis session reads blue wherever it appears in the app, an Ember
+// academy's reads ember, and anything unattached falls back to SERVE red.
+export function sessionAccent(s, session) {
+  const branchId = session?.branch;
+  const br = branchId && s.branches?.find((b) => b.id === branchId);
+  if (br) return orgInfo(s, br.org_id).accent || '#ef4a2e';
+  // sessions that carry a venue id instead of a branch (demo rail rows)
+  const vid = session?.venueId || session?.orgId;
+  if (vid) return orgInfo(s, vid).accent || '#ef4a2e';
+  return '#ef4a2e';
+}
+
 // One org shape for every consumer. The two demo orgs live in the legacy
 // singleton fields (kept so the player app + live DB stay untouched);
 // dynamic orgs (created at signup) live in state.orgs.

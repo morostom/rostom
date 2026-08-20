@@ -8,8 +8,10 @@ import { useEffect, useState } from 'react';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-// venues open 09:00 → 23:00 unless they say otherwise
-export const DEFAULT_HOURS = { open: 9, close: 23 };
+// SERVE is 24/7. A venue can still publish its own hours later; until
+// then every court is bookable at every hour.
+export const DEFAULT_HOURS = { open: 0, close: 24 };
+export const isAlwaysOpen = (h = DEFAULT_HOURS) => h.open <= 0 && h.close >= 24;
 
 // Re-render on a cadence (default every 30s) and hand back "now".
 export function useNow(everyMs = 30000) {
@@ -41,6 +43,7 @@ export function isOpenNow(now, hours = DEFAULT_HOURS) {
 
 // `t` is the i18n translator — passed in so this stays a pure helper.
 export function closesInLabel(now, hours = DEFAULT_HOURS, t = (s) => s) {
+  if (isAlwaysOpen(hours)) return t('Open 24/7');
   const m = minutesOfDay(now);
   if (m < hours.open * 60 || m >= hours.close * 60) return `${t('Opens')} ${fmtHHMM(hours.open * 60)}`;
   const left = hours.close * 60 - m;
@@ -53,6 +56,7 @@ export function nextSlot(now, hours = DEFAULT_HOURS) {
   const m = minutesOfDay(now);
   const start = Math.max(m, hours.open * 60);
   const slot = Math.ceil(start / 30) * 30;
+  if (isAlwaysOpen(hours)) return slot % 1440;   // rolls into tomorrow
   return slot >= hours.close * 60 ? null : slot;
 }
 
