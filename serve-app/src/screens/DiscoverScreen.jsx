@@ -17,7 +17,8 @@ import { useStore, orgInfo, sessionAccent } from '../store';
 import { useT } from '../i18n';
 import { venueCoords, mapsLink, distanceKm } from '../lib/geo';
 import { useLocation, areaOf, NEAR_KM } from '../lib/location';
-import { useNow, isOpenNow, closesInLabel, nextSlot, fmtHHMM, sessionTiming, dayId } from '../lib/live';
+import { venueFromPrice, courtRate, branchRates, isPeak } from '../lib/pricing';
+import { useNow, isOpenNow, closesInLabel, nextSlot, fmtHHMM, sessionTiming, dayId, venueHours, hoursOf } from '../lib/live';
 import { OPEN_COURTS, OPEN_SESSIONS, ACADEMIES_DIR, CLUBS_DIR } from '../data';
 
 const FILTERS = [['open', 'Open now'], ['academies', 'Academies'], ['near', 'Near me'], ['juniors', 'Juniors']];
@@ -50,7 +51,7 @@ export default function DiscoverScreen() {
           maps_url: o.maps_url || br[0]?.maps_url || '',
           accent: o.accent || 'var(--sq-gold)', logo: o.logo || null,
           courts: courts.length, freeNow: courts.filter((c) => c.status === 'free').length,
-          minPrice: o.min_price || 200, dynamic: true,
+          minPrice: venueFromPrice(state, o.id), dynamic: true,
         };
       });
 
@@ -64,18 +65,19 @@ export default function DiscoverScreen() {
         maps_url: state.orgs?.find((o) => o.id === v.id)?.maps_url || '',
         courts: courts.length || courtNum(v.courts) || 0,
         freeNow: courts.length ? courts.filter((c) => c.status === 'free').length : null,
-        minPrice: v.minPrice || 200,
+        minPrice: br.length ? venueFromPrice(state, v.id) : (v.minPrice || 200),
       };
     });
 
     return [...seeded, ...dyn].map((v) => {
       const c = venueCoords(v);
-      const open = isOpenNow(now);
+      const hours = venueHours(state, v.id);
+      const open = isOpenNow(now, hours);
       return {
         ...v,
         lat: c?.lat, lng: c?.lng,
         km: c ? distanceKm(me, c) : null,
-        open,
+        open, hours,
         // seeded venues don't have live court rows — show a plausible count
         freeNow: v.freeNow != null ? v.freeNow : open ? Math.max(1, Math.round(v.courts * 0.35)) : 0,
         rating: venueRating(state.reviews, v.id),
@@ -115,7 +117,9 @@ export default function DiscoverScreen() {
       real.push({
         id: `${c.branch}-${c.court}`, court: c.court, type: c.type || 'Standard',
         venue: org.name, venueId: br.org_id, branch: c.branch,
-        price: 200, time: slot != null ? fmtHHMM(slot) : '—',
+        price: courtRate(state, c.branch, c.court, slot != null ? fmtHHMM(slot) : null),
+        peak: isPeak(slot != null ? fmtHHMM(slot) : null, branchRates(br)),
+        time: slot != null ? fmtHHMM(slot) : '—',
       });
     }
     const demo = OPEN_COURTS.map((c) => ({ ...c, time: slot != null ? fmtHHMM(slot) : c.time }));
@@ -132,7 +136,7 @@ export default function DiscoverScreen() {
         id: s.id, title: s.title, coach: s.coach, price: s.price || 0,
         players: s.players || [], day: s.day, time: s.time,
         venue: org?.name || br?.name || '', left,
-        branch: s.branch, accent: org?.accent || 'var(--sq-gold)',
+        branch: s.branch, duration: s.duration || null, accent: org?.accent || 'var(--sq-gold)',
       };
     }).filter((s) => s.left == null || s.left > 0);
 
@@ -222,7 +226,7 @@ export default function DiscoverScreen() {
                 )}
                 {hero.rating?.count > 0 && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>· <Stars value={hero.rating.avg} size={11} /> {hero.rating.avg.toFixed(1)}</span>}
               </div>
-              <div className="sq-mono" style={{ fontSize: 10.5, color: hero.open ? 'var(--sq-green)' : 'var(--sq-text-3)', marginTop: 6, letterSpacing: '0.08em' }}>{closesInLabel(now, undefined, t)}</div>
+              <div className="sq-mono" style={{ fontSize: 10.5, color: hero.open ? 'var(--sq-green)' : 'var(--sq-text-3)', marginTop: 6, letterSpacing: '0.08em' }}>{closesInLabel(now, hero.hours, t)}</div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginTop: 14 }}>
                 {[['Courts', hero.courts || '—', null], ['Free now', hero.freeNow ?? '—', 'var(--sq-green)'], ['From', `${hero.minPrice}`, null]].map(([l, v, c]) => (
@@ -282,7 +286,10 @@ export default function DiscoverScreen() {
                   {c.guest && <span className="sq-chip" style={{ fontSize: 9.5, padding: '3px 8px' }}>{t('Guest pass')}</span>}
                 </div>
                 <div className="sq-display" style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.2 }}>{c.venue}</div>
-                <div style={{ fontSize: 11, color: 'var(--sq-text-2)' }}>{c.time} · {c.type}</div>
+                <div style={{ fontSize: 11, color: 'var(--sq-text-2)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {c.time} · {c.type}
+                  {c.peak && <span className="sq-chip" style={{ fontSize: 9, padding: '1px 6px' }}>{t('Peak')}</span>}
+                </div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
                   <span className="sq-display" style={{ fontSize: 14, fontWeight: 700, color: 'var(--sq-gold)' }}>EGP {c.price}</span>
                   <button className="sq-btn-gold" style={{ padding: '8px 15px', fontSize: 12.5 }}
@@ -319,6 +326,7 @@ export default function DiscoverScreen() {
                     <div style={{ fontSize: 11.5, color: 'var(--sq-text-2)', marginTop: 3 }}>{[s.coach, s.venue].filter(Boolean).join(' · ')}</div>
                     <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
                       <Icons.Users size={10} /> {count} {t('players')}{s.left != null ? ` · ${s.left} ${t('left')}` : ''}
+                      {s.duration ? ` · ${s.duration} ${t('min')}` : ''}
                     </div>
                   </div>
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>

@@ -14,6 +14,7 @@ import { Icons } from '../components/Icons';
 import { useToast } from '../components/Toast';
 import { DUR_FAST } from '../motion';
 import { useStore, store } from '../store';
+import { DURATIONS, DEFAULT_DURATION, endTime } from '../lib/pricing';
 import { useT } from '../i18n';
 import { parsePdfSchedule } from '../lib/pdfImport';
 import { ROSTER, SESSION_TYPES, TIME_SLOTS, TIME_PERIODS, slotsInPeriod, periodForHour, WEEK_DAYS } from '../data';
@@ -78,6 +79,7 @@ export default function SchedulePanel({ orgId, branch, branches, Topbar }) {
   const [period, setPeriod] = useState(() => periodForHour(new Date().getHours()).key);
   const shownSlots = slotsInPeriod(TIME_PERIODS.find((p) => p.key === period) || TIME_PERIODS[3]);
   const [type, setType] = useState('Group training');
+  const [duration, setDuration] = useState(DEFAULT_DURATION);
   const [title, setTitle] = useState('');
   const [open, setOpen] = useState(false);
   const [price, setPrice] = useState('250');
@@ -90,7 +92,7 @@ export default function SchedulePanel({ orgId, branch, branches, Topbar }) {
     const extra = open ? { open: true, price: Math.max(0, Number(price) || 0), spots: Math.max(players.length, Number(spots) || 8) } : {};
     let n = 0;
     for (const d of days) for (const tm of times) {
-      store.addSession({ day: d, time: tm, type, title: title || type, coach, court, players, branch, mine: players.includes('Nour Hassan'), ...extra });
+      store.addSession({ day: d, time: tm, type, title: title || type, coach, court, players, branch, duration, mine: players.includes('Nour Hassan'), ...extra });
       n++;
     }
     notify(n === 1
@@ -171,7 +173,7 @@ export default function SchedulePanel({ orgId, branch, branches, Topbar }) {
   }
 
   function commitAuto() {
-    for (const r of preview) store.addSession({ ...r, branch, mine: false });
+    for (const r of preview) store.addSession({ duration, ...r, branch, mine: false });
     notify(`Scheduled ${preview.length} session${preview.length !== 1 ? 's' : ''} for ${autoCoach || 'the coach'}`);
     setPreview(null);
     setPlayers([]);
@@ -196,7 +198,7 @@ export default function SchedulePanel({ orgId, branch, branches, Topbar }) {
           knownCoaches.add(r.coach.toLowerCase());
           newCoaches++;
         }
-        store.addSession({ ...r, branch, mine: false });
+        store.addSession({ duration, ...r, branch, mine: false });
       }
       notify(`Imported ${rows.length} session${rows.length !== 1 ? 's' : ''}${newCoaches ? ` · added ${newCoaches} coach${newCoaches !== 1 ? 'es' : ''}` : ''}${skipped ? ` · ${skipped} row${skipped !== 1 ? 's' : ''} skipped` : ''}`);
     } catch (e) {
@@ -212,7 +214,7 @@ export default function SchedulePanel({ orgId, branch, branches, Topbar }) {
       <Label>{t('Players')} ({players.length})</Label>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
         {pool.map((n) => <Chip key={n} on={players.includes(n)} onClick={() => togglePlayer(n)}>{n}</Chip>)}
-        {!pool.length && <span className="sq-mono" style={{ fontSize: 11.5, color: 'var(--sq-text-3)' }}>No players yet — add names below.</span>}
+        {!pool.length && <span className="sq-mono" style={{ fontSize: 11.5, color: 'var(--sq-text-3)' }}>{t('No players yet — add names below.')}</span>}
       </div>
       <div style={{ display: 'flex', gap: 8 }}>
         <input style={{ ...fieldCss, flex: 1 }} value={nameDraft} placeholder={t('Add a player by name')} onChange={(e) => setNameDraft(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addName()} />
@@ -247,7 +249,7 @@ export default function SchedulePanel({ orgId, branch, branches, Topbar }) {
                   <h2 className="sq-display" style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>{t('New sessions')}</h2>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                     <div><Label>{t('Session type')}</Label>
-                      <select style={fieldCss} value={type} onChange={(e) => setType(e.target.value)}>{SESSION_TYPES.map((t) => <option key={t}>{t}</option>)}</select>
+                      <select style={fieldCss} value={type} onChange={(e) => setType(e.target.value)}>{SESSION_TYPES.map((x) => <option key={x} value={x}>{t(x)}</option>)}</select>
                     </div>
                     <div><Label>{t('Title')}</Label><input style={fieldCss} value={title} onChange={(e) => setTitle(e.target.value)} placeholder={type} /></div>
                   </div>
@@ -255,8 +257,18 @@ export default function SchedulePanel({ orgId, branch, branches, Topbar }) {
                     <div><Label>{t('Coach')}</Label>{coachField(coach, setCoach)}</div>
                     <div><Label>{t('Court')}</Label>
                       {courtNos.length
-                        ? <select style={fieldCss} value={court} onChange={(e) => setCourt(Number(e.target.value))}>{courtNos.map((c) => <option key={c} value={c}>Court {c}</option>)}</select>
+                        ? <select style={fieldCss} value={court} onChange={(e) => setCourt(Number(e.target.value))}>{courtNos.map((c) => <option key={c} value={c}>{t('Court')} {c}</option>)}</select>
                         : <input style={fieldCss} type="number" min="1" value={court} onChange={(e) => setCourt(Number(e.target.value) || 1)} />}
+                    </div>
+                  </div>
+                  <div><Label>{t('How long is each session?')}</Label>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {DURATIONS.map((d) => <Chip key={d} on={d === duration} onClick={() => setDuration(d)}>{d} {t('min')}</Chip>)}
+                      {times.length === 1 && (
+                        <span className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-3)', alignSelf: 'center', marginInlineStart: 4 }}>
+                          {times[0]} – {endTime(times[0], duration)}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div><Label>{t('Days — pick as many as you need')}</Label>
@@ -291,7 +303,7 @@ export default function SchedulePanel({ orgId, branch, branches, Topbar }) {
                     )}
                   </div>
                   <button className="sq-btn-gold serve-glow-soft" style={{ padding: '13px', fontSize: 14 }} onClick={addManual}>
-                    Publish {days.length * times.length > 1 ? `${days.length * times.length} sessions` : 'session'} →
+                    {t('Publish')} {days.length * times.length > 1 ? `${days.length * times.length} ${t('sessions')}` : t('session')} →
                   </button>
                 </div>
               )}

@@ -8,10 +8,10 @@ const CLUB = 'heliopolis';
 const ACADEMY = 'ramyashour';
 
 // courts/sessions live under a branch — the branch id IS the club_id column.
-const courtFromRow = (r) => ({ branch: r.club_id, court: r.court_no, type: r.type, status: r.status, who: r.who, coach: r.coach, until: r.until, left: r.remaining, next: r.next });
-const sessionFromRow = (r) => ({ id: r.id, branch: r.club_id, day: r.day, time: r.time, type: r.type, title: r.title, coach: r.coach, court: r.court, players: r.players || [], price: r.price ?? null, spots: r.spots ?? null, open: !!r.open, mine: false });
+const courtFromRow = (r) => ({ branch: r.club_id, court: r.court_no, type: r.type, status: r.status, who: r.who, coach: r.coach, until: r.until, left: r.remaining, next: r.next, price: r.price ?? null });
+const sessionFromRow = (r) => ({ id: r.id, branch: r.club_id, day: r.day, time: r.time, type: r.type, title: r.title, coach: r.coach, court: r.court, players: r.players || [], price: r.price ?? null, spots: r.spots ?? null, open: !!r.open, duration: r.duration ?? null, mine: false });
 const bookingFromRow = (r) => ({ id: r.id, branch: r.branch, court: r.court, title: r.title, venue: r.venue, type: r.type, day: r.day, time: r.time, endTime: r.end_time, price: r.price, method: r.method, status: r.status });
-const branchFromRow = (r) => ({ id: r.id, org_id: r.org_id, name: r.name, location: r.location, courts: r.court_count });
+const branchFromRow = (r) => ({ id: r.id, org_id: r.org_id, name: r.name, location: r.location, courts: r.court_count, price: r.price ?? null, peak_price: r.peak_price ?? null, peak_from: r.peak_from ?? null, peak_to: r.peak_to ?? null, open_hour: r.open_hour ?? null, close_hour: r.close_hour ?? null, maps_url: r.maps_url ?? null, address: r.address ?? null });
 const orgFromRow = (r) => ({ id: r.id, type: r.type, name: r.name, accent: r.accent, logo: r.logo, cover: r.cover, crest: r.crest, owner_phone: r.owner_phone, coach_phone: r.coach_phone, maps_url: r.maps_url, address: r.address, owner_id: r.owner_id });
 const paymentFromRow = (r) => ({ id: r.id, player: r.player, item: r.item, amount: r.amount, status: r.status, method: r.method });
 const staffFromRow = (r) => ({ id: r.id, org_id: r.org_id, name: r.name, role: r.role, initials: r.initials, squads: r.squads });
@@ -111,11 +111,11 @@ export function subscribe(onChange) {
 // the branch id is stored in the club_id column
 export async function writeCourt(c) {
   if (!c) return;
-  await supabase.from('courts').update({ status: c.status, who: c.who ?? null, coach: c.coach ?? null, until: c.until ?? null, remaining: c.left ?? null, next: c.next ?? null }).eq('club_id', c.branch).eq('court_no', c.court);
+  await supabase.from('courts').update({ status: c.status, who: c.who ?? null, coach: c.coach ?? null, until: c.until ?? null, remaining: c.left ?? null, next: c.next ?? null, type: c.type ?? 'Standard', price: c.price ?? null }).eq('club_id', c.branch).eq('court_no', c.court);
 }
 export async function addSession(s) {
   const base = { club_id: s.branch || CLUB, day: s.day, time: s.time, type: s.type, title: s.title, coach: s.coach, court: s.court, players: s.players || [] };
-  const { error } = await supabase.from('sessions').insert({ ...base, price: s.price ?? null, spots: s.spots ?? null, open: !!s.open });
+  const { error } = await supabase.from('sessions').insert({ ...base, price: s.price ?? null, spots: s.spots ?? null, open: !!s.open, duration: s.duration ?? null });
   if (error) await supabase.from('sessions').insert(base); // pre-migration DB: retry without the open-session columns
 }
 export async function removeSession(id) {
@@ -123,7 +123,7 @@ export async function removeSession(id) {
 }
 export async function updateSession(id, patch) {
   const row = {};
-  for (const k of ['day', 'time', 'type', 'title', 'coach', 'court', 'players', 'price', 'spots', 'open']) if (patch[k] !== undefined) row[k] = patch[k];
+  for (const k of ['day', 'time', 'type', 'title', 'coach', 'court', 'players', 'price', 'spots', 'open', 'duration']) if (patch[k] !== undefined) row[k] = patch[k];
   await supabase.from('sessions').update(row).eq('id', id);
 }
 // players aren't org owners, so joining goes through a security-definer RPC
@@ -154,13 +154,17 @@ export async function upsertOrg(id, patch) {
   await supabase.from('org_settings').update(row).eq('id', id);
 }
 export async function addBranch(br) {
-  await supabase.from('branches').insert({ id: br.id, org_id: br.org_id, name: br.name, location: br.location ?? null, court_count: br.courts ?? 0 });
+  await supabase.from('branches').insert({ id: br.id, org_id: br.org_id, name: br.name, location: br.location ?? null, court_count: br.courts ?? 0, price: br.price ?? null, open_hour: br.open_hour ?? null, close_hour: br.close_hour ?? null });
 }
 export async function updateBranch(id, patch) {
   const row = {};
   if (patch.name != null) row.name = patch.name;
   if (patch.location != null) row.location = patch.location;
   if (patch.courts != null) row.court_count = patch.courts;
+  // rates + opening hours are nullable on purpose: null means "house default"
+  for (const k of ['price', 'peak_price', 'peak_from', 'peak_to', 'open_hour', 'close_hour', 'maps_url', 'address']) {
+    if (patch[k] !== undefined) row[k] = patch[k];
+  }
   await supabase.from('branches').update(row).eq('id', id);
 }
 export async function removeBranch(id) {
@@ -245,7 +249,7 @@ export async function updatePaymentRequest(id, patch) {
   await supabase.from('payment_requests').update(patch).eq('id', id);
 }
 export async function addCourtRow(c) {
-  await supabase.from('courts').insert({ club_id: c.branch, court_no: c.court, type: c.type || 'Standard', status: c.status || 'free', next: c.next ?? null });
+  await supabase.from('courts').insert({ club_id: c.branch, court_no: c.court, type: c.type || 'Standard', status: c.status || 'free', next: c.next ?? null, price: c.price ?? null });
 }
 export async function removeCourtRow(branch, court) {
   await supabase.from('courts').delete().eq('club_id', branch).eq('court_no', court);

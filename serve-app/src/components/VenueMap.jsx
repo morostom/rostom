@@ -1,165 +1,244 @@
-// VenueMap.jsx — the Discover map. A stylised Cairo-style street canvas with
-// a pin per venue, positioned from real coordinates.
+// VenueMap.jsx — the Discover map. A real, pannable OpenStreetMap of Cairo
+// with a brand-coloured pin per venue.
 //
-// Deliberately not Google/Mapbox tiles: no API key, no billing, no network
-// dependency, and it matches the SERVE palette in both themes. Positions are
-// real (projected lat/lng), and every pin can hand off to actual Google Maps
-// for directions — so it's honest about where things are without pretending
-// to be a routing map.
+// Leaflet + OSM tiles: no API key, no billing account, no per-view quota. The
+// tiles are recoloured in CSS (see .serve-map in index.css) so the map reads
+// as SERVE in both themes instead of as a stock Google embed. Venues that sit
+// on top of each other collapse into a count bubble that zooms in on tap, and
+// every venue still hands off to real Google Maps for directions.
 
-import { useMemo } from 'react';
+import { useEffect, useRef, useMemo, useState } from 'react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { Icons } from './Icons';
-import { projectPins, makeProjection } from '../lib/geo';
 
-// Real Cairo geography in lat/lng, projected through the SAME transform as
-// the pins — so the river, the ring road and the district labels actually
-// line up with where the venues are.
-const NILE = [
-  [30.20, 31.255], [30.14, 31.238], [30.10, 31.226], [30.075, 31.222],
-  [30.045, 31.228], [30.00, 31.232], [29.96, 31.240], [29.90, 31.252], [29.84, 31.262],
-];
-const RING_ROAD = [
-  [30.15, 31.22], [30.16, 31.35], [30.11, 31.45], [30.02, 31.49],
-  [29.93, 31.42], [29.90, 31.28], [29.94, 31.17], [30.03, 31.12], [30.11, 31.14], [30.15, 31.22],
-];
-const DISTRICTS = [
-  ['Heliopolis', 30.088, 31.324], ['Nasr City', 30.058, 31.343],
-  ['New Cairo', 30.030, 31.470], ['Maadi', 29.960, 31.260],
-  ['Zamalek', 30.061, 31.221], ['Giza', 30.013, 31.209],
-  ['6th October', 29.970, 30.940], ['Downtown', 30.045, 31.236],
-];
+const CAIRO = [30.0444, 31.2357];
 
-export default function VenueMap({ venues = [], height = 190, activeId, onPick, me = null }) {
-  // project the player's position through the same transform as the venues,
-  // so "you" lands in the right place relative to the pins
-  const pins = useMemo(
-    () => projectPins(me ? [...venues, { id: '__me__', lat: me.lat, lng: me.lng, me: true }] : venues),
-    [venues, me],
+// A venue pin: a brand-coloured dot, bigger and labelled when it's the one
+// the sheet below is showing.
+function pinIcon(v, active) {
+  const col = v.accent && v.accent !== 'var(--sq-gold)' ? v.accent : 'var(--sq-gold)';
+  const d = active ? 16 : 12;
+  const label = active
+    ? `<span class="serve-pin-label sq-display">${escapeHtml(v.short || v.name || '')}</span>`
+    : '';
+  return L.divIcon({
+    className: 'serve-pin' + (active ? ' on' : ''),
+    html: `<span class="serve-pin-dot" style="--pin:${col};width:${d}px;height:${d}px"></span>${label}`,
+    iconSize: [d, d],
+    iconAnchor: [d / 2, d / 2],
+  });
+}
+
+function clusterIcon(n) {
+  const d = n > 9 ? 34 : 30;
+  return L.divIcon({
+    className: 'serve-pin serve-cluster',
+    html: `<span class="serve-cluster-bubble sq-display" style="width:${d}px;height:${d}px">${n}</span>`,
+    iconSize: [d, d],
+    iconAnchor: [d / 2, d / 2],
+  });
+}
+
+const meIcon = () =>
+  L.divIcon({ className: 'serve-pin', html: '<span class="serve-me-dot"></span>', iconSize: [14, 14], iconAnchor: [7, 7] });
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// Group venues whose screen positions are within `px` of each other. O(n²),
+// which is nothing at the scale of "every squash venue in Egypt".
+function clusterAt(map, items, px) {
+  const pts = items.map((v) => ({ v, p: map.latLngToLayerPoint([v.lat, v.lng]) }));
+  const used = new Array(pts.length).fill(false);
+  const out = [];
+  for (let i = 0; i < pts.length; i++) {
+    if (used[i]) continue;
+    used[i] = true;
+    const group = [pts[i].v];
+    for (let j = i + 1; j < pts.length; j++) {
+      if (used[j]) continue;
+      if (pts[i].p.distanceTo(pts[j].p) < px) { used[j] = true; group.push(pts[j].v); }
+    }
+    out.push(group);
+  }
+  return out;
+}
+
+export default function VenueMap({ venues = [], height = 196, activeId, onPick, me = null }) {
+  const hostRef = useRef(null);
+  const mapRef = useRef(null);
+  const layerRef = useRef(null);
+  const meRef = useRef(null);
+  const onPickRef = useRef(onPick);
+  onPickRef.current = onPick;
+  // On a phone the map fills the width of a vertically-scrolling feed, so a
+  // drag would steal the scroll. It stays locked until the player taps it.
+  const [locked, setLocked] = useState(() => typeof window !== 'undefined' && 'ontouchstart' in window);
+  const [tiles, setTiles] = useState('loading'); // loading | ok | offline
+
+  const mapped = useMemo(() => venues.filter((v) => v.lat != null && v.lng != null), [venues]);
+  // Only refit the view when the SET of venues changes — not on every 30s
+  // clock tick, which would yank the map out from under a player mid-pan.
+  const sig = useMemo(
+    () => mapped.map((v) => `${v.id}:${v.lat.toFixed(3)},${v.lng.toFixed(3)}`).sort().join('|'),
+    [mapped],
   );
-  const proj = useMemo(
-    () => makeProjection(me ? [...venues, { lat: me.lat, lng: me.lng }] : venues),
-    [venues, me],
-  );
-  const path = (coords) => coords
-    .map(([lat, lng], i) => { const p = proj(lat, lng, false); return `${i ? 'L' : 'M'}${(p.x * 100).toFixed(2)} ${(p.y * 100).toFixed(2)}`; })
-    .join(' ');
-  const mePin = pins.find((p) => p.me);
-  const venuePins = pins.filter((p) => !p.me);
+  const activeRef = useRef(activeId);
+  activeRef.current = activeId;
+
+  // ── create the map once ─────────────────────────────────────────────
+  useEffect(() => {
+    if (mapRef.current || !hostRef.current) return;
+    const map = L.map(hostRef.current, {
+      center: CAIRO,
+      zoom: 10,
+      zoomControl: false,
+      attributionControl: true,
+      scrollWheelZoom: false,   // the map lives inside a scrolling feed
+      tap: true,
+    });
+    const tl = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap',
+      crossOrigin: true,
+    }).addTo(map);
+    // a blank grey box reads as a bug; say so instead
+    let ok = 0, bad = 0;
+    tl.on('tileload', () => { ok += 1; setTiles('ok'); });
+    tl.on('tileerror', () => { bad += 1; if (!ok && bad > 2) setTiles('offline'); });
+    L.control.zoom({ position: 'topright' }).addTo(map);
+    layerRef.current = L.layerGroup().addTo(map);
+    mapRef.current = map;
+    // the container is measured before it has settled in the flex column
+    setTimeout(() => map.invalidateSize(), 0);
+    return () => { map.remove(); mapRef.current = null; };
+  }, []);
+
+  // ── keep the height honest ──────────────────────────────────────────
+  useEffect(() => { mapRef.current?.invalidateSize(); }, [height]);
+
+  // ── lock / unlock gestures ──────────────────────────────────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    for (const h of ['dragging', 'touchZoom', 'doubleClickZoom']) {
+      if (locked) map[h].disable(); else map[h].enable();
+    }
+    // the wheel only ever engages after a deliberate tap, on any device
+    if (locked) map.scrollWheelZoom.disable(); else map.scrollWheelZoom.enable();
+  }, [locked]);
+
+  // ── frame the venues ────────────────────────────────────────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const pts = [...mapped.map((v) => [v.lat, v.lng]), ...(me ? [[me.lat, me.lng]] : [])];
+    if (!pts.length) { map.setView(CAIRO, 10); return; }
+    if (pts.length === 1) { map.setView(pts[0], 13); return; }
+    map.fitBounds(L.latLngBounds(pts).pad(0.18), { animate: false, maxZoom: 14 });
+  }, [sig, me?.lat, me?.lng]);
+
+  // ── draw pins & clusters, re-clustering on every zoom/pan ───────────
+  useEffect(() => {
+    const map = mapRef.current;
+    const layer = layerRef.current;
+    if (!map || !layer) return;
+
+    const draw = () => {
+      layer.clearLayers();
+      if (!mapped.length) return;
+      const active = mapped.find((v) => v.id === activeRef.current);
+      // the active venue always shows as itself, never swallowed by a bubble
+      const rest = active ? mapped.filter((v) => v.id !== active.id) : mapped;
+      for (const group of clusterAt(map, rest, 42)) {
+        if (group.length === 1) {
+          const v = group[0];
+          L.marker([v.lat, v.lng], { icon: pinIcon(v, false), title: v.name, keyboard: false })
+            .on('click', () => onPickRef.current?.(v))
+            .addTo(layer);
+        } else {
+          const lat = group.reduce((a, v) => a + v.lat, 0) / group.length;
+          const lng = group.reduce((a, v) => a + v.lng, 0) / group.length;
+          L.marker([lat, lng], { icon: clusterIcon(group.length), keyboard: false })
+            .on('click', () => {
+              const b = L.latLngBounds(group.map((v) => [v.lat, v.lng]));
+              // a cluster of venues at the same address can't be split by
+              // zooming — pick the first one instead of zooming forever
+              if (map.getZoom() >= 16 || b.getNorthEast().equals(b.getSouthWest())) onPickRef.current?.(group[0]);
+              else map.fitBounds(b.pad(0.35), { maxZoom: 16 });
+            })
+            .addTo(layer);
+        }
+      }
+      if (active) {
+        L.marker([active.lat, active.lng], { icon: pinIcon(active, true), zIndexOffset: 500, keyboard: false })
+          .on('click', () => onPickRef.current?.(active))
+          .addTo(layer);
+      }
+    };
+
+    draw();
+    map.on('zoomend moveend', draw);
+    return () => { map.off('zoomend moveend', draw); };
+  }, [mapped, activeId]);
+
+  // ── you-are-here ────────────────────────────────────────────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (meRef.current) { meRef.current.remove(); meRef.current = null; }
+    if (!me) return;
+    meRef.current = L.marker([me.lat, me.lng], { icon: meIcon(), interactive: false, zIndexOffset: 900 }).addTo(map);
+  }, [me?.lat, me?.lng]);
+
+  // ── keep the picked venue in view ───────────────────────────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    const v = mapped.find((x) => x.id === activeId);
+    if (!map || !v) return;
+    if (!map.getBounds().pad(-0.12).contains([v.lat, v.lng])) map.panTo([v.lat, v.lng], { animate: true });
+  }, [activeId, mapped]);
+
+  const fitAll = () => {
+    const map = mapRef.current;
+    if (!map) return;
+    const pts = [...mapped.map((v) => [v.lat, v.lng]), ...(me ? [[me.lat, me.lng]] : [])];
+    if (pts.length > 1) map.fitBounds(L.latLngBounds(pts).pad(0.18), { maxZoom: 14 });
+    else if (pts.length) map.setView(pts[0], 13);
+  };
 
   return (
-    <div
-      style={{
-        position: 'relative',
-        height,
-        borderRadius: 16,
-        overflow: 'hidden',
-        border: '1px solid var(--sq-border)',
-        background:
-          'radial-gradient(120% 90% at 20% 0%, color-mix(in srgb, var(--sq-gold) 7%, transparent), transparent 60%), var(--sq-surface)',
-      }}
-    >
-      {/* real Cairo geography, projected with the pins */}
-      {proj && (
-        <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
-          <path d={path(RING_ROAD)} fill="none" stroke="var(--sq-border-2)" strokeWidth="0.5" strokeDasharray="1.6 1.2" vectorEffect="non-scaling-stroke" />
-          <path d={path(NILE)} fill="none" stroke="color-mix(in srgb, var(--sq-blue) 38%, transparent)" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-        </svg>
-      )}
-      {/* district labels sit in the DOM so they never stretch with the svg */}
-      {proj && DISTRICTS.map(([name, lat, lng]) => {
-        const p = proj(lat, lng, false);
-        if (p.x < 0.02 || p.x > 0.98 || p.y < 0.04 || p.y > 0.96) return null;
-        return (
-          <span key={name} className="sq-mono"
-            style={{ position: 'absolute', left: `${p.x * 100}%`, top: `${p.y * 100}%`, transform: 'translate(-50%, -50%)', fontSize: 8, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--sq-text-3)', opacity: 0.55, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
-            {name}
-          </span>
-        );
-      })}
+    <div className="serve-map" style={{ position: 'relative', height, borderRadius: 16, overflow: 'hidden', border: '1px solid var(--sq-border)', background: 'var(--sq-surface)' }}>
+      <div ref={hostRef} style={{ position: 'absolute', inset: 0 }} />
 
-      {mePin && (
-        <div style={{ position: 'absolute', left: `${mePin.x * 100}%`, top: `${mePin.y * 100}%`, transform: 'translate(-50%, -50%)', zIndex: 1, pointerEvents: 'none' }}>
-          <span style={{ display: 'block', width: 13, height: 13, borderRadius: 999, background: 'var(--sq-blue)', border: '2px solid var(--sq-surface)', boxShadow: '0 0 0 6px color-mix(in srgb, var(--sq-blue) 22%, transparent)' }} />
+      {/* venue count — doubles as "fit everything back in frame" */}
+      <button
+        onClick={fitAll}
+        className="sq-mono serve-map-chip"
+        style={{ left: 10, top: 10 }}
+        title="Show all venues"
+      >
+        <Icons.Pin size={10} /> {mapped.length} {mapped.length === 1 ? 'venue' : 'venues'}
+      </button>
+
+      {/* While locked, Leaflet doesn't swallow the touch, so the feed scrolls
+          normally and pins stay tappable. This chip hands the map back. */}
+      {locked && (
+        <button onClick={() => setLocked(false)} className="sq-mono serve-map-chip serve-map-unlock">
+          <Icons.Search size={10} /> Tap to explore
+        </button>
+      )}
+
+      {tiles === 'offline' && (
+        <div className="sq-mono" style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--sq-text-3)', fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase', pointerEvents: 'none', zIndex: 380 }}>
+          Map offline · pins still accurate
         </div>
       )}
 
-      {/* pins */}
-      {venuePins.map((p) => {
-        const on = p.id === activeId;
-        const col = p.accent || 'var(--sq-gold)';
-        return (
-          <button
-            key={p.id}
-            onClick={() => onPick?.(p)}
-            title={p.name}
-            style={{
-              position: 'absolute',
-              left: `${p.x * 100}%`,
-              top: `${p.y * 100}%`,
-              transform: 'translate(-50%, -100%)',
-              background: 'none',
-              border: 0,
-              padding: 4,
-              cursor: 'pointer',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              zIndex: on ? 3 : 2,
-            }}
-          >
-            <span
-              style={{
-                width: on ? 15 : 11,
-                height: on ? 15 : 11,
-                borderRadius: 999,
-                background: col,
-                border: '2px solid var(--sq-surface)',
-                boxShadow: `0 0 0 ${on ? 4 : 2}px color-mix(in srgb, ${col} 26%, transparent), 0 2px 6px rgba(0,0,0,0.45)`,
-                display: 'block',
-                transition: 'width .15s, height .15s, box-shadow .15s',
-              }}
-            />
-            {on && (
-              <span
-                className="sq-display"
-                style={{
-                  marginTop: 5,
-                  fontSize: 10.5,
-                  fontWeight: 700,
-                  whiteSpace: 'nowrap',
-                  padding: '3px 8px',
-                  borderRadius: 999,
-                  background: 'var(--sq-scrim-2)',
-                  border: '1px solid var(--sq-border-2)',
-                  color: 'var(--sq-text)',
-                  maxWidth: 130,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {p.short || p.name}
-              </span>
-            )}
-          </button>
-        );
-      })}
-
-      {/* count badge */}
-      <div
-        className="sq-mono"
-        style={{
-          position: 'absolute', left: 10, top: 10, zIndex: 4,
-          fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '0.12em',
-          padding: '4px 9px', borderRadius: 999,
-          background: 'var(--sq-scrim-2)', border: '1px solid var(--sq-border)',
-          color: 'var(--sq-text-2)', display: 'inline-flex', alignItems: 'center', gap: 6,
-        }}
-      >
-        <Icons.Pin size={10} /> {venuePins.length} nearby
-      </div>
-
-      {!venuePins.length && (
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--sq-text-3)', fontSize: 12 }}>
+      {!mapped.length && (
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--sq-text-3)', fontSize: 12, pointerEvents: 'none', zIndex: 500 }}>
           No mapped venues yet
         </div>
       )}

@@ -9,6 +9,82 @@ import { useToast } from '../components/Toast';
 import { DUR_FAST } from '../motion';
 import { useStore, store } from '../store';
 import { useT } from '../i18n';
+import { branchRates, DEFAULT_RATE } from '../lib/pricing';
+import { hoursOf, isAlwaysOpen, fmtHHMM } from '../lib/live';
+
+// ── rates & opening hours, per branch ────────────────────────────────
+// Both are optional: leave them alone and the branch stays at the house
+// rate and open 24/7, which is what most Egyptian venues actually are.
+function BranchRates({ b, t, notify, fieldCss, Label }) {
+  const r = branchRates(b);
+  const h = hoursOf(b);
+  const always = isAlwaysOpen(h);
+  const save = (patch, msg) => { store.setBranchInfo(b.id, patch); notify(msg || t('Branch updated')); };
+  const numOrNull = (v) => (v === '' ? null : Math.max(0, parseFloat(v) || 0));
+  const hourOpts = Array.from({ length: 24 }, (_, i) => i);
+
+  return (
+    <div style={{ borderTop: '1px solid var(--sq-border)', paddingTop: 14, display: 'grid', gap: 14 }}>
+      <div>
+        <Label>{t('Court rate')} · EGP / {t('hour')}</Label>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.2fr', gap: 10, alignItems: 'end' }}>
+          <div>
+            <div className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)', marginBottom: 5 }}>{t('Standard')}</div>
+            <input style={fieldCss} type="number" min="0" step="10" defaultValue={b.price ?? ''} placeholder={String(DEFAULT_RATE)}
+              onBlur={(e) => save({ price: numOrNull(e.target.value) })} />
+          </div>
+          <div>
+            <div className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)', marginBottom: 5 }}>{t('Peak')}</div>
+            <input style={fieldCss} type="number" min="0" step="10" defaultValue={b.peak_price ?? ''} placeholder={t('same')}
+              onBlur={(e) => save({ peak_price: numOrNull(e.target.value) })} />
+          </div>
+          <div>
+            <div className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)', marginBottom: 5 }}>{t('Peak hours')}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <select style={{ ...fieldCss, padding: '10px 8px' }} value={r.from} onChange={(e) => save({ peak_from: parseInt(e.target.value, 10) })}>
+                {hourOpts.map((x) => <option key={x} value={x}>{fmtHHMM(x * 60)}</option>)}
+              </select>
+              <span style={{ color: 'var(--sq-text-3)', fontSize: 12 }}>→</span>
+              <select style={{ ...fieldCss, padding: '10px 8px' }} value={r.to} onChange={(e) => save({ peak_to: parseInt(e.target.value, 10) })}>
+                {hourOpts.map((x) => <option key={x} value={x}>{fmtHHMM(x * 60)}</option>)}
+              </select>
+            </div>
+          </div>
+        </div>
+        <p className="sq-mono" style={{ margin: '7px 0 0', fontSize: 10.5, color: 'var(--sq-text-3)' }}>
+          {r.peak
+            ? `${t('Players see')} EGP ${r.rate} · EGP ${r.peak} ${t('at peak')}`
+            : `${t('Players see')} EGP ${r.rate} ${t('at every hour')}`}
+        </p>
+      </div>
+
+      <div>
+        <Label>{t('Opening hours')}</Label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <button
+            className={'sq-chip' + (always ? ' gold' : '')}
+            style={{ cursor: 'pointer', padding: '8px 13px', fontSize: 12 }}
+            onClick={() => save(always ? { open_hour: 8, close_hour: 23 } : { open_hour: null, close_hour: null })}
+          >
+            {t('Open 24/7')}
+          </button>
+          {!always && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <select style={{ ...fieldCss, width: 'auto', padding: '9px 8px' }} value={h.open} onChange={(e) => save({ open_hour: parseInt(e.target.value, 10) })}>
+                {hourOpts.map((x) => <option key={x} value={x}>{fmtHHMM(x * 60)}</option>)}
+              </select>
+              <span style={{ color: 'var(--sq-text-3)', fontSize: 12 }}>→</span>
+              <select style={{ ...fieldCss, width: 'auto', padding: '9px 8px' }} value={h.close % 24} onChange={(e) => save({ close_hour: parseInt(e.target.value, 10) })}>
+                {hourOpts.map((x) => <option key={x} value={x}>{fmtHHMM(x * 60)}</option>)}
+              </select>
+              {h.close > 24 && <span className="sq-chip" style={{ fontSize: 10 }}>{t('next day')}</span>}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function BranchesPanel({ orgId, Topbar }) {
   const t = useT();
@@ -65,8 +141,9 @@ export default function BranchesPanel({ orgId, Topbar }) {
                   <input defaultValue={b.location} placeholder={t('Location')} onBlur={(e) => { if (e.target.value !== b.location) { store.setBranchInfo(b.id, { location: e.target.value }); notify(t('Branch updated')); } }}
                     className="sq-mono" style={{ fontSize: 11.5, background: 'none', border: 0, color: 'var(--sq-text-3)', outline: 'none', width: '100%', padding: '2px 0 0' }} />
                 </div>
-                <span className="sq-chip gold" style={{ fontSize: 11 }}>{courtCount} courts</span>
+                <span className="sq-chip gold" style={{ fontSize: 11 }}>{courtCount} {t('courts')}</span>
               </div>
+              <BranchRates b={b} t={t} notify={notify} fieldCss={fieldCss} Label={Label} />
               <div style={{ display: 'flex', gap: 8, borderTop: '1px solid var(--sq-border)', paddingTop: 10 }}>
                 {list.length > 1 && <button className="sq-btn-ghost" style={{ padding: '8px 12px', fontSize: 12, color: 'var(--sq-text-3)' }} onClick={() => { store.removeBranch(b.id); notify(`${t('Removed')} ${b.name}`); }}>{t('Remove branch')}</button>}
               </div>

@@ -8,6 +8,7 @@ import ThemeScope from '../components/ThemeScope';
 import { useNav } from '../navigation/nav';
 import { useStore, sessionAccent } from '../store';
 import { CLUB, WEEK_DAYS } from '../data';
+import { durationOf, endTime } from '../lib/pricing';
 
 export default function ClubScheduleScreen() {
   const { nav, player } = useNav();
@@ -49,7 +50,10 @@ export default function ClubScheduleScreen() {
                       background: s.mine ? 'linear-gradient(120deg, color-mix(in srgb, var(--sq-gold) 14%, var(--sq-surface)), var(--sq-surface) 75%)' : 'var(--sq-surface)',
                       border: '1px solid ' + (s.mine ? 'color-mix(in srgb, var(--sq-gold) 38%, transparent)' : 'var(--sq-border)'),
                     }}>
-                      <div className="sq-mono" style={{ fontSize: 14, fontWeight: 600, minWidth: 46, color: s.mine ? 'var(--sq-gold)' : 'var(--sq-text)' }}>{s.time}</div>
+                      <div style={{ minWidth: 52 }}>
+                        <div className="sq-mono" style={{ fontSize: 14, fontWeight: 600, color: s.mine ? 'var(--sq-gold)' : 'var(--sq-text)' }}>{s.time}</div>
+                        <div className="sq-mono" style={{ fontSize: 9.5, color: 'var(--sq-text-3)', marginTop: 1 }}>{endTime(s.time, durationOf(s))}</div>
+                      </div>
                       <div style={{ width: 1, alignSelf: 'stretch', background: 'var(--sq-border)' }} />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div className="sq-display" style={{ fontSize: 14, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 7 }}>

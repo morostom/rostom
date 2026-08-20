@@ -22,6 +22,7 @@ import BranchesPanel from './BranchesPanel';
 import SchedulePanel from './SchedulePanel';
 import { DUR_FAST } from '../motion';
 import { useStore, store, orgInfo } from '../store';
+import { branchRates } from '../lib/pricing';
 import { useT, useLang, setLang } from '../i18n';
 import { signOut } from '../lib/auth';
 import { mapsLink } from '../lib/geo';
@@ -196,10 +197,11 @@ function Home({ orgId, orgType, branches, onNav }) {
 }
 
 // ── Live courts ──────────────────────────────────────────────────────
-function CourtCard({ c }) {
+function CourtCard({ c, rates }) {
   const notify = useToast();
   const t = useT();
   const free = c.status === 'free';
+  const override = c.price != null && c.price !== '' ? Number(c.price) : null;
   const ring = c.status === 'playing' ? 'var(--sq-green)' : 'var(--sq-gold)';
   const label = { lesson: t('Lesson'), playing: t('In play'), booked: t('Booked'), free: t('Open') }[c.status];
   return (
@@ -230,6 +232,27 @@ function CourtCard({ c }) {
               {c.until && c.until !== '—' && <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-3)', marginTop: 6 }}>{t('until')} {c.until}</div>}
             </>)}
       </div>
+      {/* what this court costs — blank means "use the branch rate" */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderTop: '1px solid var(--sq-border)', paddingTop: 10 }}>
+        <span className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>EGP</span>
+        <input
+          type="number" min="0" step="10"
+          defaultValue={c.price ?? ''}
+          placeholder={String(rates?.rate ?? '')}
+          title={t('Leave blank to use the branch rate')}
+          onBlur={(e) => {
+            const v = e.target.value === '' ? null : Math.max(0, parseFloat(e.target.value) || 0);
+            if (v === override) return;
+            store.setCourt(c.branch, c.court, { price: v });
+            notify(v == null ? `${t('Court')} ${c.court} — ${t('uses the branch rate')}` : `${t('Court')} ${c.court} — EGP ${v}/${t('hr')}`);
+          }}
+          className="sq-mono"
+          style={{ width: 76, padding: '6px 8px', borderRadius: 8, border: '1px solid var(--sq-border-2)', background: 'var(--sq-fill-2)', color: 'var(--sq-text)', fontSize: 12.5, outline: 'none' }}
+        />
+        <span className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)' }}>
+          / {t('hr')}{override == null && rates?.peak ? ` · ${t('peak')} ${rates.peak}` : ''}
+        </span>
+      </div>
       {free ? (
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="sq-btn-ghost" style={{ flex: 1, padding: '9px', fontSize: 12.5 }} onClick={() => { store.setCourt(c.branch, c.court, { status: 'playing', who: t('Members match'), coach: null, until: '—', left: 45 }); notify(`${t('Court')} ${c.court} — ${t('marked busy')}`); }}>{t('Mark busy')}</button>
@@ -249,6 +272,7 @@ function LiveCourts({ branch, branches }) {
   const branchCourts = state.courts.filter((c) => c.branch === branch);
   const inUse = branchCourts.filter((c) => c.status !== 'free').length;
   const branchName = branches?.find((b) => b.id === branch)?.name || '';
+  const rates = branchRates(branches?.find((b) => b.id === branch));
   const cancels = state.cancellations.filter((c) => c.status === 'cancelled').slice(-4).reverse();
   const pct = branchCourts.length ? Math.round((inUse / branchCourts.length) * 100) : 0;
   return (
@@ -289,7 +313,7 @@ function LiveCourts({ branch, branches }) {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(238px, 1fr))', gap: 16 }}>
-          {branchCourts.map((c) => <CourtCard key={c.branch + c.court} c={c} />)}
+          {branchCourts.map((c) => <CourtCard key={c.branch + c.court} c={c} rates={rates} />)}
         </div>
         {!branchCourts.length && <div className="sq-card" style={{ padding: 40, textAlign: 'center', color: 'var(--sq-text-3)', fontSize: 13.5, borderRadius: 16 }}>{t('No courts on this branch yet.')}</div>}
       </div>

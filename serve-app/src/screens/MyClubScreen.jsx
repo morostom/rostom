@@ -13,6 +13,7 @@ import ClubCrest from '../components/ClubCrest';
 import { useNav } from '../navigation/nav';
 import { useStore, sessionAccent } from '../store';
 import { useT } from '../i18n';
+import { durationOf, endTime } from '../lib/pricing';
 import { CLUB } from '../data';
 
 const STATUS = {
@@ -77,7 +78,7 @@ function MySessionRow({ s, onOpen }) {
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div className="sq-display" style={{ fontSize: 14.5, fontWeight: 600 }}>{t(s.title)}</div>
-        <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-2)', marginTop: 2 }}>{s.day} · {s.time} · {s.coach} · Court {s.court}</div>
+        <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-2)', marginTop: 2 }}>{s.day} · {s.time}–{endTime(s.time, durationOf(s))} · {s.coach} · {t('Court')} {s.court}</div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 5 }}>
         <span className="sq-chip gold" style={{ fontSize: 9.5, padding: '2px 8px' }}>{t(s.type)}</span>
