@@ -293,6 +293,14 @@ const AR = {
   'Private': 'خاص',
   'Nothing scheduled on this branch yet.': 'لا توجد حصص في هذا الفرع بعد.',
   // ── venue console (club + academy) ──
+  'Opens': 'يفتح',
+  'Closes in': 'يغلق خلال',
+  'min': 'دقيقة',
+  'Open until': 'مفتوح حتى',
+
+  'Add a cover photo': 'أضف صورة غلاف',
+  'until': 'حتى',
+
   'Schedule': 'الجدول',
   'Public page': 'الصفحة العامة',
   'Courts in use': 'ملاعب قيد الاستخدام',

@@ -209,7 +209,7 @@ export default function DiscoverScreen() {
                 {hero.km != null && <span>· {hero.km.toFixed(1)} km</span>}
                 {hero.rating?.count > 0 && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>· <Stars value={hero.rating.avg} size={11} /> {hero.rating.avg.toFixed(1)}</span>}
               </div>
-              <div className="sq-mono" style={{ fontSize: 10.5, color: hero.open ? 'var(--sq-green)' : 'var(--sq-text-3)', marginTop: 6, letterSpacing: '0.08em' }}>{closesInLabel(now)}</div>
+              <div className="sq-mono" style={{ fontSize: 10.5, color: hero.open ? 'var(--sq-green)' : 'var(--sq-text-3)', marginTop: 6, letterSpacing: '0.08em' }}>{closesInLabel(now, undefined, t)}</div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginTop: 14 }}>
                 {[['Courts', hero.courts || '—', null], ['Free now', hero.freeNow ?? '—', 'var(--sq-green)'], ['From', `${hero.minPrice}`, null]].map(([l, v, c]) => (

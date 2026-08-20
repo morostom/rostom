@@ -39,13 +39,13 @@ export function isOpenNow(now, hours = DEFAULT_HOURS) {
   return m >= hours.open * 60 && m < hours.close * 60;
 }
 
-export function closesInLabel(now, hours = DEFAULT_HOURS) {
+// `t` is the i18n translator — passed in so this stays a pure helper.
+export function closesInLabel(now, hours = DEFAULT_HOURS, t = (s) => s) {
   const m = minutesOfDay(now);
-  if (m < hours.open * 60) return `Opens ${fmtHHMM(hours.open * 60)}`;
-  if (m >= hours.close * 60) return `Opens ${fmtHHMM(hours.open * 60)}`;
+  if (m < hours.open * 60 || m >= hours.close * 60) return `${t('Opens')} ${fmtHHMM(hours.open * 60)}`;
   const left = hours.close * 60 - m;
-  if (left <= 60) return `Closes in ${left} min`;
-  return `Open until ${fmtHHMM(hours.close * 60)}`;
+  if (left <= 60) return `${t('Closes in')} ${left} ${t('min')}`;
+  return `${t('Open until')} ${fmtHHMM(hours.close * 60)}`;
 }
 
 // The next bookable slot on or after now, on the half hour.

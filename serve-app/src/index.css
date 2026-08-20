@@ -431,3 +431,57 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .sq-live-dot { animation: none; }
 }
+
+/* ── desktop console ────────────────────────────────────────────────
+   Hover/active affordances the console needs. Everything else comes
+   from the shared tokens so the console and the app stay one system. */
+.sq-nav {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 11px;
+  border-radius: 10px;
+  border: 0;
+  cursor: pointer;
+  text-align: start;
+  font-family: var(--sq-body);
+  font-size: 13.5px;
+  background: transparent;
+  color: var(--sq-text-2);
+  transition: background 0.15s, color 0.15s;
+}
+.sq-nav:hover {
+  background: var(--sq-fill);
+  color: var(--sq-text);
+}
+.sq-nav[data-on='true'] {
+  background: color-mix(in srgb, var(--sq-gold) 11%, transparent);
+  color: var(--sq-gold);
+  font-weight: 600;
+}
+.sq-nav[data-on='true']::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: -12px;
+  top: 9px;
+  bottom: 9px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--sq-gold);
+}
+
+/* table rows that respond to the pointer */
+.sq-row {
+  transition: background 0.13s;
+}
+.sq-row:hover {
+  background: var(--sq-fill-2);
+}
+
+/* a soft accent wash behind hero areas */
+.sq-wash {
+  background:
+    radial-gradient(120% 100% at 0% 0%, color-mix(in srgb, var(--sq-gold) 12%, transparent), transparent 62%),
+    var(--sq-surface);
+}
