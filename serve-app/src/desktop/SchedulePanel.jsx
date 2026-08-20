@@ -183,14 +183,14 @@ export default function SchedulePanel({ orgId, branch, branches, Topbar }) {
 
   const playerPicker = (
     <div>
-      <Label>Players ({players.length} selected)</Label>
+      <Label>{t('Players')} ({players.length})</Label>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
         {pool.map((n) => <Chip key={n} on={players.includes(n)} onClick={() => togglePlayer(n)}>{n}</Chip>)}
         {!pool.length && <span className="sq-mono" style={{ fontSize: 11.5, color: 'var(--sq-text-3)' }}>No players yet — add names below.</span>}
       </div>
       <div style={{ display: 'flex', gap: 8 }}>
-        <input style={{ ...fieldCss, flex: 1 }} value={nameDraft} placeholder="Add a player by name" onChange={(e) => setNameDraft(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addName()} />
-        <button className="sq-btn-ghost" style={{ padding: '9px 14px', fontSize: 12.5 }} onClick={addName}>Add</button>
+        <input style={{ ...fieldCss, flex: 1 }} value={nameDraft} placeholder={t('Add a player by name')} onChange={(e) => setNameDraft(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addName()} />
+        <button className="sq-btn-ghost" style={{ padding: '9px 14px', fontSize: 12.5 }} onClick={addName}>{t('Add')}</button>
       </div>
     </div>
   );
@@ -198,14 +198,14 @@ export default function SchedulePanel({ orgId, branch, branches, Topbar }) {
   const coachField = (value, set) => (
     coaches.length
       ? <select style={fieldCss} value={value} onChange={(e) => set(e.target.value)}>{coaches.map((c) => <option key={c.id}>{c.name}</option>)}</select>
-      : <input style={fieldCss} value={value} onChange={(e) => set(e.target.value)} placeholder="Coach name" />
+      : <input style={fieldCss} value={value} onChange={(e) => set(e.target.value)} placeholder={t('Coach name')} />
   );
 
   return (
     <>
-      <Topbar title="Schedule builder" sub="Manual · auto · PDF import" trailing={
+      <Topbar title={t('Schedule')} sub={t('Manual · auto · PDF import')} trailing={
         <div style={{ display: 'flex', gap: 4, padding: 3, background: 'var(--sq-surface)', borderRadius: 8, border: '1px solid var(--sq-border)' }}>
-          {[['manual', 'Manual'], ['auto', 'Auto-schedule'], ['pdf', 'PDF import']].map(([id, label]) => (
+          {[['manual', t('Manual')], ['auto', t('Auto-schedule')], ['pdf', t('PDF import')]].map(([id, label]) => (
             <button key={id} onClick={() => setMode(id)} style={{ padding: '7px 14px', borderRadius: 6, fontSize: 12, fontFamily: 'var(--sq-display)', fontWeight: 600, border: 0, cursor: 'pointer', background: id === mode ? 'var(--sq-gold)' : 'transparent', color: id === mode ? '#0e0b0a' : 'var(--sq-text-2)' }}>{label}</button>
           ))}
         </div>
@@ -218,27 +218,27 @@ export default function SchedulePanel({ orgId, branch, branches, Topbar }) {
 
               {mode === 'manual' && (
                 <div className="sq-card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <h2 className="sq-display" style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>New sessions</h2>
+                  <h2 className="sq-display" style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>{t('New sessions')}</h2>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                    <div><Label>Session type</Label>
+                    <div><Label>{t('Session type')}</Label>
                       <select style={fieldCss} value={type} onChange={(e) => setType(e.target.value)}>{SESSION_TYPES.map((t) => <option key={t}>{t}</option>)}</select>
                     </div>
-                    <div><Label>Title</Label><input style={fieldCss} value={title} onChange={(e) => setTitle(e.target.value)} /></div>
+                    <div><Label>{t('Title')}</Label><input style={fieldCss} value={title} onChange={(e) => setTitle(e.target.value)} /></div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                    <div><Label>Coach</Label>{coachField(coach, setCoach)}</div>
-                    <div><Label>Court</Label>
+                    <div><Label>{t('Coach')}</Label>{coachField(coach, setCoach)}</div>
+                    <div><Label>{t('Court')}</Label>
                       {courtNos.length
                         ? <select style={fieldCss} value={court} onChange={(e) => setCourt(Number(e.target.value))}>{courtNos.map((c) => <option key={c} value={c}>Court {c}</option>)}</select>
                         : <input style={fieldCss} type="number" min="1" value={court} onChange={(e) => setCourt(Number(e.target.value) || 1)} />}
                     </div>
                   </div>
-                  <div><Label>Days — pick as many as you need</Label>
+                  <div><Label>{t('Days — pick as many as you need')}</Label>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       {DAY_IDS.map((d) => <Chip key={d} on={days.includes(d)} onClick={() => toggleIn(setDays)(d)}>{d}</Chip>)}
                     </div>
                   </div>
-                  <div><Label>Times — every day × time becomes a session</Label>
+                  <div><Label>{t('Times — every day × time becomes a session')}</Label>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       {TIME_SLOTS.map((tm) => <Chip key={tm} on={times.includes(tm)} onClick={() => toggleIn(setTimes)(tm)}>{tm}</Chip>)}
                     </div>
@@ -246,12 +246,12 @@ export default function SchedulePanel({ orgId, branch, branches, Topbar }) {
                   {playerPicker}
                   <div style={{ borderTop: '1px solid var(--sq-border)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 12 }}>
                     <button onClick={() => setOpen((v) => !v)} className={'sq-chip' + (open ? ' gold' : '')} style={{ cursor: 'pointer', padding: '9px 14px', fontSize: 12.5, width: 'fit-content' }}>
-                      {open && <Icons.Check size={12} />} Open to players — anyone can join from the app
+                      {open && <Icons.Check size={12} />} {t('Open to players — anyone can join from the app')}
                     </button>
                     {open && (
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                        <div><Label>Price / player (EGP)</Label><input style={fieldCss} type="number" min="0" value={price} onChange={(e) => setPrice(e.target.value)} /></div>
-                        <div><Label>Max players</Label><input style={fieldCss} type="number" min="1" max="40" value={spots} onChange={(e) => setSpots(e.target.value)} /></div>
+                        <div><Label>{t('Price / player (EGP)')}</Label><input style={fieldCss} type="number" min="0" value={price} onChange={(e) => setPrice(e.target.value)} /></div>
+                        <div><Label>{t('Max players')}</Label><input style={fieldCss} type="number" min="1" max="40" value={spots} onChange={(e) => setSpots(e.target.value)} /></div>
                       </div>
                     )}
                   </div>
@@ -264,12 +264,12 @@ export default function SchedulePanel({ orgId, branch, branches, Topbar }) {
               {mode === 'auto' && (
                 <div className="sq-card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
                   <div>
-                    <h2 className="sq-display" style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Auto-schedule</h2>
+                    <h2 className="sq-display" style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>{t('Auto-schedule')}</h2>
                     <p style={{ margin: '4px 0 0', fontSize: 12.5, color: 'var(--sq-text-3)' }}>Block the times the coach is NOT working, pick players, and SERVE fills the week — free courts, no clashes, spread evenly.</p>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                    <div><Label>Coach</Label>{coachField(autoCoach, setAutoCoach)}</div>
-                    <div><Label>Sessions per player / week</Label><input style={fieldCss} type="number" min="1" max="7" value={perPlayer} onChange={(e) => setPerPlayer(e.target.value)} /></div>
+                    <div><Label>{t('Coach')}</Label>{coachField(autoCoach, setAutoCoach)}</div>
+                    <div><Label>{t('Sessions per player / week')}</Label><input style={fieldCss} type="number" min="1" max="7" value={perPlayer} onChange={(e) => setPerPlayer(e.target.value)} /></div>
                   </div>
                   <div>
                     <Label>Coach availability — tap the slots they DON'T work ({blocked.size} blocked)</Label>
@@ -301,7 +301,7 @@ export default function SchedulePanel({ orgId, branch, branches, Topbar }) {
                     </div>
                   </div>
                   {playerPicker}
-                  <button className="sq-btn-gold serve-glow-soft" style={{ padding: '13px', fontSize: 14 }} onClick={generate}>Generate schedule →</button>
+                  <button className="sq-btn-gold serve-glow-soft" style={{ padding: '13px', fontSize: 14 }} onClick={generate}>{t('Generate schedule')} →</button>
 
                   {preview && (
                     <div style={{ borderTop: '1px solid var(--sq-border)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -315,7 +315,7 @@ export default function SchedulePanel({ orgId, branch, branches, Topbar }) {
                       ))}
                       <div style={{ display: 'flex', gap: 10 }}>
                         <button className="sq-btn-gold" style={{ padding: '11px 18px', fontSize: 13 }} onClick={commitAuto}>Add {preview.length} to schedule</button>
-                        <button className="sq-btn-ghost" style={{ padding: '11px 16px', fontSize: 13 }} onClick={() => setPreview(null)}>Discard</button>
+                        <button className="sq-btn-ghost" style={{ padding: '11px 16px', fontSize: 13 }} onClick={() => setPreview(null)}>{t('Discard')}</button>
                       </div>
                     </div>
                   )}
@@ -325,7 +325,7 @@ export default function SchedulePanel({ orgId, branch, branches, Topbar }) {
               {mode === 'pdf' && (
                 <div className="sq-card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
                   <div>
-                    <h2 className="sq-display" style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Import a schedule PDF</h2>
+                    <h2 className="sq-display" style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>{t('Import a schedule PDF')}</h2>
                     <p style={{ margin: '4px 0 0', fontSize: 12.5, color: 'var(--sq-text-3)', lineHeight: 1.55 }}>
                       Upload the PDF of your schedule — the table inside becomes SERVE sessions on this branch. Columns it looks for: Day, Time, Coach, Court, Title, Type, Players. Coaches SERVE doesn't know yet are created automatically.
                     </p>
@@ -358,12 +358,12 @@ export default function SchedulePanel({ orgId, branch, branches, Topbar }) {
                 <span className="sq-chip" style={{ fontSize: 9.5 }}>{s.type}</span>
                 <button onClick={() => { const patch = s.open ? { open: false } : { open: true, price: s.price ?? Math.max(0, Number(price) || 0), spots: s.spots ?? Math.max(s.players.length, Number(spots) || 8) }; store.updateSession(s.id, patch); notify(s.open ? 'Session is now private' : `Open on the app · EGP ${patch.price}`); }}
                   className={'sq-chip' + (s.open ? ' gold' : '')} style={{ cursor: 'pointer', fontSize: 9.5 }} title={s.open ? 'Players can join from the app — click to make private' : 'Click to open this session to players on the app'}>
-                  {s.open ? <>Open{s.price ? ` · ${s.price}` : ''}</> : 'Private'}
+                  {s.open ? <>{t('Open')}{s.price ? ` · ${s.price}` : ''}</> : t('Private')}
                 </button>
                 <button onClick={() => { store.removeSession(s.id); notify('Removed'); }} style={{ background: 'none', border: 0, color: 'var(--sq-text-3)', cursor: 'pointer', fontSize: 16, lineHeight: 1 }}>×</button>
               </div>
             ))}
-            {!mySessions.length && <div className="sq-card" style={{ padding: 18, textAlign: 'center', color: 'var(--sq-text-3)', fontSize: 12.5 }}>Nothing scheduled on this branch yet.</div>}
+            {!mySessions.length && <div className="sq-card" style={{ padding: 18, textAlign: 'center', color: 'var(--sq-text-3)', fontSize: 12.5 }}>{t('Nothing scheduled on this branch yet.')}</div>}
           </div>
         </div>
       </div>

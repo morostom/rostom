@@ -5,8 +5,7 @@
 
 import { useEffect, useState } from 'react';
 import DesktopFrame from '../desktop/DesktopFrame';
-import CoachConsole from '../desktop/coach/CoachConsole';
-import AdminConsole from '../desktop/admin/AdminConsole';
+import VenueConsole from '../desktop/VenueConsole';
 import AdminAuth from '../desktop/auth/AdminAuth';
 import SQLogo from '../components/SQLogo';
 import { hasBackend } from '../lib/supabase';
@@ -72,7 +71,7 @@ export default function ConsoleSurface() {
               <button onClick={() => setBannerOpen(false)} style={{ background: 'none', border: 0, color: 'var(--sq-text-2)', cursor: 'pointer', fontSize: 15, lineHeight: 1 }}>×</button>
             </div>
           )}
-          {orgType === 'academy' ? <AdminConsole orgId={effectiveOrg} /> : <CoachConsole orgId={effectiveOrg} />}
+          <VenueConsole orgId={effectiveOrg} orgType={orgType} />
         </>
       ) : (
         <AdminAuth onLive={async (t, id, opts) => {

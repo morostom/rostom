@@ -46,7 +46,14 @@ function seedCourts() {
       : i === 1 ? { status: 'lesson', who: 'U13 Squad', coach: 'Adham Nabil', until: '17:30', left: 20 }
       : { status: 'free', who: null, coach: null, next: 'open' }),
   }));
-  return [...masr, ...shorouk];
+  // the demo academy's courts — open booking, mostly free
+  const ramy = Array.from({ length: 7 }, (_, i) => ({
+    court: i + 1, type: 'Standard', branch: 'ramy-main',
+    ...(i === 0 ? { status: 'lesson', who: 'Juniors squad', coach: 'Mohamed Reda', until: '18:00', left: 30 }
+      : i === 3 ? { status: 'playing', who: 'Open match', coach: null, until: '17:45', left: 15 }
+      : { status: 'free', who: null, coach: null, next: 'open' }),
+  }));
+  return [...masr, ...shorouk, ...ramy];
 }
 
 // schedule sessions. `mine` / players[] drive what a member sees in the app.
