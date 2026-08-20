@@ -8,8 +8,10 @@ import { Icons } from '../components/Icons';
 import { useToast } from '../components/Toast';
 import { DUR_FAST } from '../motion';
 import { useStore, store } from '../store';
+import { useT } from '../i18n';
 
 export default function BranchesPanel({ orgId, Topbar }) {
+  const t = useT();
   const notify = useToast();
   const state = useStore();
   const list = state.branches.filter((b) => b.org_id === orgId);

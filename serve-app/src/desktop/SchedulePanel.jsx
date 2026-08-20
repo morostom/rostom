@@ -14,6 +14,7 @@ import { Icons } from '../components/Icons';
 import { useToast } from '../components/Toast';
 import { DUR_FAST } from '../motion';
 import { useStore, store } from '../store';
+import { useT } from '../i18n';
 import { parsePdfSchedule } from '../lib/pdfImport';
 import { ROSTER, SESSION_TYPES, TIME_SLOTS, WEEK_DAYS } from '../data';
 
@@ -38,6 +39,7 @@ function busyCourts(sessions, pending, branch, day, time) {
 }
 
 export default function SchedulePanel({ orgId, branch, branches, Topbar }) {
+  const t = useT();
   const notify = useToast();
   const state = useStore();
   const coaches = state.staff.filter((s) => s.org_id === orgId);
