@@ -11,25 +11,12 @@ import { useEffect, useRef, useMemo, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Icons } from './Icons';
+import { safeColor } from '../lib/color';
 
 const CAIRO = [30.0444, 31.2357];
 
 // A venue pin: a brand-coloured dot, bigger and labelled when it's the one
 // the sheet below is showing.
-// A venue's accent is attacker-controlled data: any signed-up club can set
-// org_settings.accent to whatever it likes, and this value is interpolated
-// raw into a style attribute below. Without this gate, an accent of
-//   red;"></span><img src=x onerror=...>
-// is stored XSS on the Discover map of every player in the country. Only a
-// literal hex colour or our own token is allowed through.
-const SAFE_COLOR = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
-function safeColor(c, fallback = 'var(--sq-gold)') {
-  const s = String(c || '').trim();
-  if (SAFE_COLOR.test(s)) return s;
-  if (/^var\(--sq-[a-z0-9-]+\)$/i.test(s)) return s;
-  return fallback;
-}
-
 function pinIcon(v, active) {
   const col = safeColor(v.accent);
   const d = active ? 16 : 12;
