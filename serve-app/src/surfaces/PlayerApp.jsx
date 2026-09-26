@@ -19,6 +19,7 @@ import CardCloseupScreen from '../screens/CardCloseupScreen';
 import ClubsLockedScreen from '../screens/ClubsLockedScreen';
 import JoinClubScreen from '../screens/JoinClubScreen';
 import VenueHomeScreen from '../screens/VenueHomeScreen';
+import LegalScreen from '../screens/LegalScreen';
 import ClubScheduleScreen from '../screens/ClubScheduleScreen';
 import BookCourtScreen from '../screens/BookCourtScreen';
 import PaymentScreen from '../screens/PaymentScreen';
@@ -66,6 +67,7 @@ export default function PlayerApp() {
       case 'cardCloseup': return <CardCloseupScreen player={params.player} ownCard={params.player?.id === player.id} />;
       case 'joinClub': return <JoinClubScreen />;
       case 'settings': return <SettingsScreen />;
+      case 'legal': return <LegalScreen doc={params.doc} />;
       case 'sessionPlayers': return <SessionPlayersScreen session={params.session} />;
       default: return <AuthScreen />;
     }

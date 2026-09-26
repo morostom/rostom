@@ -80,6 +80,7 @@ export default function SettingsScreen() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
             <Row icon={<Icons.Club size={16} />} label="SERVE" value={hasBackend ? t('Connected') : t('Offline')} />
             <Row icon={<Icons.Refresh size={16} />} label={t('Version')} value="0.1" />
+            <Row icon={<Icons.Lock size={16} />} label={t('Terms & Privacy')} value={t('Draft')} onClick={() => nav.push('legal')} />
           </div>
         </div>
 

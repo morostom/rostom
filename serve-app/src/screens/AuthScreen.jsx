@@ -209,9 +209,20 @@ export default function AuthScreen() {
         )}
 
         <p style={{ margin: 0, textAlign: 'center', fontSize: 12, color: 'var(--sq-text-3)', lineHeight: 1.5 }}>
-          {mode === 'signup'
-            ? t('By continuing you agree to SERVE’s terms. We’ll only use your number to secure your account.')
-            : t('Tip: tap Log in to jump straight into a demo profile.')}
+          {mode === 'signup' ? (
+            <>
+              {t('By continuing you agree to SERVE’s')}{' '}
+              {/* this sentence used to promise a document that did not exist */}
+              <button
+                type="button"
+                onClick={() => nav.push('legal')}
+                style={{ background: 'none', border: 0, padding: 0, font: 'inherit', color: 'var(--sq-gold)', textDecoration: 'underline', cursor: 'pointer' }}
+              >
+                {t('Terms & Privacy Policy')}
+              </button>
+              . {t('We’ll only use your number to secure your account.')}
+            </>
+          ) : t('Tip: tap Log in to jump straight into a demo profile.')}
         </p>
       </div>
     </MScreen>
