@@ -57,6 +57,13 @@ Deno.serve(async (req) => {
   let payload: Record<string, unknown>;
   try { payload = await req.json(); } catch { return json({ error: 'bad json' }, 400); }
 
+  // Two shapes. A player pushes to ONE identifier (their parent). A venue
+  // pushes to a LIST OF NAMES — because the venue knows its players by name
+  // and must never be handed their phone numbers just to notify them. The
+  // name → identifier resolution happens here, behind the service role.
+  const names: string[] = Array.isArray(payload.names)
+    ? payload.names.filter((n: unknown) => typeof n === 'string').slice(0, 200)
+    : [];
   const identifier = normId(String(payload.identifier || ''));
   // Cap what a caller can put on someone's lock screen. Without this the
   // notification body is an unbounded, attacker-chosen string.
@@ -64,7 +71,7 @@ Deno.serve(async (req) => {
   const body = String(payload.body || '').slice(0, 300);
   const kind = String(payload.kind || 'general').slice(0, 40);
   const urgent = payload.urgent === true;
-  if (!identifier) return json({ error: 'identifier required' }, 400);
+  if (!identifier && !names.length) return json({ error: 'identifier or names required' }, 400);
 
   // ── authorization ──────────────────────────────────────────────────
   // Being signed in is NOT enough. Without this check any account could
@@ -77,7 +84,19 @@ Deno.serve(async (req) => {
   const myIdent = normId(me?.identifier || '');
   const myName = (me?.name || me?.card?.name || '').trim().toLowerCase();
 
-  let allowed = identifier === myIdent;
+  // A names fan-out is a venue action and always requires org ownership —
+  // there is no "self" or "my parent" shortcut into it.
+  let ownsOrg = false;
+  if (payload.orgId) {
+    const { data: org } = await admin
+      .from('org_settings').select('owner_id').eq('id', String(payload.orgId)).maybeSingle();
+    ownsOrg = !!org && org.owner_id === caller.user.id;
+  }
+  if (names.length && !ownsOrg) {
+    return json({ error: 'notifying a list requires owning that venue' }, 403);
+  }
+
+  let allowed = ownsOrg || identifier === myIdent;
 
   if (!allowed && myName) {
     const { data: links } = await admin
@@ -86,21 +105,37 @@ Deno.serve(async (req) => {
     allowed = (links || []).some((l) => normId(l.parent_identifier) === identifier);
   }
 
-  // Venue broadcast: the caller names the org, and we check they own it.
-  if (!allowed && payload.orgId) {
-    const { data: org } = await admin
-      .from('org_settings').select('owner_id').eq('id', String(payload.orgId)).maybeSingle();
-    allowed = !!org && org.owner_id === caller.user.id;
-  }
-
   if (!allowed) return json({ error: 'not allowed to notify that recipient' }, 403);
 
-  const { data: subs, error } = await admin
-    .from('push_subscriptions')
-    .select('endpoint, p256dh, auth')
-    .eq('identifier', identifier);
+  let subs: Array<{ endpoint: string; p256dh: string; auth: string }> = [];
+  let error: { message: string } | null = null;
+
+  if (names.length) {
+    // name → identifier happens here and stays here
+    const wanted = new Set(names.map((n) => n.trim().toLowerCase()).filter(Boolean));
+    const { data: people, error: pErr } = await admin
+      .from('profiles').select('name, identifier, card');
+    if (pErr) return json({ error: pErr.message }, 500);
+    const idents = (people || [])
+      .filter((p) => {
+        const n = (p.name || p.card?.name || '').trim().toLowerCase();
+        return n && wanted.has(n);
+      })
+      .map((p) => normId(p.identifier || ''))
+      .filter(Boolean);
+    if (!idents.length) return json({ sent: 0, reason: 'no matching players' });
+    const r = await admin
+      .from('push_subscriptions').select('endpoint, p256dh, auth')
+      .in('identifier', [...new Set(idents)]);
+    subs = r.data || []; error = r.error;
+  } else {
+    const r = await admin
+      .from('push_subscriptions').select('endpoint, p256dh, auth')
+      .eq('identifier', identifier);
+    subs = r.data || []; error = r.error;
+  }
   if (error) return json({ error: error.message }, 500);
-  if (!subs?.length) return json({ sent: 0, reason: 'no devices' });
+  if (!subs.length) return json({ sent: 0, reason: 'no devices' });
 
   webpush.setVapidDetails(SUBJECT, PUBLIC, PRIVATE);
 

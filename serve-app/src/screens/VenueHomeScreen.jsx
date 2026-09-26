@@ -17,6 +17,7 @@ import ThemeScope from '../components/ThemeScope';
 import ClubCrest from '../components/ClubCrest';
 import { useNav } from '../navigation/nav';
 import { useStore, store, orgInfo } from '../store';
+import { useToast } from '../components/Toast';
 import { useT } from '../i18n';
 import { CLUB } from '../data';
 import { useNow, closesInLabel } from '../lib/live';
@@ -67,6 +68,44 @@ function CourtTile({ c, onBook, t }) {
         </>
       )}
     </motion.div>
+  );
+}
+
+// A court that just came free, offered to this player specifically. First
+// tap wins — the claim is settled in the database, not here, so two players
+// tapping at the same moment cannot both get it.
+function SlotOffer({ o, onClaim, t, busy }) {
+  const gone = o.status !== 'open';
+  return (
+    <div style={{
+      padding: '13px 14px', borderRadius: 13, marginBottom: 9,
+      background: gone ? 'var(--sq-surface)' : 'linear-gradient(120deg, color-mix(in srgb, var(--sq-green) 14%, var(--sq-surface)), var(--sq-surface) 76%)',
+      border: '1px solid ' + (gone ? 'var(--sq-border)' : 'color-mix(in srgb, var(--sq-green) 34%, transparent)'),
+      opacity: gone ? 0.6 : 1,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+        <div style={{ width: 38, height: 38, borderRadius: 11, flexShrink: 0, background: 'color-mix(in srgb, var(--sq-green) 16%, transparent)', color: 'var(--sq-green)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icons.Bolt size={17} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="sq-display" style={{ fontSize: 14, fontWeight: 600 }}>
+            {t('Court')} {o.court} {t('just opened up')}
+          </div>
+          <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-2)', marginTop: 2 }}>
+            {[o.day, o.time].filter(Boolean).join(' ')}
+            {o.price ? ` \u00b7 EGP ${o.price}` : ''}
+            {o.session_title ? ` \u00b7 ${o.session_title}` : ''}
+          </div>
+        </div>
+        {gone ? (
+          <span className="sq-chip" style={{ fontSize: 10, padding: '3px 9px' }}>{t('Taken')}</span>
+        ) : (
+          <button className="sq-btn-gold" disabled={busy} style={{ padding: '9px 15px', fontSize: 12.5, flexShrink: 0 }} onClick={() => onClaim(o)}>
+            {busy ? t('…') : t('Claim')}
+          </button>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -125,6 +164,7 @@ export default function VenueHomeScreen() {
   const { nav, player, accountType, child, membership } = useNav();
   const state = useStore();
   const t = useT();
+  const notify = useToast();
   const now = useNow(30000);
 
   // which venue this member belongs to, and what kind it is
@@ -154,6 +194,22 @@ export default function VenueHomeScreen() {
   });
 
   const coaches = state.staff.filter((s) => s.org_id === orgId).slice(0, 8);
+
+  // slots freed by a cancellation and offered to this player
+  const [claiming, setClaiming] = useState(null);
+  const myOffers = state.slotOffers.filter((o) => {
+    if (o.org_id !== orgId) return false;
+    if (o.status !== 'open' && o.claimed_by !== who) return false;
+    if (o.audience === 'all') return true;
+    return (o.recipients || []).some((r) => r?.toLowerCase() === (who || '').toLowerCase());
+  });
+
+  async function claim(o) {
+    setClaiming(o.id);
+    const res = await store.claimSlot(o.id, who);
+    setClaiming(null);
+    notify(res.ok ? t('Court claimed — see you there') : t(res.reason === 'already taken' ? 'Someone just took it' : 'Could not claim that slot'));
+  }
   const cover = org.cover || (orgId === 'heliopolis' ? state.images?.clubCover : state.images?.academyCover);
   const name = org.name || (isAcademy ? t('Your academy') : CLUB.short);
 
@@ -205,6 +261,16 @@ export default function VenueHomeScreen() {
                 <Icons.Pin size={12} /> {b.name}
               </button>
             ))}
+          </div>
+        )}
+
+        {myOffers.length > 0 && (
+          <div style={{ padding: '2px 20px 8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <span className="sq-live-dot" style={{ background: 'var(--sq-green)' }} />
+              <span className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-2)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{t('Just freed up')}</span>
+            </div>
+            {myOffers.map((o) => <SlotOffer key={o.id} o={o} onClaim={claim} t={t} busy={claiming === o.id} />)}
           </div>
         )}
 

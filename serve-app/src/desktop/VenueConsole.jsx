@@ -21,6 +21,7 @@ import { isStored } from '../lib/storage';
 import { ToastProvider, useToast } from '../components/Toast';
 import BranchesPanel from './BranchesPanel';
 import SchedulePanel from './SchedulePanel';
+import SlotsPanel from './SlotsPanel';
 import { DUR_FAST } from '../motion';
 import { useStore, store, orgInfo } from '../store';
 import { branchRates } from '../lib/pricing';
@@ -633,6 +634,7 @@ function Sidebar({ active, onNav, branches, branch, setBranch, orgId, orgType })
   const org = orgInfo(state, orgId);
   const isClub = orgType === 'club';
   const coachCount = state.staff.filter((s) => s.org_id === orgId).length;
+  const openSlots = state.slotOffers.filter((o) => o.org_id === orgId && o.status === 'open').length;
   const inUse = state.courts.filter((c) => c.branch === branch && c.status !== 'free').length;
   const branchCourts = state.courts.filter((c) => c.branch === branch).length;
   const pct = branchCourts ? (inUse / branchCourts) * 100 : 0;
@@ -641,6 +643,7 @@ function Sidebar({ active, onNav, branches, branch, setBranch, orgId, orgType })
     { id: 'home', icon: <Icons.Home size={16} />, label: 'Home' },
     { id: 'board', icon: <Icons.Activity size={16} />, label: 'Live courts' },
     { id: 'schedule', icon: <Icons.Calendar size={16} />, label: 'Schedule' },
+    { id: 'slots', icon: <Icons.Bolt size={16} />, label: 'Freed slots', badge: openSlots ? String(openSlots) : undefined },
     { id: 'people', icon: <Icons.Users size={16} />, label: isClub ? 'Members' : 'Players' },
     { id: 'coaches', icon: <Icons.Trophy size={16} />, label: 'Coaches', badge: String(coachCount) },
     { id: 'branches', icon: <Icons.Pin size={16} />, label: 'Branches', badge: String(branches.length) },
@@ -732,6 +735,7 @@ function Inner({ orgId, orgType }) {
   const body =
       active === 'board' ? <LiveCourts {...common} />
     : active === 'schedule' ? <SchedulePanel orgId={orgId} branch={activeBranch} branches={branches} Topbar={Topbar} />
+    : active === 'slots' ? <SlotsPanel orgId={orgId} branch={activeBranch} branches={branches} Topbar={Topbar} />
     : active === 'people' ? <People {...common} />
     : active === 'coaches' ? <Coaches {...common} />
     : active === 'branches' ? <BranchesPanel orgId={orgId} Topbar={Topbar} />

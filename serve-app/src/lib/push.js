@@ -153,3 +153,19 @@ export async function sendPush({ identifier, title, body, kind, urgent }) {
     return false;
   }
 }
+
+// Notify a list of PLAYERS BY NAME, for a venue broadcast. The console knows
+// its players by name and deliberately never holds their phone numbers — the
+// Edge Function resolves names to devices behind the service role, and
+// refuses unless the caller owns the org.
+export async function sendPushToNames({ orgId, names, title, body, kind, urgent }) {
+  if (!hasBackend || !orgId || !names?.length) return false;
+  try {
+    const { error } = await supabase.functions.invoke('send-push', {
+      body: { orgId, names, title, body, kind: kind || 'slot', urgent: !!urgent },
+    });
+    return !error;
+  } catch {
+    return false;
+  }
+}

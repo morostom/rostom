@@ -266,3 +266,36 @@ export async function setImage(key, dataURL) {
   else if (key === 'clubCover') await supabase.from('org_settings').upsert({ id: CLUB, type: 'club', cover: dataURL });
   else await supabase.from('org_settings').upsert({ id: ACADEMY, type: 'academy', [key === 'academyLogo' ? 'logo' : 'cover']: dataURL });
 }
+
+// ── freed slots ──────────────────────────────────────────────────────
+const slotFromRow = (r) => ({
+  id: r.id, org_id: r.org_id, branch: r.branch, court: r.court, day: r.day, time: r.time,
+  duration: r.duration ?? null, price: r.price ?? null, source: r.source, session_id: r.session_id,
+  session_title: r.session_title, coach: r.coach, audience: r.audience, audience_ref: r.audience_ref,
+  recipients: r.recipients || [], claimed_by: r.claimed_by, status: r.status,
+  expiresAt: r.expires_at, createdAt: r.created_at,
+});
+export async function fetchSlotOffers() {
+  const { data } = await supabase.from('slot_offers').select('*').order('created_at', { ascending: false });
+  return (data || []).map(slotFromRow);
+}
+export async function addSlotOffer(o) {
+  await supabase.from('slot_offers').insert({
+    id: o.id, org_id: o.org_id, branch: o.branch ?? null, court: String(o.court ?? ''),
+    day: o.day ?? null, time: o.time ?? null, duration: o.duration ?? null, price: o.price ?? null,
+    source: o.source || 'cancellation', session_id: o.session_id ?? null,
+    session_title: o.session_title ?? null, coach: o.coach ?? null,
+    audience: o.audience || 'players', audience_ref: o.audience_ref ?? null,
+    recipients: o.recipients || [], status: o.status || 'open', expires_at: o.expiresAt ?? null,
+  });
+}
+export async function withdrawSlotOffer(id) {
+  await supabase.from('slot_offers').update({ status: 'withdrawn' }).eq('id', id);
+}
+// Claiming races: the RPC takes the row lock so exactly one player wins.
+export async function claimSlotOffer(id, player) {
+  const { data, error } = await supabase.rpc('serve_claim_slot', { p_id: id, p_player: player });
+  if (error) return { ok: false, reason: error.message };
+  const row = Array.isArray(data) ? data[0] : data;
+  return { ok: !!row?.ok, reason: row?.reason || 'failed' };
+}

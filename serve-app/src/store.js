@@ -6,7 +6,7 @@ import { useSyncExternalStore } from 'react';
 import { PAYMENTS, COACHES, CLUB, ACADEMY } from './data';
 import { hasBackend } from './lib/supabase';
 import * as backend from './lib/backend';
-import { sendPush } from './lib/push';
+import { sendPush, sendPushToNames } from './lib/push';
 
 const KEY = 'serve_state_v5';
 
@@ -86,6 +86,7 @@ function seed() {
     paymentRequests: [],    // { id, parent_identifier, child_name, item, ..., status, expiresAt }
     reviews: [],            // { id, venue_id, venue_name, player, rating, comment }
     cancellations: [],      // { id, session_id, session_title, player, parent_identifier, reason, status }
+    slotOffers: [],         // freed court time offered to a chosen audience
     contacts: {             // WhatsApp numbers per org (owner + head coach)
       heliopolis: { owner: '', coach: '' },
       ramyashour: { owner: '', coach: '' },
@@ -433,6 +434,82 @@ export const store = {
     commit({ ...state, contacts: { ...state.contacts, [org]: next } });
     if (hasBackend) backend.setContacts(org, next);
   },
+  // ── freed slots ────────────────────────────────────────────────────
+  // Work out who a freed slot should be offered to. Kept here rather than in
+  // the console so the rule is the same wherever a slot is released.
+  slotAudience: (session, audience, ref) => {
+    const players = session?.players || [];
+    if (audience === 'coach') return session?.coach ? [session.coach] : [];
+    if (audience === 'players') return players;
+    if (audience === 'squad') {
+      // everyone the venue has in that squad, not just this session
+      const inSquad = new Set();
+      for (const s of state.sessions) {
+        if ((s.title || '') !== ref && (s.type || '') !== ref) continue;
+        for (const p of s.players || []) inSquad.add(p);
+      }
+      return [...inSquad];
+    }
+    // 'all' resolves at send time — every player the venue has on any session
+    const everyone = new Set();
+    for (const s of state.sessions) for (const p of s.players || []) everyone.add(p);
+    return [...everyone];
+  },
+
+  // Publish a freed slot. `audience` is the venue's explicit choice, because
+  // broadcasting a junior squad's slot to the whole venue tells strangers
+  // where a group of children will be.
+  releaseSlot: ({ orgId, branch, court, day, time, duration, price, session, audience = 'players', audienceRef = null, holdMinutes = 120 }) => {
+    const recipients = store.slotAudience(session, audience, audienceRef);
+    const row = {
+      id: 'so' + Date.now(),
+      org_id: orgId, branch, court: String(court ?? ''), day, time,
+      duration: duration ?? 60, price: price ?? null,
+      source: 'cancellation',
+      session_id: session?.id ?? null, session_title: session?.title ?? null, coach: session?.coach ?? null,
+      audience, audience_ref: audienceRef, recipients,
+      status: 'open', claimed_by: null,
+      expiresAt: new Date(Date.now() + holdMinutes * 60 * 1000).toISOString(),
+      createdAt: new Date().toISOString(),
+    };
+    commit({ ...state, slotOffers: [row, ...state.slotOffers] });
+    if (hasBackend) {
+      backend.addSlotOffer(row);
+      // the venue never sees a phone number — the function resolves names
+      if (recipients.length) {
+        sendPushToNames({
+          orgId, names: recipients,
+          title: `Court ${row.court} just opened up`,
+          body: [row.day, row.time].filter(Boolean).join(' ') + (row.price ? ` \u00b7 EGP ${row.price}` : ''),
+          kind: 'slot',
+        });
+      }
+    }
+    return row;
+  },
+
+  withdrawSlot: (id) => {
+    commit({ ...state, slotOffers: state.slotOffers.map((o) => (o.id === id ? { ...o, status: 'withdrawn' } : o)) });
+    if (hasBackend) backend.withdrawSlotOffer(id);
+  },
+
+  // Optimistic locally, authoritative in the database: two players tapping at
+  // once must not both get the court.
+  claimSlot: async (id, player) => {
+    const offer = state.slotOffers.find((o) => o.id === id);
+    if (!offer || offer.status !== 'open') return { ok: false, reason: 'already taken' };
+    if (hasBackend) {
+      const res = await backend.claimSlotOffer(id, player);
+      if (!res.ok) {
+        // someone beat us — reflect the truth locally
+        commit({ ...state, slotOffers: state.slotOffers.map((o) => (o.id === id ? { ...o, status: 'claimed' } : o)) });
+        return res;
+      }
+    }
+    commit({ ...state, slotOffers: state.slotOffers.map((o) => (o.id === id ? { ...o, status: 'claimed', claimed_by: player } : o)) });
+    return { ok: true, reason: 'claimed' };
+  },
+
   // ── session cancellations ──
   // Direct cancel (16+ or no parent): remove the session + notify the club.
   // A 15-minute undo can restore it (and drop the cancellation notice).
