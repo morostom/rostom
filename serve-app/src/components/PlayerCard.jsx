@@ -6,7 +6,7 @@
 import { memo } from 'react';
 import { Icons } from './Icons';
 import SQLogo from './SQLogo';
-import { TIERS } from '../data';
+import { TIERS, levelFor } from '../data';
 
 function rankOf(p) {
   if (typeof p.rank === 'number') return String(p.rank);
@@ -39,14 +39,20 @@ function PhotoArea({ player, height, placeholder }) {
   );
 }
 
-function CardStat({ label, value, accent }) {
+function CardStat({ label, value, accent, unverified, title }) {
   return (
-    <div style={{ padding: '9px 10px', borderRadius: 10, background: 'var(--sq-fill-2)', border: '1px solid var(--sq-border)' }}>
+    <div title={title} style={{ padding: '9px 10px', borderRadius: 10, background: 'var(--sq-fill-2)', border: '1px solid var(--sq-border)' }}>
       <div className="sq-mono" style={{ fontSize: 8.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
         {label}
       </div>
       <div className="sq-display" style={{ fontSize: 16, fontWeight: 700, marginTop: 3, color: accent || 'var(--sq-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
         {value}
+        {/* A level derived from a ranking the club has not confirmed yet.
+            Without this the card claims "Elite" beside a ranking it calls
+            "Pending", which is two different stories on one card. */}
+        {unverified && (
+          <span style={{ fontSize: 11, verticalAlign: 'super', opacity: 0.75, marginInlineStart: 1 }}>*</span>
+        )}
       </div>
     </div>
   );
@@ -71,7 +77,11 @@ function PlayerCard({ player, accent, variant = 'full', tier }) {
   const firstName = (player.name || 'Player').split(' ')[0];
   const rank = rankOf(player);
   const tag = recreational ? 'Recreational' : player.division || 'Junior';
-  const tr = tier || TIERS.find((t) => t.key === player.tierKey) || TIERS[0];
+  // The level comes from the player's RANKING when they have one — a junior
+  // ranked #3 in the country should not read as "Beginner" because they
+  // haven't booked many courts. Callers that know the booking count pass a
+  // level in; otherwise we work it out from the card alone.
+  const tr = tier || levelFor(player, 0) || TIERS[0];
 
   return (
     // sq-dark-scope supplies the star-field tint token; the card itself
@@ -159,7 +169,7 @@ function PlayerCard({ player, accent, variant = 'full', tier }) {
         <div style={{ padding: '14px 15px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             <CardStat label="Playing for" value={player.yearsPlaying || '—'} accent={ac} />
-            <CardStat label="Tier" value={tr.label} accent={tr.color} />
+            <CardStat label="Level" value={tr.label} accent={tr.color} unverified={tr.ranked && !tr.verified} title={tr.ranked && !tr.verified ? "Self-reported ranking — not yet confirmed by the club" : tr.blurb} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1, borderTop: '1px solid var(--sq-border)', paddingTop: 12 }}>
             <CardField icon={<Icons.Pin size={13} />} label="Club" value={player.club} />
@@ -170,7 +180,7 @@ function PlayerCard({ player, accent, variant = 'full', tier }) {
         <div style={{ padding: '14px 15px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
             <CardStat label="Ranking" value={!rank ? '—' : player.rankVerified ? `#${rank}` : 'Pending'} accent={ac} />
-            <CardStat label="Tier" value={tr.label} accent={tr.color} />
+            <CardStat label="Level" value={tr.label} accent={tr.color} unverified={tr.ranked && !tr.verified} title={tr.ranked && !tr.verified ? "Self-reported ranking — not yet confirmed by the club" : tr.blurb} />
             <CardStat label="Since" value={player.since || '—'} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1, borderTop: '1px solid var(--sq-border)', paddingTop: 12 }}>

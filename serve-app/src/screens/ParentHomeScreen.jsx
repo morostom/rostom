@@ -15,7 +15,7 @@ import { ensureNotifyPermission, notifyPermission, phoneAlert } from '../lib/not
 import { enablePush, pushState, iosNeedsInstall } from '../lib/push';
 import { useT } from '../i18n';
 import { normId } from '../lib/auth';
-import { tierForActivity } from '../data';
+import { levelFor } from '../data';
 
 function fmtLeft(ms) {
   if (ms <= 0) return '0:00';
@@ -200,8 +200,8 @@ export default function ParentHomeScreen() {
         {hasOwnCard ? (
           <div>
             <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>{t('Your card')}</div>
-            <div onClick={() => nav.push('cardCloseup', { player, tier: tierForActivity(state.bookings.length) })} style={{ cursor: 'pointer' }}>
-              <PlayerCard player={player} accent="var(--sq-gold)" tier={tierForActivity(state.bookings.length)} variant="compact" />
+            <div onClick={() => nav.push('cardCloseup', { player, tier: levelFor(player, state.bookings.length) })} style={{ cursor: 'pointer' }}>
+              <PlayerCard player={player} accent="var(--sq-gold)" tier={levelFor(player, state.bookings.length)} variant="compact" />
             </div>
           </div>
         ) : (

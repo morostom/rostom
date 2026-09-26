@@ -9,7 +9,7 @@ import FlipReveal from '../components/FlipReveal';
 import { useNav } from '../navigation/nav';
 import { useStore, store, sessionAccent } from '../store';
 import { useToast } from '../components/Toast';
-import { tierForActivity } from '../data';
+import { levelFor } from '../data';
 import { useT } from '../i18n';
 
 export default function ProfileHomeScreen({ justCreated }) {
@@ -25,7 +25,8 @@ export default function ProfileHomeScreen({ justCreated }) {
   // a session wears its club's brand colour wherever it shows up
   const nextAccent = next ? sessionAccent(state, next) : 'var(--sq-gold)';
   // Tier levels up with bookings only: every 10 to Semi-pro, then every 20.
-  const tier = tierForActivity(state.bookings.length);
+  // ranking decides the level; bookings only matter for an unranked player
+  const tier = levelFor(player, state.bookings.length);
 
   // parent link requests waiting for this player's approval
   const linkRequests = state.parentLinks.filter((l) => l.status === 'pending' && player?.name && l.child_name.toLowerCase() === player.name.toLowerCase());

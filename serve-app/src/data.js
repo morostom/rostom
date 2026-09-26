@@ -86,11 +86,60 @@ export const TIERS = [
   { key: 'pro', label: 'Pro', color: '#9b6be0', min: 40 },            // amethyst
   { key: 'elite', label: 'Elite', color: '#2e8cf0', min: 60 },        // dark blue
 ];
-// tier from the player's booking count
+// tier from the player's booking count. Kept because an unranked player
+// still needs a level, but it is no longer the whole story — see LEVELS.
 export function tierForActivity(count) {
   let t = TIERS[0];
   for (const tier of TIERS) if (count >= tier.min) t = tier;
   return t;
+}
+
+// ── levels by ranking ────────────────────────────────────────────────
+// Booking count alone was saying "Beginner" over the card of a junior
+// ranked #3 in the country, which is exactly backwards. In squash the
+// ranking IS the level, so a player's rank decides it, and activity only
+// fills in for someone who has not been ranked yet.
+//
+// Bands follow how Egyptian junior squash actually sorts itself: a
+// national top-8 is a different animal from a top-64, and both are
+// different from a club player who competes but is not ranked.
+export const LEVELS = [
+  { key: 'elite',      label: 'Elite',      max: 8,        color: '#2e8cf0', blurb: 'National top 8' },
+  { key: 'national',   label: 'National',   max: 24,       color: '#9b6be0', blurb: 'National top 24' },
+  { key: 'competitor', label: 'Competitor', max: 64,       color: '#2fb37a', blurb: 'National top 64' },
+  { key: 'challenger', label: 'Challenger', max: 150,      color: '#ef4a2e', blurb: 'Nationally ranked' },
+  { key: 'rising',     label: 'Rising',     max: Infinity, color: '#e8734a', blurb: 'Climbing the rankings' },
+];
+
+// Levels for someone with no ranking at all. Deliberately topping out below
+// "Challenger": turning up a lot is not the same as being ranked, and a card
+// that implies otherwise is a card nobody trusts.
+export const UNRANKED_LEVELS = [
+  { key: 'newcomer',    label: 'Newcomer',    min: 0,  color: '#e0a64e', blurb: 'Just getting started' },
+  { key: 'regular',     label: 'Regular',     min: 8,  color: '#c0c0c0', blurb: 'On court most weeks' },
+  { key: 'established', label: 'Established', min: 25, color: '#e8734a', blurb: 'A fixture at the club' },
+];
+
+// "#3 · U17 National" → 3.  "Pending", "" and junk → null.
+export function parseRank(rankLabel) {
+  const m = String(rankLabel || '').match(/#\s*(\d{1,4})/);
+  if (!m) return null;
+  const n = parseInt(m[1], 10);
+  return n > 0 && n < 10000 ? n : null;
+}
+
+// The player's level. A ranked player is placed by their rank; an unranked
+// one by how much they play. `verified` says whether the ranking has been
+// confirmed by their club rather than typed in by the player.
+export function levelFor(player, bookingCount = 0) {
+  const rank = parseRank(player?.rankLabel);
+  if (rank != null) {
+    const band = LEVELS.find((l) => rank <= l.max) || LEVELS[LEVELS.length - 1];
+    return { ...band, rank, ranked: true, verified: !!player?.rankVerified };
+  }
+  let band = UNRANKED_LEVELS[0];
+  for (const l of UNRANKED_LEVELS) if (bookingCount >= l.min) band = l;
+  return { ...band, rank: null, ranked: false, verified: false };
 }
 
 export function divisionForAge(age) {
