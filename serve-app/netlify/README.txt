@@ -4,6 +4,7 @@ netlify/serve-player/  →  Mobile player app  (installable + push)
 netlify/serve-admin/  →  Academy owner console
 netlify/serve-club/  →  Club coordinator console
 netlify/serve-demo/  →  Connected demo (all 3 + live sync)  (installable + push)
+netlify/serve-landing/  →  Public landing page (+ the app at /app)  (installable + push)
 
 Drag ONE folder (e.g. netlify/serve-player) onto https://app.netlify.com/drop
 to deploy that surface to its own URL. Repeat for the other two.

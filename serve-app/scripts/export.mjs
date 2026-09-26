@@ -17,6 +17,7 @@ const SURFACES = [
   { id: 'admin', page: 'admin.html', name: 'serve-admin', label: 'Academy owner console' },
   { id: 'club', page: 'club.html', name: 'serve-club', label: 'Club coordinator console' },
   { id: 'demo', page: 'index.html', name: 'serve-demo', label: 'Connected demo (all 3 + live sync)', pwa: true },
+  { id: 'landing', page: 'landing.html', name: 'serve-landing', label: 'Public landing page (+ the app at /app)', pwa: true },
 ];
 
 // A service worker CANNOT be inlined — the browser will only register a real
@@ -54,6 +55,27 @@ for (const { id, page, name, label, pwa } of SURFACES) {
       copied++;
     }
     if (copied) console.log(`  ✓ netlify/${name}/ + ${copied} PWA files (push needs the FOLDER, not the .html)`);
+  }
+}
+
+// The landing page's "Open the app" button points at ./app/, so the player
+// build is nested inside the landing folder. One drag onto Netlify then puts
+// the public page AND the working app on the same domain, with the link
+// already correct — instead of shipping a landing page whose main button is
+// a placeholder someone has to remember to fill in.
+{
+  const landingDir = resolve(root, 'netlify/serve-landing');
+  const appDir = resolve(landingDir, 'app');
+  const playerSrc = resolve(root, 'export/serve-player.html');
+  if (existsSync(landingDir) && existsSync(playerSrc)) {
+    mkdirSync(appDir, { recursive: true });
+    copyFileSync(playerSrc, resolve(appDir, 'index.html'));
+    // the app needs its own worker + icons at ITS root for push to work there
+    for (const f of PWA_FILES) {
+      const from = resolve(root, 'public', f);
+      if (existsSync(from)) copyFileSync(from, resolve(appDir, f));
+    }
+    console.log('  \u2713 netlify/serve-landing/app/ \u2014 the player app, so the landing button just works');
   }
 }
 
