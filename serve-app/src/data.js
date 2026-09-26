@@ -164,18 +164,24 @@ export const ROSTER = [
   { name: 'Aly Mostafa', initials: 'AM', group: 'U13 Squad', status: 'pending', last: 'Invite sent · 5h ago' },
 ];
 
+// A code carries the venue it opens, so redeeming one lands the player in the
+// right home — a club section or an academy — rather than always the club.
 export const CODES = [
-  { code: '9F4K2A', to: 'Mohamed Rostom', status: 'redeemed', when: 'Redeemed 12 May', via: 'WhatsApp' },
-  { code: '3T8M1P', to: 'Belal Sherif', status: 'sent', when: 'Sent 18 May', via: 'WhatsApp' },
-  { code: 'QX7L0R', to: 'Aly Mostafa', status: 'sent', when: 'Sent 19 May', via: 'SMS' },
-  { code: 'K5R2WQ', to: null, status: 'open', when: 'Generated 19 May', via: null },
-  { code: 'B8N3VD', to: null, status: 'open', when: 'Generated 19 May', via: null },
+  { code: '9F4K2A', to: 'Mohamed Rostom', status: 'redeemed', when: 'Redeemed 12 May', via: 'WhatsApp', org: 'heliopolis', type: 'club' },
+  { code: '3T8M1P', to: 'Belal Sherif', status: 'sent', when: 'Sent 18 May', via: 'WhatsApp', org: 'heliopolis', type: 'club' },
+  { code: 'QX7L0R', to: 'Aly Mostafa', status: 'sent', when: 'Sent 19 May', via: 'SMS', org: 'heliopolis', type: 'club' },
+  { code: 'K5R2WQ', to: null, status: 'open', when: 'Generated 19 May', via: null, org: 'heliopolis', type: 'club' },
+  { code: 'B8N3VD', to: null, status: 'open', when: 'Generated 19 May', via: null, org: 'heliopolis', type: 'club' },
+  // Ramy Ashour Academy — enrolment codes
+  { code: 'RA7K3M', to: 'Nour Hassan', status: 'sent', when: 'Sent 19 May', via: 'WhatsApp', org: 'ramyashour', type: 'academy' },
+  { code: 'A4X9TD', to: null, status: 'open', when: 'Generated 19 May', via: null, org: 'ramyashour', type: 'academy' },
 ];
 export function resolveAccessCode(input) {
   const code = (input || '').trim().toUpperCase();
   const record = CODES.find((c) => c.code === code);
   if (!record) return { ok: false, reason: 'unknown' };
-  return { ok: true, record };
+  // default to the demo club for older codes that predate org binding
+  return { ok: true, record, orgId: record.org || 'heliopolis', type: record.type || 'club' };
 }
 export function randomCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';

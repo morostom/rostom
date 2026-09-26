@@ -106,7 +106,7 @@ function UnlockOverlay({ onDone }) {
 const CELLS = 6;
 
 export default function JoinClubScreen() {
-  const { nav, setClubJoined, player } = useNav();
+  const { nav, setMembership, player } = useNav();
   const [code, setCode] = useState('');
   const [unlocking, setUnlocking] = useState(false);
   const inputRef = useRef(null);
@@ -131,8 +131,10 @@ export default function JoinClubScreen() {
   }
 
   function finishUnlock() {
-    setClubJoined(true);
-    nav.replaceRoot('clubs');
+    // the code says which venue it opens, so an academy code lands the player
+    // in their academy home rather than the club's
+    setMembership({ orgId: result?.orgId || 'heliopolis', type: result?.type || 'club' });
+    nav.replaceRoot('venue');
   }
 
   return (
@@ -146,7 +148,7 @@ export default function JoinClubScreen() {
             <Icons.Chevron dir="left" size={18} />
           </button>
           <span className="sq-display" style={{ fontSize: 17, fontWeight: 600 }}>
-            Join a club
+            Join your venue
           </span>
         </div>
       }
@@ -159,7 +161,7 @@ export default function JoinClubScreen() {
             access code
           </h1>
           <p style={{ margin: '10px 0 0', color: 'var(--sq-text-2)', fontSize: 14, lineHeight: 1.5, textWrap: 'pretty' }}>
-            Your club's squash office issues a 6-character code to each registered member. Paste the one they sent you.
+            Your club or academy issues a 6-character code to each registered member. Paste the one they sent you.
           </p>
         </div>
 

@@ -90,7 +90,7 @@ export default function ProfileHomeScreen({ justCreated }) {
       {next && (
         <div style={{ padding: '0 20px 16px' }}>
           <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8 }}>{t('Up next')}</div>
-          <button onClick={() => nav.switchTab('clubs')} style={{ width: '100%', textAlign: 'left', cursor: 'pointer', padding: 15, borderRadius: 14, display: 'flex', alignItems: 'center', gap: 14, background: `linear-gradient(135deg, color-mix(in srgb, ${nextAccent} 14%, transparent) 0%, color-mix(in srgb, ${nextAccent} 3%, transparent) 50%, var(--sq-surface) 100%)`, border: `1px solid color-mix(in srgb, ${nextAccent} 25%, transparent)` }}>
+          <button onClick={() => nav.switchTab('venue')} style={{ width: '100%', textAlign: 'left', cursor: 'pointer', padding: 15, borderRadius: 14, display: 'flex', alignItems: 'center', gap: 14, background: `linear-gradient(135deg, color-mix(in srgb, ${nextAccent} 14%, transparent) 0%, color-mix(in srgb, ${nextAccent} 3%, transparent) 50%, var(--sq-surface) 100%)`, border: `1px solid color-mix(in srgb, ${nextAccent} 25%, transparent)` }}>
             <div style={{ width: 50, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 0', borderRadius: 10, background: 'var(--sq-scrim)', border: `1px solid color-mix(in srgb, ${nextAccent} 20%, transparent)` }}>
               <div className="sq-mono" style={{ fontSize: 10, color: nextAccent, letterSpacing: '0.1em' }}>{next.day.toUpperCase()}</div>
               <div className="sq-display" style={{ fontSize: 18, fontWeight: 700, lineHeight: 1 }}>{next.time.split(':')[0]}</div>

@@ -3,6 +3,7 @@
 // MScreen:    the per-screen column (safe areas + header + scroll + tab bar).
 
 import { Icons } from './Icons';
+import { useNav } from '../navigation/nav';
 import { useT } from '../i18n';
 
 export function PhoneFrame({ children }) {
@@ -45,15 +46,25 @@ export function MScreen({ children, bg = 'var(--sq-bg)', tabBar = null, header =
   );
 }
 
+// The venue tab serves clubs AND academies now, so its label follows whatever
+// the player actually belongs to. A generic word ("Venue") would be correct
+// and cold; "My Academy" is what an academy player would call it themselves.
+const VENUE_LABEL = { club: 'My Club', academy: 'My Academy' };
+
 const TABS = [
   { id: 'profile', icon: Icons.User, label: 'Profile' },
-  { id: 'clubs', icon: Icons.Club, label: 'My Club' },
+  { id: 'venue', icon: Icons.Club, label: 'My Venue' },
   { id: 'discover', icon: Icons.Search, label: 'Discover' },
   { id: 'bookings', icon: Icons.Calendar, label: 'Bookings' },
 ];
 
-export function MTabBar({ active = 'profile', onTab }) {
+export function MTabBar({ active = 'profile', onTab, venueType }) {
   const t = useT();
+  // Read the membership from nav context rather than making every screen pass
+  // it down — otherwise the label says "My Academy" on the academy page and
+  // "My Venue" on every other tab, which reads like two different tabs.
+  const nav = useNav?.();
+  const kind = venueType || nav?.membership?.type;
   return (
     <div
       style={{
@@ -69,6 +80,7 @@ export function MTabBar({ active = 'profile', onTab }) {
       {TABS.map((tab) => {
         const Icon = tab.icon;
         const on = tab.id === active;
+        const label = tab.id === 'venue' ? (VENUE_LABEL[kind] || tab.label) : tab.label;
         return (
           <button
             key={tab.id}
@@ -89,7 +101,7 @@ export function MTabBar({ active = 'profile', onTab }) {
             }}
           >
             <Icon size={21} />
-            <span style={{ fontSize: 9.5, fontWeight: 500, fontFamily: 'var(--sq-display)' }}>{t(tab.label)}</span>
+            <span style={{ fontSize: 9.5, fontWeight: 500, fontFamily: 'var(--sq-display)' }}>{t(label)}</span>
           </button>
         );
       })}

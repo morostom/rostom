@@ -1,8 +1,13 @@
-// MyClubScreen.jsx — what a member sees on entering their club: the LIVE court
-// tracker first, then THEIR OWN schedule (with a link to the full club
-// schedule), plus a "Book a court" entry. Reads live state from the store, so
-// a court the coordinator marks busy shows here instantly; themed in the club's
-// own brand colour.
+// VenueHomeScreen.jsx — the member's home inside the venue they belong to.
+//
+// ONE screen for both clubs and academies, the same way the desktop console
+// is one VenueConsole. A club member and an academy player want the same four
+// things — what's free right now, what they're booked into, who coaches them,
+// and a way to book — so the layout is shared and only the vocabulary and a
+// couple of sections differ by type.
+//
+// Reads live state from the store, so a court the coordinator marks busy shows
+// here instantly, and themes itself in the venue's own brand colour.
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
@@ -11,10 +16,10 @@ import { MScreen, MTabBar } from '../components/mobile';
 import ThemeScope from '../components/ThemeScope';
 import ClubCrest from '../components/ClubCrest';
 import { useNav } from '../navigation/nav';
-import { useStore, sessionAccent } from '../store';
+import { useStore, store, orgInfo } from '../store';
 import { useT } from '../i18n';
-import { durationOf, endTime } from '../lib/pricing';
 import { CLUB } from '../data';
+import { useNow, closesInLabel } from '../lib/live';
 
 const STATUS = {
   lesson: { ring: 'var(--sq-gold)', tag: 'Lesson', cls: 'gold' },
@@ -23,7 +28,7 @@ const STATUS = {
   free: { ring: 'var(--sq-border-2)', tag: 'Open', cls: '' },
 };
 
-function CourtTile({ c, onBook }) {
+function CourtTile({ c, onBook, t }) {
   const m = STATUS[c.status] || STATUS.free;
   const free = c.status === 'free';
   return (
@@ -37,18 +42,18 @@ function CourtTile({ c, onBook }) {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', letterSpacing: '0.06em' }}>COURT {c.court}</span>
+        <span className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', letterSpacing: '0.06em' }}>{t('COURT')} {c.court}</span>
         <span className={'sq-chip ' + (m.cls === 'green' ? '' : m.cls)} style={m.cls === 'green' ? { fontSize: 9.5, padding: '2px 8px', color: 'var(--sq-green)', borderColor: 'rgba(47,179,122,0.25)', background: 'rgba(47,179,122,0.1)' } : { fontSize: 9.5, padding: '2px 8px' }}>
-          {c.status === 'playing' && <span className="sq-live-dot" style={{ background: 'var(--sq-green)' }} />}{m.tag}
+          {c.status === 'playing' && <span className="sq-live-dot" style={{ background: 'var(--sq-green)' }} />}{t(m.tag)}
         </span>
       </div>
       {free ? (
         <>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--sq-text-2)' }}>Available</div>
+            <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--sq-text-2)' }}>{t('Available')}</div>
             <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', marginTop: 3 }}>{c.type}</div>
           </div>
-          <button className="sq-btn-gold" style={{ padding: '8px', fontSize: 12 }} onClick={() => onBook(c)}>Book →</button>
+          <button className="sq-btn-gold" style={{ padding: '8px', fontSize: 12 }} onClick={() => onBook(c)}>{t('Book')} →</button>
         </>
       ) : (
         <>
@@ -57,7 +62,7 @@ function CourtTile({ c, onBook }) {
             {c.coach && <div style={{ fontSize: 11.5, color: 'var(--sq-text-2)', marginTop: 2 }}>{c.coach}</div>}
           </div>
           {c.left != null && (
-            <div className="sq-mono" style={{ fontSize: 10.5, color: m.ring, fontWeight: 600 }}>{c.left}m left</div>
+            <div className="sq-mono" style={{ fontSize: 10.5, color: m.ring, fontWeight: 600 }}>{c.left}m {t('left')}</div>
           )}
         </>
       )}
@@ -78,7 +83,7 @@ function MySessionRow({ s, onOpen }) {
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div className="sq-display" style={{ fontSize: 14.5, fontWeight: 600 }}>{t(s.title)}</div>
-        <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-2)', marginTop: 2 }}>{s.day} · {s.time}–{endTime(s.time, durationOf(s))} · {s.coach} · {t('Court')} {s.court}</div>
+        <div className="sq-mono" style={{ fontSize: 11, color: 'var(--sq-text-2)', marginTop: 2 }}>{s.day} · {s.time} · {s.coach} · {t('Court')} {s.court}</div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 5 }}>
         <span className="sq-chip gold" style={{ fontSize: 9.5, padding: '2px 8px' }}>{t(s.type)}</span>
@@ -92,56 +97,107 @@ function MySessionRow({ s, onOpen }) {
   );
 }
 
-export default function MyClubScreen() {
-  const { nav, player, accountType, child } = useNav();
+// Academies are coach-led — who you train under is the headline fact, so it
+// gets its own rail rather than being buried in a session row.
+function CoachRail({ coaches, t }) {
+  if (!coaches.length) return null;
+  return (
+    <div style={{ padding: '0 20px 22px' }}>
+      <div className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>{t('Your coaches')}</div>
+      <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 2 }}>
+        {coaches.map((c) => (
+          <div key={c.id} className="sq-card" style={{ padding: '13px 14px', minWidth: 132, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ width: 38, height: 38, borderRadius: 19, background: 'color-mix(in srgb, var(--sq-gold) 15%, transparent)', color: 'var(--sq-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700 }}>
+              {c.initials || (c.name || '?').slice(0, 2).toUpperCase()}
+            </div>
+            <div>
+              <div className="sq-display" style={{ fontSize: 13.5, fontWeight: 600, lineHeight: 1.2 }}>{c.name}</div>
+              <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', marginTop: 3 }}>{t(c.role || 'Coach')}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function VenueHomeScreen() {
+  const { nav, player, accountType, child, membership } = useNav();
   const state = useStore();
-  // whichever club this member actually belongs to drives the colour
-  const myFirst = state.sessions.find((x) => x.mine || (player?.name && x.players?.includes(player.name)));
-  const clubAccent = myFirst ? sessionAccent(state, myFirst) : state.clubTheme;
   const t = useT();
+  const now = useNow(30000);
+
+  // which venue this member belongs to, and what kind it is
+  const orgId = membership?.orgId || 'heliopolis';
+  const type = membership?.type === 'academy' ? 'academy' : 'club';
+  const isAcademy = type === 'academy';
+  const org = orgInfo(state, orgId);
+  const accent = org.accent || state.clubTheme;
+
   // a parent views their child's schedule; a player views their own
   const isParent = accountType === 'parent';
   const who = isParent ? child : player?.name;
-  const mine = state.sessions.filter((s) => (isParent ? who && s.players?.includes(who) : (s.mine || (who && s.players?.includes(who)))));
 
-  // branches — Heliopolis runs multiple locations, each its own live board
-  const branches = state.branches.filter((b) => b.org_id === 'heliopolis');
+  const branches = state.branches.filter((b) => b.org_id === orgId);
   const [branch, setBranch] = useState(branches[0]?.id || null);
   const activeBranch = branches.some((b) => b.id === branch) ? branch : (branches[0]?.id || null);
+  const branchIds = new Set(branches.map((b) => b.id));
   const branchCourts = state.courts.filter((c) => c.branch === activeBranch);
   const free = branchCourts.filter((c) => c.status === 'free').length;
 
+  // only this venue's sessions count as "mine" — a player in two places
+  // shouldn't see one venue's squad on the other's home
+  const mine = state.sessions.filter((s) => {
+    const here = !branchIds.size || branchIds.has(s.branch);
+    if (!here) return false;
+    return isParent ? who && s.players?.includes(who) : (s.mine || (who && s.players?.includes(who)));
+  });
+
+  const coaches = state.staff.filter((s) => s.org_id === orgId).slice(0, 8);
+  const cover = org.cover || (orgId === 'heliopolis' ? state.images?.clubCover : state.images?.academyCover);
+  const name = org.name || (isAcademy ? t('Your academy') : CLUB.short);
+
+  const hours = branches.find((b) => b.id === activeBranch);
+  const openLabel = closesInLabel(now, hours?.open_hour != null ? { open: hours.open_hour, close: hours.close_hour ?? 24 } : undefined, t);
+
   return (
-    <ThemeScope accent={clubAccent}>
+    <ThemeScope accent={accent}>
       <MScreen
-        tabBar={<MTabBar active="clubs" onTab={nav.switchTab} />}
+        tabBar={<MTabBar active="venue" onTab={nav.switchTab} venueType={type} />}
         header={
           <div style={{ padding: '4px 20px 12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
-                <ClubCrest size={42} radius={11} />
-                <div>
-                  <div className="sq-display" style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.1 }}>{t(state.clubName || CLUB.short)}</div>
-                  <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', marginTop: 2 }}>{t('SQUASH SECTION')}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 11, minWidth: 0 }}>
+                {org.logo
+                  ? <img src={org.logo} alt="" style={{ width: 42, height: 42, borderRadius: 11, objectFit: 'cover', flexShrink: 0, border: '1px solid var(--sq-border)' }} />
+                  : <ClubCrest size={42} radius={11} />}
+                <div style={{ minWidth: 0 }}>
+                  {/* academy names run long ("Ramy Ashour Squash Academy"),
+                      so allow two lines before clipping rather than cutting
+                      the venue's own name mid-word */}
+                  <div className="sq-display" style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.15, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{t(name)}</div>
+                  <div className="sq-mono" style={{ fontSize: 10, color: 'var(--sq-text-3)', marginTop: 2 }}>
+                    {t(isAcademy ? 'SQUASH ACADEMY' : 'SQUASH SECTION')}
+                  </div>
                 </div>
               </div>
-              <span className="sq-chip" style={{ fontSize: 10.5, color: 'var(--sq-green)', borderColor: 'rgba(47,179,122,0.25)', background: 'rgba(47,179,122,0.1)' }}>
-                <Icons.Check size={11} /> {t('Member')}
+              <span className="sq-chip" style={{ fontSize: 10.5, color: 'var(--sq-green)', borderColor: 'rgba(47,179,122,0.25)', background: 'rgba(47,179,122,0.1)', flexShrink: 0 }}>
+                <Icons.Check size={11} /> {t(isAcademy ? 'Enrolled' : 'Member')}
               </span>
             </div>
           </div>
         }
       >
-        {/* cover photo (from the club console) */}
-        {state.images?.clubCover && (
+        {cover && (
           <div style={{ padding: '0 20px 14px' }}>
             <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', height: 118, border: '1px solid var(--sq-border)' }}>
-              <img src={state.images.clubCover} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src={cover} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(14,11,10,0.85), rgba(0,0,0,0.05))' }} />
+              <span className="sq-mono" style={{ position: 'absolute', left: 12, bottom: 10, fontSize: 10, color: 'rgba(255,255,255,0.86)', letterSpacing: '0.1em' }}>{openLabel}</span>
             </div>
           </div>
         )}
-        {/* branch picker (when the club has more than one location) */}
+
         {branches.length > 1 && (
           <div style={{ padding: '0 20px 12px', display: 'flex', gap: 8, overflowX: 'auto' }}>
             {branches.map((b) => (
@@ -161,20 +217,30 @@ export default function MyClubScreen() {
             </div>
             <span className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-green)' }}>{free} {t('open')}</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            {branchCourts.map((c) => <CourtTile key={c.branch + c.court} c={c} onBook={(court) => nav.push('book', { court, branch: activeBranch })} />)}
-          </div>
+          {branchCourts.length ? (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              {branchCourts.map((c) => <CourtTile key={c.branch + c.court} c={c} t={t} onBook={(court) => nav.push('book', { court, branch: activeBranch })} />)}
+            </div>
+          ) : (
+            <div className="sq-card" style={{ padding: 18, textAlign: 'center', color: 'var(--sq-text-3)', fontSize: 12.5 }}>
+              {t('No courts listed yet.')}
+            </div>
+          )}
           <button className="sq-btn-gold serve-glow-soft" style={{ width: '100%', padding: '14px', fontSize: 14, marginTop: 12 }} onClick={() => nav.push('book', { branch: activeBranch })}>
             <Icons.Plus size={15} style={{ verticalAlign: -3, marginRight: 6 }} /> {t('Book a court')}
           </button>
         </div>
 
+        {isAcademy && <CoachRail coaches={coaches} t={t} />}
+
         {/* your schedule */}
         <div style={{ padding: '0 20px 24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <span className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>{t('Your schedule')}</span>
+            <span className="sq-mono" style={{ fontSize: 10.5, color: 'var(--sq-text-3)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+              {t(isAcademy ? 'Your training' : 'Your schedule')}
+            </span>
             <button onClick={() => nav.push('clubSchedule')} style={{ background: 'none', border: 0, color: 'var(--sq-gold)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--sq-body)' }}>
-              {t('Full club schedule →')}
+              {t(isAcademy ? 'Full academy schedule →' : 'Full club schedule →')}
             </button>
           </div>
           {mine.length ? (
@@ -183,7 +249,9 @@ export default function MyClubScreen() {
             </div>
           ) : (
             <div className="sq-card" style={{ padding: 20, textAlign: 'center', color: 'var(--sq-text-3)', fontSize: 13 }}>
-              {t("No sessions yet. Your coach's lessons & training will appear here.")}
+              {t(isAcademy
+                ? 'No training yet. Sessions your coach adds will appear here.'
+                : "No sessions yet. Your coach's lessons & training will appear here.")}
             </div>
           )}
         </div>

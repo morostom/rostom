@@ -18,7 +18,7 @@ import ProfileHomeScreen from '../screens/ProfileHomeScreen';
 import CardCloseupScreen from '../screens/CardCloseupScreen';
 import ClubsLockedScreen from '../screens/ClubsLockedScreen';
 import JoinClubScreen from '../screens/JoinClubScreen';
-import MyClubScreen from '../screens/MyClubScreen';
+import VenueHomeScreen from '../screens/VenueHomeScreen';
 import ClubScheduleScreen from '../screens/ClubScheduleScreen';
 import BookCourtScreen from '../screens/BookCourtScreen';
 import PaymentScreen from '../screens/PaymentScreen';
@@ -34,11 +34,14 @@ export default function PlayerApp() {
   const [forChild, setForChild] = useState(false);
   const [cardType, setCardType] = useState('competitive');
   const [player, setPlayer] = useState(EMPTY_COMPETITIVE);
-  const [clubJoined, setClubJoined] = useState(false);
+  // Which venue this player belongs to, and what kind it is:
+  // { orgId, type: 'club' | 'academy' } — null until they redeem a code.
+  const [membership, setMembership] = useState(null);
+  const clubJoined = !!membership;
   const [accountType, setAccountType] = useState('player'); // 'player' | 'parent'
   const [child, setChild] = useState(null); // parent's linked child name
 
-  const app = { account, setAccount, forChild, setForChild, cardType, setCardType, player, setPlayer, clubJoined, setClubJoined, accountType, setAccountType, child, setChild };
+  const app = { account, setAccount, forChild, setForChild, cardType, setCardType, player, setPlayer, clubJoined, membership, setMembership, accountType, setAccountType, child, setChild };
 
   function render(entry) {
     const { name, params } = entry;
@@ -51,7 +54,8 @@ export default function PlayerApp() {
       case 'profile': return accountType === 'parent' ? <ParentHomeScreen /> : <ProfileHomeScreen justCreated={params.justCreated} />;
       // a parent's child is the member — show the club (with the child's
       // schedule) directly, no access code needed.
-      case 'clubs': return (clubJoined || (accountType === 'parent' && child)) ? <MyClubScreen /> : <ClubsLockedScreen />;
+      case 'venue':
+      case 'clubs': return (clubJoined || (accountType === 'parent' && child)) ? <VenueHomeScreen /> : <ClubsLockedScreen />;
       case 'clubSchedule': return <ClubScheduleScreen />;
       case 'book': return <BookCourtScreen court={params.court} />;
       case 'payment': return <PaymentScreen {...params} />;

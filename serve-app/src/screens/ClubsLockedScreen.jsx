@@ -1,6 +1,9 @@
-// ClubsLockedScreen.jsx — the Clubs tab before you've joined. Clubs are
-// members-only, so this is a locked empty state that routes to the access-code
-// flow. Once a code is accepted the Clubs tab becomes MyClub instead.
+// ClubsLockedScreen.jsx — the venue tab before you've joined anything.
+//
+// Both clubs and academies issue access codes: anyone can BOOK an academy
+// court from Discover, but your squad, your coaches and your training
+// schedule belong to the venue that enrolled you. Once a code is accepted
+// this becomes VenueHomeScreen.
 
 import { Icons } from '../components/Icons';
 import SQLogo from '../components/SQLogo';
@@ -15,11 +18,11 @@ export default function ClubsLockedScreen() {
 
   return (
     <MScreen
-      tabBar={<MTabBar active="clubs" onTab={nav.switchTab} />}
+      tabBar={<MTabBar active="venue" onTab={nav.switchTab} />}
       header={
         <div style={{ padding: '4px 20px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <h1 className="sq-display" style={{ margin: 0, fontSize: 30, fontWeight: 700, letterSpacing: '-0.03em' }}>
-            {t('Clubs')}
+            {t('My Venue')}
           </h1>
           <SQLogo size={18} />
         </div>
@@ -48,7 +51,7 @@ export default function ClubsLockedScreen() {
               {t('Members only')}
             </h2>
             <p style={{ margin: '8px 0 0', color: 'var(--sq-text-2)', fontSize: 14, lineHeight: 1.5, maxWidth: 290, textWrap: 'pretty' }}>
-              {t("Clubs are private. Unlike academies, only registered members can see a club's schedule and live courts — so you'll need an access code from your club's squash office.")}
+              {t("Your club or academy gives you a code when they register you. It unlocks their live courts, your training schedule and your coaches. Anyone can book an academy court from Discover without one.")}
             </p>
           </div>
         </div>
@@ -102,7 +105,7 @@ export default function ClubsLockedScreen() {
             <Icons.Ticket size={17} /> {t('Enter access code')}
           </button>
           <p style={{ margin: 0, textAlign: 'center', fontSize: 12.5, color: 'var(--sq-text-3)', lineHeight: 1.5 }}>
-            {t('Already a member? Your squash office sends codes over WhatsApp — paste yours to unlock the club.')}
+            {t('Already registered? Clubs and academies send codes over WhatsApp — paste yours to unlock your venue.')}
           </p>
         </div>
       </div>
