@@ -58,11 +58,42 @@ Deno.serve(async (req) => {
   try { payload = await req.json(); } catch { return json({ error: 'bad json' }, 400); }
 
   const identifier = normId(String(payload.identifier || ''));
-  const title = String(payload.title || 'SERVE');
-  const body = String(payload.body || '');
-  const kind = String(payload.kind || 'general');
+  // Cap what a caller can put on someone's lock screen. Without this the
+  // notification body is an unbounded, attacker-chosen string.
+  const title = String(payload.title || 'SERVE').slice(0, 120);
+  const body = String(payload.body || '').slice(0, 300);
+  const kind = String(payload.kind || 'general').slice(0, 40);
   const urgent = payload.urgent === true;
   if (!identifier) return json({ error: 'identifier required' }, 400);
+
+  // ── authorization ──────────────────────────────────────────────────
+  // Being signed in is NOT enough. Without this check any account could
+  // push an arbitrary banner to any phone number it could guess — an ideal
+  // phishing channel ("SERVE: your payment failed, tap here"). A caller may
+  // only reach: themselves, a parent they are actually linked to as the
+  // child, or — for a venue broadcast — a member of an org they own.
+  const { data: me } = await admin
+    .from('profiles').select('name, identifier, card').eq('id', caller.user.id).maybeSingle();
+  const myIdent = normId(me?.identifier || '');
+  const myName = (me?.name || me?.card?.name || '').trim().toLowerCase();
+
+  let allowed = identifier === myIdent;
+
+  if (!allowed && myName) {
+    const { data: links } = await admin
+      .from('parent_links').select('parent_identifier')
+      .ilike('child_name', myName);
+    allowed = (links || []).some((l) => normId(l.parent_identifier) === identifier);
+  }
+
+  // Venue broadcast: the caller names the org, and we check they own it.
+  if (!allowed && payload.orgId) {
+    const { data: org } = await admin
+      .from('org_settings').select('owner_id').eq('id', String(payload.orgId)).maybeSingle();
+    allowed = !!org && org.owner_id === caller.user.id;
+  }
+
+  if (!allowed) return json({ error: 'not allowed to notify that recipient' }, 403);
 
   const { data: subs, error } = await admin
     .from('push_subscriptions')

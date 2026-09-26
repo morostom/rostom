@@ -35,7 +35,7 @@ export async function hydrate() {
     supabase.from('reviews').select('*').order('created_at', { ascending: true }),
     supabase.from('cancellations').select('*').order('created_at', { ascending: true }),
     supabase.from('branches').select('*').order('created_at', { ascending: true }),
-    supabase.from('profiles').select('name, card'),
+    supabase.from('player_cards').select('name, age, division, rank_label, rank_verified, club'),
   ]);
   const patch = {};
   if (branches.data?.length) patch.branches = branches.data.map(branchFromRow);
@@ -49,13 +49,17 @@ export async function hydrate() {
   if (reviews.data) patch.reviews = reviews.data.map(reviewFromRow);
   if (cancellations.data) patch.cancellations = cancellations.data.map(cancellationFromRow);
   if (profiles.data) {
-    // real player cards, keyed by lowercase name — only the public-safe
-    // fields (name · age · division · ranking · club), never the full card
+    // Rosters read the player_cards VIEW, not the profiles table: the view
+    // exposes name · age · division · ranking · club and nothing else, so a
+    // teammate's phone number and photo never leave the database. Filtering
+    // this client-side (as this used to) still put it on the wire.
     const cards = {};
     for (const row of profiles.data) {
-      const c = row.card;
-      if (!c || c.kind === 'admin' || c.kind === 'parent' || !c.name) continue;
-      cards[c.name.toLowerCase()] = { name: c.name, age: c.age, division: c.division, rankLabel: c.rankLabel, rankVerified: !!c.rankVerified, club: c.club };
+      if (!row.name) continue;
+      cards[row.name.toLowerCase()] = {
+        name: row.name, age: row.age, division: row.division,
+        rankLabel: row.rank_label, rankVerified: !!row.rank_verified, club: row.club,
+      };
     }
     patch.playerCards = cards;
   }
@@ -211,7 +215,9 @@ export async function orgOwnership(orgType) {
   return { ownerId, mine: !ownerId || ownerId === uid };
 }
 export async function addReview(r) {
-  await supabase.from('reviews').insert({ venue_id: r.venue_id, venue_name: r.venue_name ?? null, player: r.player ?? null, rating: r.rating, comment: r.comment ?? null });
+  // user_id is what lets a reviewer edit their own review and nobody else's
+  const { data: u } = await supabase.auth.getUser();
+  await supabase.from('reviews').insert({ venue_id: r.venue_id, venue_name: r.venue_name ?? null, player: r.player ?? null, rating: r.rating, comment: r.comment ?? null, user_id: u?.user?.id ?? null });
 }
 export async function addCancellation(c) {
   await supabase.from('cancellations').insert({ session_id: String(c.session_id ?? ''), session_title: c.session_title ?? null, club_id: c.club_id || 'heliopolis', coach: c.coach ?? null, player: c.player ?? null, parent_identifier: c.parent_identifier ?? null, reason: c.reason ?? null, status: c.status || 'cancelled' });
